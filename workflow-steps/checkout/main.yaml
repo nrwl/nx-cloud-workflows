@@ -3,4 +3,4 @@ description: 'An NxCloud workflow step for checking out a repo'
 
 definition:
   using: 'node'
-  main: workflow-steps/checkout/dist/main.js
+  main: workflow-steps/checkout/output/main.js
