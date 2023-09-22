@@ -1,6 +1,6 @@
 import { createPromiseClient } from '@bufbuild/connect';
 import { createConnectTransport } from '@bufbuild/connect-web';
-import { CacheService } from '../../../protos/src/lib/cache_connect';
+import { CacheService } from './generated_protos/cache_connect';
 
 export const cacheClient = createPromiseClient(
     CacheService,
