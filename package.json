@@ -1,0 +1,16 @@
+{
+  "name": "nx-cloud-workflows",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {},
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "@nx/js": "16.8.1",
+    "nx": "16.8.1",
+    "nx-cloud": "latest"
+  },
+  "workspaces": [
+    "workflow-steps/*"
+  ]
+}
