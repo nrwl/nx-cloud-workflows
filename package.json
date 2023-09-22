@@ -11,6 +11,6 @@
     "nx-cloud": "latest"
   },
   "workspaces": [
-    "packages/*"
+    "workflow-steps/*"
   ]
 }
