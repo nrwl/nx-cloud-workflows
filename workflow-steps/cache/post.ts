@@ -1,6 +1,11 @@
-import { createPromiseClient } from '@bufbuild/connect';
-import { createConnectTransport } from '@bufbuild/connect-web';
-import { CacheService } from './generated_protos/cache_connect';
+import {createPromiseClient} from '@bufbuild/connect';
+import {createConnectTransport} from '@bufbuild/connect-web';
+import {CacheService} from './generated_protos/cache_connect';
+import {
+    StoreRequest,
+    StoreResponse,
+} from './generated_protos/cache_pb';
+import {hashKey} from "./hashing-utils";
 
 export const cacheClient = createPromiseClient(
     CacheService,
@@ -9,27 +14,18 @@ export const cacheClient = createPromiseClient(
     })
 );
 
-const keys = process.env.CACHE_KEYS;
+if (!process.env.KEY || !process.env.PATHS) {
+    throw new Error('No cache restore key or paths provided.');
+}
+const key = hashKey(process.env.KEY);
+const paths = process.env.PATHS.split('\n').filter(p => p);
 
-console.log('mock running POST STORE');
-
-/*
-Question:
-  I save on a main key, and I have fallback keys
-  when I store, if there wasn't a hit, I can save on the same main key
-  but what about the fallback keys?
-    how will "main" work? it should store based on "nxbranch | yarn.lock" so it gets the latest dependencies
-    but then do I save on all the fallback keys?
-
-  or should it save on multiple keys?
- */
-
-// cacheClient.store(
-//   new StoreRequest({
-//     key: 'main',
-//     // keys: [hash('./yarn.lock') + '{{ currentBranch }}', 'main'],
-//     paths: ['node_modules_mock'],
-//   })
-// );
-
-// https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache
+cacheClient.store(
+    new StoreRequest({
+        key,
+        paths,
+    })
+).then((r: StoreResponse) => {
+    console.log("Storing was successful: ", r.success);
+    console.log("Was it skipped", r.skipped);
+});
