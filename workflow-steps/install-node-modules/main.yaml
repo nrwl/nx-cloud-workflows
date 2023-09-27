@@ -1,0 +1,19 @@
+name: Install Node Modules
+description: Installs node_modules using your configured package manager.
+
+definition:
+  using: aggregated
+  steps:
+  - name: Install Node Modules
+    script: |
+      PACKAGE_LOCK=package-lock.json
+      if test -f "$PACKAGE_LOCK"; then
+          echo "Using npm"
+          npm ci
+      fi
+
+      YARN_LOCK=yarn.lock
+      if test -f "$YARN_LOCK"; then
+          echo "Using yarn"
+          yarn ci
+      fi
