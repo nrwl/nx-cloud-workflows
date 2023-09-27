@@ -14,13 +14,13 @@ definition:
       if test -f "$PACKAGE_LOCK_FILEPATH"; then
           echo "Using npm"
           exit
-      elseif test -f "$YARN_LOCK_FILEPATH"; then
+      fi
+      if test -f "$YARN_LOCK_FILEPATH"; then
           echo "Using yarn"
           yarn
-      elseif
-          echo "Failed to detect package manager"
-          exit 1
       fi
+      echo "Failed to detect package manager"
+      exit 1
   - name: Run Agent
     env:
       CI: 'true'
