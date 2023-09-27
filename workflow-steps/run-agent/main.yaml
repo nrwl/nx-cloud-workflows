@@ -19,7 +19,8 @@ definition:
       if test -f "$YARN_LOCK_FILEPATH"; then
           echo "Using yarn"
           yarn ci
-      fi  - name: Run Agent
+      fi
+  - name: Run Agent
     env:
       CI: 'true'
     script: |
