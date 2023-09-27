@@ -5,6 +5,7 @@ var commitSha = process.env.NX_COMMIT_SHA;
 var commitRef = process.env.NX_COMMIT_REF;
 var branch = process.env.NX_BRANCH;
 var depth = process.env.GIT_CHECKOUT_DEPTH || 1;
+(0, import_child_process.execSync)(`git config --global --add safe.directory /home/workflows/workspace`);
 (0, import_child_process.execSync)("git init .");
 (0, import_child_process.execSync)(`git remote add origin ${repoUrl}`);
 (0, import_child_process.execSync)(
