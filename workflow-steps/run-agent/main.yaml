@@ -7,7 +7,19 @@ definition:
   - name: Git Checkout
     uses: nrwl/nx-cloud-workflows/v1.0/workflow-steps/checkout/main.yaml
   - name: Install Node Modules
-    uses: nrwl/nx-cloud-workflows/v1.0/workflow-steps/install-node-modules/main.yaml
+    env:
+      PACKAGE_LOCK_FILEPATH: package-lock.json
+      YARN_LOCK_FILEPATH: yarn.lock
+    script: |
+      if test -f "$PACKAGE_LOCK_FILEPATH"; then
+          echo "Using npm"
+          npm ci
+      fi
+
+      if test -f "$YARN_LOCK_FILEPATH"; then
+          echo "Using yarn"
+          yarn ci
+      fi
   - name: Run Agent
     env:
       CI: 'true'
