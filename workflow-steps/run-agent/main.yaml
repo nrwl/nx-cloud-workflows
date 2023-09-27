@@ -1,0 +1,15 @@
+name: Run Agent
+description: Runs the Nx Cloud DTE agent
+
+definition:
+  using: aggregated
+  steps:
+  - name: Git Checkout
+    uses: nrwl/nx-cloud-workflows/v1.0/workflow-steps/checkout/main.yaml
+  - name: Install Node Modules
+    uses: nrwl/nx-cloud-workflows/v1.0/workflow-steps/install-node-modules/main.yaml
+  - name: Run Agent
+    env:
+      CI: 'true'
+    script: |
+      npx nx-cloud start-agent
