@@ -27,5 +27,5 @@ cacheClient.store(
     })
 ).then((r: StoreResponse) => {
     console.log("Storing was successful: ", r.success);
-    console.log("Was it skipped", r.skipped);
+    if (r.skipped) console.log("Skipped storing to cache, another instance has already started the upload");
 });
