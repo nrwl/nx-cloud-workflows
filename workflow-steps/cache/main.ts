@@ -34,5 +34,5 @@ cacheClient
     )
     .then((resp: RestoreResponse) => {
         console.log('Cache hit found: ' + resp.success);
-        console.log('Found under key: ' + resp.key);
+        if (resp.success) console.log('Found under key: ' + resp.key);
     });
