@@ -2410,12 +2410,12 @@ var require_glob = __commonJS({
   }
 });
 
-// main.ts
-var main_exports = {};
-__export(main_exports, {
+// post.ts
+var post_exports = {};
+__export(post_exports, {
   cacheClient: () => cacheClient
 });
-module.exports = __toCommonJS(main_exports);
+module.exports = __toCommonJS(post_exports);
 
 // ../../node_modules/@bufbuild/connect/dist/esm/code.js
 var Code;
@@ -5976,30 +5976,28 @@ function hashKey(key2) {
   return [...hardcodedKeys, ...globHashes].join(" | ");
 }
 
-// main.ts
+// post.ts
 var cacheClient = createPromiseClient(
   CacheService,
   createConnectTransport({
     baseUrl: "http://127.0.0.1:9000"
   })
 );
-if (!process.env.KEY) {
-  throw new Error("No cache restore key provided.");
+if (!process.env.KEY || !process.env.PATHS) {
+  throw new Error("No cache restore key or paths provided.");
 }
 var key = hashKey(process.env.KEY);
-var fallbackKeys = [];
-if (process.env.FALLBACK_KEYS) {
-  fallbackKeys = process.env.FALLBACK_KEYS.split(`
-`).filter((key2) => key2).map((key2) => key2.trim()).map((key2) => hashKey(key2));
-}
-cacheClient.restore(
-  new RestoreRequest({
-    keys: [key, ...fallbackKeys]
+var paths = process.env.PATHS.split("\n").filter((p) => p);
+cacheClient.store(
+  new StoreRequest({
+    key,
+    paths
   })
-).then((resp) => {
-  console.log("Cache hit found: " + resp.success);
-  if (resp.success)
-    console.log("Found under key: " + resp.key);
+).then((r) => {
+  if (r.success)
+    console.log("Successfully stored to cache");
+  if (r.skipped)
+    console.log("Skipped storing to cache, another instance has already started the upload");
 });
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

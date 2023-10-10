@@ -13,7 +13,7 @@
   "devDependencies": {
     "@nx/js": "16.8.1",
     "nx": "16.8.1",
-    "nx-cloud": "latest"
+    "nx-cloud": "^16.4.0"
   },
   "workspaces": [
     "workflow-steps/*"
