@@ -18,11 +18,6 @@
     "nx": "16.8.1",
     "nx-cloud": "^16.4.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-push": "node ./scripts/build-all.js"
-    }
-  },
   "workspaces": [
     "workflow-steps/*"
   ]
