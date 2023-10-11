@@ -9999,7 +9999,7 @@ if (process.env.FALLBACK_KEYS) {
 }
 var baseKeys = [key, ...fallbackKeys];
 var currentBranchKeys = baseKeys.map((k) => `${currentBranch}-${k}`);
-var baseBranchKeys = baseKeys.map((k) => `${baseBranch}-${k}`);
+var baseBranchKeys = baseBranch ? baseKeys.map((k) => `${baseBranch}-${k}`) : [];
 cacheClient.restore(
   new RestoreRequest({
     keys: [...currentBranchKeys, ...baseBranchKeys]
