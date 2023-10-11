@@ -1,0 +1,7 @@
+name: 'NxCloud Cache Step'
+description: 'An NxCloud workflow step for caching artefacts in a repo'
+
+definition:
+  using: 'node'
+  main: workflow-steps/cache/output/main.js
+  post: workflow-steps/cache/output/post.js
