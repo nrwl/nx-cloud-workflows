@@ -14,10 +14,13 @@ export const cacheClient = createPromiseClient(
     })
 );
 
+const currentBranch = process.env.NX_BRANCH;
+const baseBranch = process.env.BASE_BRANCH;
+
 if (!process.env.KEY) {
     throw new Error('No cache restore key provided.');
 }
-const key = hashKey(process.env.KEY);
+const key = `${hashKey(process.env.KEY)}`;
 let fallbackKeys = [];
 if (process.env.FALLBACK_KEYS) {
     fallbackKeys = process.env.FALLBACK_KEYS.split(`\n`)
@@ -26,10 +29,14 @@ if (process.env.FALLBACK_KEYS) {
         .map(key => hashKey(key));
 }
 
+const baseKeys = [key, ...fallbackKeys];
+const currentBranchKeys = baseKeys.map(k => `${currentBranch}-${key}`);
+const baseBranchKeys = baseKeys.map(k => `${baseBranch}-${key}`);
+
 cacheClient
     .restore(
         new RestoreRequest({
-            keys: [key, ...fallbackKeys],
+            keys: [...currentBranchKeys, ...baseBranchKeys],
         })
     )
     .then((resp: RestoreResponse) => {

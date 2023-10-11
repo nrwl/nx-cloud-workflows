@@ -14,6 +14,7 @@ export const cacheClient = createPromiseClient(
     })
 );
 
+const currentBranch = process.env.NX_BRANCH;
 if (!process.env.KEY || !process.env.PATHS) {
     throw new Error('No cache restore key or paths provided.');
 }
@@ -22,7 +23,7 @@ const paths = process.env.PATHS.split('\n').filter(p => p);
 
 cacheClient.store(
     new StoreRequest({
-        key,
+        key: `${currentBranch}-${key}`,
         paths,
     })
 ).then((r: StoreResponse) => {
