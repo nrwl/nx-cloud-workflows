@@ -26,6 +26,6 @@ cacheClient.store(
         paths,
     })
 ).then((r: StoreResponse) => {
-    if (r.success) console.log("Successfully stored to cache");
+    if (r.success) console.log(`Successfully stored to cache under key ${key}`);
     if (r.skipped) console.log("Skipped storing to cache, another instance has already started the upload");
 });
