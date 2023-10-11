@@ -15,6 +15,13 @@
       }
     }
   },
+  "targetDefaults": {
+    "build": {
+      "outputs": [
+        "{projectRoot}/output"
+      ]
+    }
+  },
   "workspaceLayout": {
     "projectNameAndRootFormat": "as-provided"
   }
