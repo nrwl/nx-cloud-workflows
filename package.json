@@ -2,7 +2,9 @@
   "name": "nx-cloud-workflows",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "check-build": "node ./scripts/build-all.js"
+  },
   "private": true,
   "dependencies": {
     "@bufbuild/connect": "^0.13.0",
@@ -12,8 +14,16 @@
   },
   "devDependencies": {
     "@nx/js": "16.8.1",
+    "husky": "^8.0.3",
+    "install": "^0.13.0",
+    "npm": "^10.2.0",
     "nx": "16.8.1",
     "nx-cloud": "^16.4.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm check-build"
+    }
   },
   "workspaces": [
     "workflow-steps/*"
