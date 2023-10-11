@@ -30,8 +30,8 @@ if (process.env.FALLBACK_KEYS) {
 }
 
 const baseKeys = [key, ...fallbackKeys];
-const currentBranchKeys = baseKeys.map(k => `${currentBranch}-${key}`);
-const baseBranchKeys = baseKeys.map(k => `${baseBranch}-${key}`);
+const currentBranchKeys = baseKeys.map(k => `${currentBranch}-${k}`);
+const baseBranchKeys = baseKeys.map(k => `${baseBranch}-${k}`);
 
 cacheClient
     .restore(
