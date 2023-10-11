@@ -22,6 +22,7 @@ if (!process.env.KEY) {
 }
 const key = `${hashKey(process.env.KEY)}`;
 let fallbackKeys = [];
+// this doesn't work yet - we need to update the cache client to do "fallback key" searching
 if (process.env.FALLBACK_KEYS) {
     fallbackKeys = process.env.FALLBACK_KEYS.split(`\n`)
         .filter(key => key)
