@@ -1,0 +1,25 @@
+name: Install Node
+description: Installs a specific node version or loads it from the root .nvmrc file
+
+definition:
+  using: aggregated
+  steps:
+    - name: Install NVM
+      script: |
+        unset NPM_CONFIG_PREFIX
+        echo -e '\nunset NPM_CONFIG_PREFIX\nexport NVM_DIR="$HOME/.nvm"\n[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.bashrc
+        PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash'
+        source ~/.bashrc
+    - name: Install Node
+      script: |
+        # Install Node.js based on the .nvmrc file or a specified version
+        if [ -f .nvmrc ]; then
+          nvm install
+          nvm alias default $(cat .nvmrc)
+        else
+          nvm install ${NODE_VERSION}
+          nvm alias default ${NODE_VERSION}
+        fi
+    - name: Print Node Version
+      script: |
+        node --version
