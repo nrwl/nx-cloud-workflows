@@ -1,0 +1,37 @@
+launch-templates:
+  linux-medium-yarn:
+    resourceClass: "docker_linux_amd64/medium"
+    env:
+      CI: 'true'
+      YARN_CACHE_FOLDER: ~/workspace/node_modules
+      NX_CLOUD_ACCESS_TOKEN: '{{secrets.NX_CLOUD_ACCESS_TOKEN}}'
+    init-steps:
+      - name: checkout repo
+        uses: 'nrwl/nx-cloud-workflows/v1.1/workflow-steps/checkout/main.yaml'
+      - name: node_modules cache
+        uses: 'nrwl/nx-cloud-workflows/v1.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'yarn.lock'
+          PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Yarn Install
+        script: |
+          yarn install --frozen-lockfile
+  linux-large-yarn:
+    resourceClass: "docker_linux_amd64/large"
+    env:
+      CI: 'true'
+      YARN_CACHE_FOLDER: ~/workspace/node_modules
+      NX_CLOUD_ACCESS_TOKEN: '{{secrets.NX_CLOUD_ACCESS_TOKEN}}'
+    init-steps:
+      - name: checkout repo
+        uses: 'nrwl/nx-cloud-workflows/v1.1/workflow-steps/checkout/main.yaml'
+      - name: node_modules cache
+        uses: 'nrwl/nx-cloud-workflows/v1.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'yarn.lock'
+          PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Yarn Install
+        script: |
+          yarn install --frozen-lockfile
