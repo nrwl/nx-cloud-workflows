@@ -5,16 +5,13 @@ definition:
   using: aggregated
   steps:
   - name: Install Node Modules
-    env:
-      PACKAGE_LOCK_FILEPATH: package-lock.json
-      YARN_LOCK_FILEPATH: yarn.lock
     script: |
-      if test -f "$PACKAGE_LOCK_FILEPATH"; then
+      if test -f "package-lock.json"; then
           echo "Using npm"
           npm ci
           exit
       fi
-      if test -f "$YARN_LOCK_FILEPATH"; then
+      if test -f "yarn.lock"; then
           echo "Using yarn"
           yarn install --frozen-lockfile
           exit
