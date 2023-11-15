@@ -1,5 +1,5 @@
 launch-templates:
-  linux-medium:
+  linux-medium-js:
     resourceClass: "docker_linux_amd64/medium"
     env:
       NX_CLOUD_ACCESS_TOKEN: '{{secrets.NX_CLOUD_ACCESS_TOKEN}}'
@@ -14,7 +14,7 @@ launch-templates:
           BASE_BRANCH: 'main'
       - name: NPM Install
         uses: 'nrwl/nx-cloud-workflows/v1.1/workflow-steps/install-node-modules/main.yaml'
-  linux-large:
+  linux-large-js:
     resourceClass: "docker_linux_amd64/large"
     env:
       CI: 'true'
