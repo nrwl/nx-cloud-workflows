@@ -17,8 +17,6 @@ launch-templates:
   linux-large-js:
     resourceClass: "docker_linux_amd64/large"
     env:
-      CI: 'true'
-      YARN_CACHE_FOLDER: ~/workspace/node_modules
       NX_CLOUD_ACCESS_TOKEN: '{{secrets.NX_CLOUD_ACCESS_TOKEN}}'
     init-steps:
       - name: checkout repo
