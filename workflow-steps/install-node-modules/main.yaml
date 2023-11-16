@@ -4,7 +4,7 @@ description: Installs node_modules using your configured package manager.
 definition:
   using: aggregated
   steps:
-  - name: Install Node Modules
+  - name: Detect package manager
     script: |
       if test -f "package-lock.json"; then
           echo "Using npm"
