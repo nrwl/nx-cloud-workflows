@@ -2,19 +2,5 @@ name: Install Node Modules 2
 description: Installs node_modules using your configured package manager.
 
 definition:
-  using: aggregated
-  steps:
-  - name: Detect package manager
-    script: |
-      if test -f "package-lock.json"; then
-          echo "Using npm"
-          npm ci
-          exit
-      fi
-      if test -f "yarn.lock"; then
-          echo "Using yarn"
-          yarn install --frozen-lockfile
-          exit
-      fi
-      echo "Failed to detect package manager"
-      exit 1
+  using: 'node'
+  main: workflow-steps/install-node-modules/main.js
