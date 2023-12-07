@@ -11,7 +11,7 @@ execSync(`git config --global --add safe.directory /home/workflows/workspace`);
 execSync("git init .");
 execSync(`git remote add origin ${repoUrl}`);
 
-if (depth === "0") {
+if (Number(depth) === 0) {
   // Fetch all history and tags if depth is 0
   execSync(
     `git fetch --prune --progress --no-recurse-submodules --tags origin ${commitRef}`
