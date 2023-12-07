@@ -4,6 +4,7 @@ const repoUrl = process.env.GIT_REPOSITORY_URL;
 const commitSha = process.env.NX_COMMIT_SHA;
 const nxBranch = process.env.NX_BRANCH; // This can be a PR number or a branch name
 const depth = process.env.GIT_CHECKOUT_DEPTH || 1;
+const fetchTags = process.env.GIT_FETCH_TAGS === 'true';
 
 const isPR = !isNaN(parseInt(nxBranch!)); // Check if NX_BRANCH is a PR number
 
@@ -28,8 +29,9 @@ if (depth === '0') {
 } else {
   // Fetch with specified depth
   const fetchRef = isPR ? `pull/${nxBranch}/head` : `${nxBranch}`;
+  const tagsArg = fetchTags ? ' --tags' : '--no-tags';
   execSync(
-    `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=${depth} origin ${fetchRef}`,
+    `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${fetchRef}`,
   );
   // Checkout the branch or PR
   const checkoutRef = isPR ? 'FETCH_HEAD' : `origin/${nxBranch}`;

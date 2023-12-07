@@ -4,6 +4,7 @@ var repoUrl = process.env.GIT_REPOSITORY_URL;
 var commitSha = process.env.NX_COMMIT_SHA;
 var nxBranch = process.env.NX_BRANCH;
 var depth = process.env.GIT_CHECKOUT_DEPTH || 1;
+var fetchTags = process.env.GIT_FETCH_TAGS === "true";
 var isPR = !isNaN(parseInt(nxBranch));
 (0, import_child_process.execSync)(`git config --global --add safe.directory /home/workflows/workspace`);
 (0, import_child_process.execSync)("git init .");
@@ -21,8 +22,9 @@ if (depth === "0") {
   (0, import_child_process.execSync)(`git checkout --progress --force ${checkoutRef}`);
 } else {
   const fetchRef = isPR ? `pull/${nxBranch}/head` : `${nxBranch}`;
+  const tagsArg = fetchTags ? " --tags" : "--no-tags";
   (0, import_child_process.execSync)(
-    `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=${depth} origin ${fetchRef}`
+    `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${fetchRef}`
   );
   const checkoutRef = isPR ? "FETCH_HEAD" : `origin/${nxBranch}`;
   (0, import_child_process.execSync)(`git checkout --progress --force -B ${nxBranch} ${checkoutRef}`);
