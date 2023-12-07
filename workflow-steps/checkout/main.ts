@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execSync } from "child_process";
 
 const repoUrl = process.env.GIT_REPOSITORY_URL;
 const commitSha = process.env.NX_COMMIT_SHA;
@@ -14,10 +14,10 @@ execSync(`git remote add origin ${repoUrl}`);
 if (depth === "0") {
   // Fetch all history and tags if depth is 0
   execSync(
-    "git fetch --prune --progress --no-recurse-submodules --tags origin"
+    `git fetch --prune --progress --no-recurse-submodules --tags origin ${commitRef}`
   );
 } else {
-  // Fetch with specified depth
+  // Fetch with specified depth and optionally tags
   const tagOption = fetchTags ? "--tags" : "--no-tags";
   execSync(
     `git fetch ${tagOption} --prune --progress --no-recurse-submodules --depth=${depth} origin +${commitSha}:${commitRef}`
