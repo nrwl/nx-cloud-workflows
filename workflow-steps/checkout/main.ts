@@ -6,7 +6,8 @@ const nxBranch = process.env.NX_BRANCH; // This can be a PR number or a branch n
 const depth = process.env.GIT_CHECKOUT_DEPTH || 1;
 const fetchTags = process.env.GIT_FETCH_TAGS === 'true';
 
-const isPR = !isNaN(parseInt(nxBranch!)); // Check if NX_BRANCH is a PR number
+// TODO: infer this in cases where the NX_BRANCH is a branch name despite being a PR (certain CI providers, not GitHub)
+const isPR = !isNaN(parseInt(nxBranch!));
 
 execSync(`git config --global --add safe.directory /home/workflows/workspace`);
 execSync('git init .');
