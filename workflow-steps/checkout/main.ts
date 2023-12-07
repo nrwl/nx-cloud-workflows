@@ -4,10 +4,9 @@ const repoUrl = process.env.GIT_REPOSITORY_URL;
 const commitSha = process.env.NX_COMMIT_SHA;
 const commitRef = process.env.NX_COMMIT_REF;
 const branch = process.env.NX_BRANCH;
-const depth = process.env.GIT_CHECKOUT_DEPTH || 1;
+// A valid special-case depth can be zero (full history and tags), so we don't want to use || here
+const depth = process.env.GIT_CHECKOUT_DEPTH ?? 1;
 const fetchTags = process.env.GIT_FETCH_TAGS === "true";
-
-console.log({ depth, to: typeof depth });
 
 execSync(`git config --global --add safe.directory /home/workflows/workspace`);
 execSync("git init .");
