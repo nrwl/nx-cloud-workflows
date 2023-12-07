@@ -2,7 +2,6 @@ import { execSync } from 'node:child_process';
 
 const repoUrl = process.env.GIT_REPOSITORY_URL;
 const commitSha = process.env.NX_COMMIT_SHA;
-const commitRef = process.env.NX_COMMIT_REF;
 const branch = process.env.NX_BRANCH;
 const depth = process.env.GIT_CHECKOUT_DEPTH || 1;
 
@@ -11,15 +10,17 @@ execSync('git init .');
 execSync(`git remote add origin ${repoUrl}`);
 
 if (depth === '0') {
-  // Fetch all history and tags if depth is 0
+  // Fetch all history, all branches, and tags if depth is 0
   execSync(
-    `git fetch --prune --progress --no-recurse-submodules --tags origin`,
+    'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"',
   );
-  execSync(`git checkout --progress --force -B ${branch} ${commitSha}`);
+  // Checkout using commit SHA directly
+  execSync(`git checkout --progress --force ${commitSha}`);
 } else {
   // Fetch with specified depth
   execSync(
-    `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=${depth} origin +${commitSha}:${commitRef}`,
+    `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=${depth} origin ${branch}`,
   );
-  execSync(`git checkout --progress --force -B ${branch} ${commitRef}`);
+  // Checkout the branch
+  execSync(`git checkout --progress --force -B ${branch} origin/${branch}`);
 }
