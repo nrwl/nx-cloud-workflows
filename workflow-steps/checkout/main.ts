@@ -14,8 +14,8 @@ if (depth === '0') {
   execSync(
     'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"',
   );
-  // Checkout using commit SHA directly
-  execSync(`git checkout --progress --force ${commitSha}`);
+  // Checkout the branch
+  execSync(`git checkout --progress --force -B ${branch} origin/${branch}`);
 } else {
   // Fetch with specified depth
   execSync(

@@ -11,7 +11,7 @@ if (depth === "0") {
   (0, import_node_child_process.execSync)(
     'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"'
   );
-  (0, import_node_child_process.execSync)(`git checkout --progress --force ${commitSha}`);
+  (0, import_node_child_process.execSync)(`git checkout --progress --force -B ${branch} origin/${branch}`);
 } else {
   (0, import_node_child_process.execSync)(
     `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=${depth} origin ${branch}`
