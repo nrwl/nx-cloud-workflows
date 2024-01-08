@@ -6,6 +6,7 @@
     "workflow-steps/*"
   ],
   "scripts": {
+    "postinstall": "husky install",
     "prepare": "husky install",
     "check-build": "node scripts/build-all.js"
   },
