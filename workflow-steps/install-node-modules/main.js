@@ -1,16 +1,14 @@
 const { execSync } = require('child_process');
+const { existsSync } = require('fs');
 
-execSync(`
-    if test -f "package-lock.json"; then
-        echo "Using npm"
-        npm ci
-        exit
-    fi
-    if test -f "yarn.lock"; then
-        echo "Using yarn"
-        yarn install --frozen-lockfile
-        exit
-    fi
-    echo "Failed to detect package manager"
-    exit 1
-`);
+if (existsSync('package-lock.json')) {
+  console.log('Using npm');
+  execSync('npm ci --legacy-peer-deps', { stdio: 'inherit' });
+} else if (existsSync('yarn.lock')) {
+  console.log('Using yarn');
+  execSync('yarn install --frozen-lockfile', { stdio: 'inherit' });
+} else if (existsSync('pnpm-lock.yaml') || existsSync('pnpm-lock.yml')) {
+  // base image has to install pnpm
+  console.log('Using pnpm');
+  execSync('pnpm install --frozen-lockfile', { stdio: 'inherit' });
+}
