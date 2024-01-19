@@ -1,5 +1,5 @@
-name: 'NxCloud Checkout Step'
-description: 'An NxCloud workflow step for checking out a repo'
+name: 'Checkout'
+description: 'Check out your repository'
 
 definition:
   using: 'node'

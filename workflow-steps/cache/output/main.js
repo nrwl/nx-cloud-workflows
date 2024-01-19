@@ -5989,14 +5989,8 @@ if (!process.env.KEY) {
   throw new Error("No cache restore key provided.");
 }
 var key = `${hashKey(process.env.KEY)}`;
-var fallbackKeys = [];
-if (process.env.FALLBACK_KEYS) {
-  fallbackKeys = process.env.FALLBACK_KEYS.split(`
-`).filter((key2) => key2).map((key2) => key2.trim()).map((key2) => hashKey(key2));
-}
-var baseKeys = [key, ...fallbackKeys];
-var currentBranchKeys = baseKeys.map((k) => `${currentBranch}-${k}`);
-var baseBranchKeys = baseBranch ? baseKeys.map((k) => `${baseBranch}-${k}`) : [];
+var currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
+var baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 cacheClient.restore(
   new RestoreRequest({
     keys: [...currentBranchKeys, ...baseBranchKeys]
