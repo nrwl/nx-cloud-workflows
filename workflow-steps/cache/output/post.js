@@ -7,15 +7,11 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
-    for (let key2 of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key2) && key2 !== except)
-        __defProp(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable });
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
   }
   return to;
 };
@@ -27,7 +23,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // ../../node_modules/fs.realpath/old.js
 var require_old = __commonJS({
@@ -1814,18 +1809,18 @@ var require_inflight = __commonJS({
     var reqs = /* @__PURE__ */ Object.create(null);
     var once = require_once();
     module2.exports = wrappy(inflight);
-    function inflight(key2, cb) {
-      if (reqs[key2]) {
-        reqs[key2].push(cb);
+    function inflight(key, cb) {
+      if (reqs[key]) {
+        reqs[key].push(cb);
         return null;
       } else {
-        reqs[key2] = [cb];
-        return makeres(key2);
+        reqs[key] = [cb];
+        return makeres(key);
       }
     }
-    function makeres(key2) {
+    function makeres(key) {
       return once(function RES() {
-        var cbs = reqs[key2];
+        var cbs = reqs[key];
         var len = cbs.length;
         var args = slice(arguments);
         try {
@@ -1839,7 +1834,7 @@ var require_inflight = __commonJS({
               RES.apply(null, args);
             });
           } else {
-            delete reqs[key2];
+            delete reqs[key];
           }
         }
       });
@@ -2409,13 +2404,6 @@ var require_glob = __commonJS({
     };
   }
 });
-
-// post.ts
-var post_exports = {};
-__export(post_exports, {
-  cacheClient: () => cacheClient
-});
-module.exports = __toCommonJS(post_exports);
 
 // ../../node_modules/@bufbuild/connect/dist/esm/code.js
 var Code;
@@ -3560,12 +3548,12 @@ function readMessageField(reader, message, options) {
 }
 function readMapEntry(field, reader, options) {
   const length = reader.uint32(), end = reader.pos + length;
-  let key2, val;
+  let key, val;
   while (reader.pos < end) {
     let [fieldNo] = reader.tag();
     switch (fieldNo) {
       case 1:
-        key2 = readScalar(reader, field.K);
+        key = readScalar(reader, field.K);
         break;
       case 2:
         switch (field.V.kind) {
@@ -3582,12 +3570,12 @@ function readMapEntry(field, reader, options) {
         break;
     }
   }
-  if (key2 === void 0) {
+  if (key === void 0) {
     let keyRaw = scalarDefaultValue(field.K);
-    key2 = field.K == ScalarType.BOOL ? keyRaw.toString() : keyRaw;
+    key = field.K == ScalarType.BOOL ? keyRaw.toString() : keyRaw;
   }
-  if (typeof key2 != "string" && typeof key2 != "number") {
-    key2 = key2.toString();
+  if (typeof key != "string" && typeof key != "number") {
+    key = key.toString();
   }
   if (val === void 0) {
     switch (field.V.kind) {
@@ -3602,7 +3590,7 @@ function readMapEntry(field, reader, options) {
         break;
     }
   }
-  return [key2, val];
+  return [key, val];
 }
 function readScalar(reader, type) {
   switch (type) {
@@ -3638,21 +3626,21 @@ function readScalar(reader, type) {
       return reader.sint32();
   }
 }
-function writeMapEntry(writer, options, field, key2, value) {
+function writeMapEntry(writer, options, field, key, value) {
   writer.tag(field.no, WireType.LengthDelimited);
   writer.fork();
-  let keyValue = key2;
+  let keyValue = key;
   switch (field.K) {
     case ScalarType.INT32:
     case ScalarType.FIXED32:
     case ScalarType.UINT32:
     case ScalarType.SFIXED32:
     case ScalarType.SINT32:
-      keyValue = Number.parseInt(key2);
+      keyValue = Number.parseInt(key);
       break;
     case ScalarType.BOOL:
-      assert(key2 == "true" || key2 == "false");
-      keyValue = key2 == "true";
+      assert(key == "true" || key == "false");
+      keyValue = key == "true";
       break;
   }
   writeScalar(writer, field.K, 1, keyValue, true);
@@ -3736,8 +3724,8 @@ function makeBinaryFormatProto3() {
           }
           break;
         case "map":
-          for (const [key2, val] of Object.entries(value)) {
-            writeMapEntry(writer, options, field, key2, val);
+          for (const [key, val] of Object.entries(value)) {
+            writeMapEntry(writer, options, field, key, val);
           }
           break;
       }
@@ -4462,8 +4450,8 @@ function makeUtilCommon() {
           copy = source.map(cloneSingularField);
         } else if (member.kind == "map") {
           copy = any[member.localName];
-          for (const [key2, v] of Object.entries(source)) {
-            copy[key2] = cloneSingularField(v);
+          for (const [key, v] of Object.entries(source)) {
+            copy[key] = cloneSingularField(v);
           }
         } else if (member.kind == "oneof") {
           const f = member.findField(source.case);
@@ -4827,8 +4815,8 @@ function createMessage(message, code) {
 function appendHeaders(...headers) {
   const h = new Headers();
   for (const e of headers) {
-    e.forEach((value, key2) => {
-      h.append(key2, value);
+    e.forEach((value, key) => {
+      h.append(key, value);
     });
   }
   return h;
@@ -5277,7 +5265,7 @@ function parseContentType(contentType) {
 // ../../node_modules/@bufbuild/connect/dist/esm/protocol-connect/error-json.js
 function errorFromJson(jsonValue, metadata, fallback2) {
   if (metadata) {
-    new Headers(metadata).forEach((value, key2) => fallback2.metadata.append(key2, value));
+    new Headers(metadata).forEach((value, key) => fallback2.metadata.append(key, value));
   }
   if (typeof jsonValue !== "object" || jsonValue == null || Array.isArray(jsonValue) || !("code" in jsonValue) || typeof jsonValue.code !== "string") {
     throw fallback2;
@@ -5328,12 +5316,12 @@ function endStreamFromJson(data) {
     if (typeof jsonValue.metadata != "object" || jsonValue.metadata == null || Array.isArray(jsonValue.metadata)) {
       throw parseErr;
     }
-    for (const [key2, values] of Object.entries(jsonValue.metadata)) {
+    for (const [key, values] of Object.entries(jsonValue.metadata)) {
       if (!Array.isArray(values) || values.some((value) => typeof value != "string")) {
         throw parseErr;
       }
       for (const value of values) {
-        metadata.append(key2, value);
+        metadata.append(key, value);
       }
     }
   }
@@ -5388,11 +5376,11 @@ function codeFromHttpStatus(httpStatus) {
 // ../../node_modules/@bufbuild/connect/dist/esm/protocol-connect/trailer-mux.js
 function trailerDemux(header) {
   const h = new Headers(), t = new Headers();
-  header.forEach((value, key2) => {
-    if (key2.toLowerCase().startsWith("trailer-")) {
-      t.set(key2.substring(8), value);
+  header.forEach((value, key) => {
+    if (key.toLowerCase().startsWith("trailer-")) {
+      t.set(key.substring(8), value);
     } else {
-      h.set(key2, value);
+      h.set(key, value);
     }
   });
   return [h, t];
@@ -5685,7 +5673,7 @@ function createConnectTransport(options) {
               if (endStream.error) {
                 throw endStream.error;
               }
-              endStream.metadata.forEach((value, key2) => trailerTarget.set(key2, value));
+              endStream.metadata.forEach((value, key) => trailerTarget.set(key, value));
               continue;
             }
             yield yield __await3(parse(data));
@@ -5959,15 +5947,15 @@ function hashFileContents(pattern) {
   });
   return megaHash;
 }
-function hashKey(key2) {
-  const keyParts = key2.split("|").map((s) => s.trim());
+function hashKey(key) {
+  const keyParts = key.split("|").map((s) => s.trim());
   const hardcodedKeys = [];
   const globsToHash = [];
-  keyParts.forEach((key3) => {
-    if (key3.startsWith('"') && key3.endsWith('"')) {
-      hardcodedKeys.push(key3.slice(1, -1));
+  keyParts.forEach((key2) => {
+    if (key2.startsWith('"') && key2.endsWith('"')) {
+      hardcodedKeys.push(key2.slice(1, -1));
     } else {
-      globsToHash.push(key3);
+      globsToHash.push(key2);
     }
   });
   const globHashes = globsToHash.map((globPattern) => {
@@ -5977,30 +5965,32 @@ function hashKey(key2) {
 }
 
 // post.ts
-var cacheClient = createPromiseClient(
-  CacheService,
-  createConnectTransport({
-    baseUrl: "http://127.0.0.1:9000"
-  })
-);
-var currentBranch = process.env.NX_BRANCH;
-if (!process.env.KEY || !process.env.PATHS) {
-  throw new Error("No cache restore key or paths provided.");
+if (!!process.env.NX_CACHE_STEP_WAS_SUCCESSFUL_HIT) {
+  console.log("Skipped storing to cache");
+} else {
+  const cacheClient = createPromiseClient(
+    CacheService,
+    createConnectTransport({
+      baseUrl: "http://127.0.0.1:9000"
+    })
+  );
+  const currentBranch = process.env.NX_BRANCH;
+  if (!process.env.KEY || !process.env.PATHS) {
+    throw new Error("No cache restore key or paths provided.");
+  }
+  const key = hashKey(process.env.KEY);
+  const paths = process.env.PATHS.split("\n").filter((p) => p);
+  cacheClient.store(
+    new StoreRequest({
+      key: `${currentBranch}-${key}`,
+      paths
+    })
+  ).then((r) => {
+    if (r.success)
+      console.log(`Successfully stored to cache under key ${key}`);
+    if (r.skipped)
+      console.log(
+        "Skipped storing to cache, another instance has already started the upload"
+      );
+  });
 }
-var key = hashKey(process.env.KEY);
-var paths = process.env.PATHS.split("\n").filter((p) => p);
-cacheClient.store(
-  new StoreRequest({
-    key: `${currentBranch}-${key}`,
-    paths
-  })
-).then((r) => {
-  if (r.success)
-    console.log(`Successfully stored to cache under key ${key}`);
-  if (r.skipped)
-    console.log("Skipped storing to cache, another instance has already started the upload");
-});
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  cacheClient
-});
