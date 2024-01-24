@@ -38,16 +38,20 @@ cacheClient
   });
 
 function rememberCacheRestorationForPostStep() {
-  if (existsSync(process.env.NX_CLOUD_ENV)) {
-    const nxCloudEnv = readFileSync(process.env.NX_CLOUD_ENV).toString();
-    writeFileSync(
-      process.env.NX_CLOUD_ENV,
-      `${nxCloudEnv}\nNX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true`,
-    );
-  } else {
-    writeFileSync(
-      process.env.NX_CLOUD_ENV,
-      `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true`,
-    );
+  try {
+    if (existsSync(process.env.NX_CLOUD_ENV)) {
+      const nxCloudEnv = readFileSync(process.env.NX_CLOUD_ENV).toString();
+      writeFileSync(
+        process.env.NX_CLOUD_ENV,
+        `${nxCloudEnv}\nNX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true`,
+      );
+    } else {
+      writeFileSync(
+        process.env.NX_CLOUD_ENV,
+        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true`,
+      );
+    }
+  } catch (e) {
+    console.log(e);
   }
 }
