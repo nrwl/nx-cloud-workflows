@@ -1,0 +1,6 @@
+name: Install Browsers
+description: Installs browsers for Playwright
+
+definition:
+  using: 'node'
+  main: workflow-steps/install-browsers/main.js

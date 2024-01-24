@@ -5977,6 +5977,7 @@ function hashKey(key2) {
 }
 
 // main.ts
+var import_fs = require("fs");
 var cacheClient = createPromiseClient(
   CacheService,
   createConnectTransport({
@@ -5996,11 +5997,21 @@ cacheClient.restore(
     keys: [...currentBranchKeys, ...baseBranchKeys]
   })
 ).then((resp) => {
-  if (resp.success)
+  if (resp.success) {
     console.log("Found cache entry under key: " + resp.key);
-  else
+    rememberCacheRestorationForPostStep();
+  } else {
     console.log("Cache miss.");
+  }
 });
+function rememberCacheRestorationForPostStep() {
+  const nxCloudEnv = (0, import_fs.readFileSync)(process.env.NX_CLOUD_ENV).toString();
+  (0, import_fs.writeFileSync)(
+    process.env.NX_CLOUD_ENV,
+    `${nxCloudEnv}
+NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true`
+  );
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   cacheClient
