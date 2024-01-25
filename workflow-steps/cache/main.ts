@@ -31,7 +31,7 @@ cacheClient
   .then((resp: RestoreResponse) => {
     if (resp.success) {
       console.log('Found cache entry under key: ' + resp.key);
-      rememberCacheRestorationForPostStep();
+      // rememberCacheRestorationForPostStep();
     } else {
       console.log('Cache miss.');
     }
