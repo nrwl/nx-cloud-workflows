@@ -6,7 +6,9 @@ var nxBranch = process.env.NX_BRANCH;
 var depth = process.env.GIT_CHECKOUT_DEPTH || 1;
 var fetchTags = process.env.GIT_FETCH_TAGS === "true";
 var isPR = !isNaN(parseInt(nxBranch));
-(0, import_child_process.execSync)(`git config --global --add safe.directory /home/workflows/workspace`);
+if (process.platform != "win32") {
+  (0, import_child_process.execSync)(`git config --global --add safe.directory /home/workflows/workspace`);
+}
 (0, import_child_process.execSync)("git init .");
 (0, import_child_process.execSync)(`git remote add origin ${repoUrl}`);
 if (depth === "0") {
