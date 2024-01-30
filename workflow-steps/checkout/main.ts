@@ -9,7 +9,9 @@ const fetchTags = process.env.GIT_FETCH_TAGS === 'true';
 // TODO: infer this in cases where the NX_BRANCH is a branch name despite being a PR (certain CI providers, not GitHub)
 const isPR = !isNaN(parseInt(nxBranch!));
 
-execSync(`git config --global --add safe.directory /home/workflows/workspace`);
+if (process.platform != 'win32') {
+  execSync(`git config --global --add safe.directory /home/workflows/workspace`);
+}
 execSync('git init .');
 execSync(`git remote add origin ${repoUrl}`);
 
