@@ -1,49 +1,113 @@
 launch-templates:
+  linux-small-js:
+    resource-class: "docker_linux_amd64/small"
+    image: 'ubuntu22.04-node20.9-v2'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/checkout/main.yaml'
+      - name: Restore Node Modules Cache
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+          PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-browsers/main.yaml'
   linux-medium-js:
-    resourceClass: "docker_linux_amd64/medium"
-    image: 'ubuntu22.04-node20.9-v1'
+    resource-class: "docker_linux_amd64/medium"
+    image: 'ubuntu22.04-node20.9-v2'
     init-steps:
       - name: Checkout
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/checkout/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/checkout/main.yaml'
       - name: Restore Node Modules Cache
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/cache/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/cache/main.yaml'
         env:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
           BASE_BRANCH: 'main'
       - name: Install Node Modules
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/install-node-modules/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/install-browsers/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-browsers/main.yaml'
   linux-medium-plus-js:
-    resourceClass: "docker_linux_amd64/medium+"
-    image: 'ubuntu22.04-node20.9-v1'
+    resource-class: "docker_linux_amd64/medium+"
+    image: 'ubuntu22.04-node20.9-v2'
     init-steps:
       - name: Checkout
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/checkout/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/checkout/main.yaml'
       - name: Restore Node Modules Cache
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/cache/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/cache/main.yaml'
         env:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
           BASE_BRANCH: 'main'
       - name: Install Node Modules
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/install-node-modules/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/install-browsers/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-browsers/main.yaml'
   linux-large-js:
-    resourceClass: "docker_linux_amd64/large"
-    image: 'ubuntu22.04-node20.9-v1'
+    resource-class: "docker_linux_amd64/large"
+    image: 'ubuntu22.04-node20.9-v2'
     init-steps:
       - name: Checkout
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/checkout/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/checkout/main.yaml'
       - name: Restore Node Modules Cache
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/cache/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/cache/main.yaml'
         env:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
           BASE_BRANCH: 'main'
       - name: Install Node Modules
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/install-node-modules/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
-        uses: 'nrwl/nx-cloud-workflows/main/workflow-steps/install-browsers/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-browsers/main.yaml'
+  linux-large-plus-js:
+    resource-class: "docker_linux_amd64/large+"
+    image: 'ubuntu22.04-node20.9-v2'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/checkout/main.yaml'
+      - name: Restore Node Modules Cache
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+          PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-browsers/main.yaml'
+  linux-extra-large-js:
+    resource-class: "docker_linux_amd64/extra_large"
+    image: 'ubuntu22.04-node20.9-v2'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/checkout/main.yaml'
+      - name: Restore Node Modules Cache
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+          PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-browsers/main.yaml'
+  linux-extra-large-plus-js:
+    resource-class: "docker_linux_amd64/extra_large+"
+    image: 'ubuntu22.04-node20.9-v2'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/checkout/main.yaml'
+      - name: Restore Node Modules Cache
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+          PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v2.0/workflow-steps/install-browsers/main.yaml'
