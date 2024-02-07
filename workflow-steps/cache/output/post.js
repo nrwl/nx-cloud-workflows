@@ -525,12 +525,12 @@ var require_minimatch = __commonJS({
   "../../node_modules/minimatch/minimatch.js"(exports, module2) {
     module2.exports = minimatch;
     minimatch.Minimatch = Minimatch;
-    var path = function() {
+    var path = (() => {
       try {
         return require("path");
       } catch (e) {
       }
-    }() || {
+    })() || {
       sep: "/"
     };
     minimatch.sep = path.sep;
@@ -563,8 +563,9 @@ var require_minimatch = __commonJS({
       };
     }
     function ext(a, b) {
+      a = a || {};
       b = b || {};
-      var t = {};
+      const t = {};
       Object.keys(a).forEach(function(k) {
         t[k] = a[k];
       });
@@ -577,14 +578,14 @@ var require_minimatch = __commonJS({
       if (!def || typeof def !== "object" || !Object.keys(def).length) {
         return minimatch;
       }
-      var orig = minimatch;
-      var m = function minimatch2(p, pattern, options) {
+      const orig = minimatch;
+      const m = function minimatch2(p, pattern, options) {
         return orig(p, pattern, ext(def, options));
       };
       m.Minimatch = function Minimatch2(pattern, options) {
         return new orig.Minimatch(pattern, ext(def, options));
       };
-      m.Minimatch.defaults = function defaults(options) {
+      m.Minimatch.defaults = (options) => {
         return orig.defaults(ext(def, options)).Minimatch;
       };
       m.filter = function filter2(pattern, options) {
@@ -614,6 +615,8 @@ var require_minimatch = __commonJS({
       if (!options.nocomment && pattern.charAt(0) === "#") {
         return false;
       }
+      if (pattern.trim() === "")
+        return p === "";
       return new Minimatch(pattern, options).match(p);
     }
     function Minimatch(pattern, options) {
@@ -624,7 +627,7 @@ var require_minimatch = __commonJS({
       if (!options)
         options = {};
       pattern = pattern.trim();
-      if (!options.allowWindowsEscape && path.sep !== "/") {
+      if (path.sep !== "/") {
         pattern = pattern.split(path.sep).join("/");
       }
       this.options = options;
@@ -634,13 +637,14 @@ var require_minimatch = __commonJS({
       this.negate = false;
       this.comment = false;
       this.empty = false;
-      this.partial = !!options.partial;
       this.make();
     }
     Minimatch.prototype.debug = function() {
     };
     Minimatch.prototype.make = make;
     function make() {
+      if (this._made)
+        return;
       var pattern = this.pattern;
       var options = this.options;
       if (!options.nocomment && pattern.charAt(0) === "#") {
@@ -654,9 +658,7 @@ var require_minimatch = __commonJS({
       this.parseNegate();
       var set = this.globSet = this.braceExpand();
       if (options.debug)
-        this.debug = function debug() {
-          console.error.apply(console, arguments);
-        };
+        this.debug = console.error;
       this.debug(this.pattern, set);
       set = this.globParts = set.map(function(s) {
         return s.split(slashSplit);
@@ -708,7 +710,7 @@ var require_minimatch = __commonJS({
       return expand(pattern);
     }
     var MAX_PATTERN_LENGTH = 1024 * 64;
-    var assertValidPattern = function(pattern) {
+    var assertValidPattern = (pattern) => {
       if (typeof pattern !== "string") {
         throw new TypeError("invalid pattern");
       }
@@ -721,16 +723,12 @@ var require_minimatch = __commonJS({
     function parse(pattern, isSub) {
       assertValidPattern(pattern);
       var options = this.options;
-      if (pattern === "**") {
-        if (!options.noglobstar)
-          return GLOBSTAR;
-        else
-          pattern = "*";
-      }
+      if (!options.noglobstar && pattern === "**")
+        return GLOBSTAR;
       if (pattern === "")
         return "";
       var re = "";
-      var hasMagic = !!options.nocase;
+      var hasMagic = false;
       var escaping = false;
       var patternListStack = [];
       var negativeLists = [];
@@ -853,15 +851,17 @@ var require_minimatch = __commonJS({
               escaping = false;
               continue;
             }
-            var cs = pattern.substring(classStart + 1, i);
-            try {
-              RegExp("[" + cs + "]");
-            } catch (er) {
-              var sp = this.parse(cs, SUBPARSE);
-              re = re.substr(0, reClassStart) + "\\[" + sp[0] + "\\]";
-              hasMagic = hasMagic || sp[1];
-              inClass = false;
-              continue;
+            if (inClass) {
+              var cs = pattern.substring(classStart + 1, i);
+              try {
+                RegExp("[" + cs + "]");
+              } catch (er) {
+                var sp = this.parse(cs, SUBPARSE);
+                re = re.substr(0, reClassStart) + "\\[" + sp[0] + "\\]";
+                hasMagic = hasMagic || sp[1];
+                inClass = false;
+                continue;
+              }
             }
             hasMagic = true;
             inClass = false;
@@ -903,8 +903,8 @@ var require_minimatch = __commonJS({
       }
       var addPatternStart = false;
       switch (re.charAt(0)) {
-        case "[":
         case ".":
+        case "[":
         case "(":
           addPatternStart = true;
       }
@@ -982,7 +982,7 @@ var require_minimatch = __commonJS({
     }
     minimatch.match = function(list, pattern, options) {
       options = options || {};
-      var mm = new Minimatch(pattern, options);
+      const mm = new Minimatch(pattern, options);
       list = list.filter(function(f) {
         return mm.match(f);
       });
@@ -991,9 +991,8 @@ var require_minimatch = __commonJS({
       }
       return list;
     };
-    Minimatch.prototype.match = function match(f, partial) {
-      if (typeof partial === "undefined")
-        partial = this.partial;
+    Minimatch.prototype.match = match;
+    function match(f, partial) {
       this.debug("match", f, this.pattern);
       if (this.comment)
         return false;
@@ -1032,7 +1031,7 @@ var require_minimatch = __commonJS({
       if (options.flipNegate)
         return false;
       return this.negate;
-    };
+    }
     Minimatch.prototype.matchOne = function(file, pattern, partial) {
       var options = this.options;
       this.debug(
@@ -1083,7 +1082,11 @@ var require_minimatch = __commonJS({
         }
         var hit;
         if (typeof p === "string") {
-          hit = f === p;
+          if (options.nocase) {
+            hit = f.toLowerCase() === p.toLowerCase();
+          } else {
+            hit = f === p;
+          }
           this.debug("string match", p, f, hit);
         } else {
           hit = f.match(p);

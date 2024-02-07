@@ -3,7 +3,7 @@ import { createConnectTransport } from '@bufbuild/connect-web';
 import { CacheService } from './generated_protos/cache_connect';
 import { RestoreRequest, RestoreResponse } from './generated_protos/cache_pb';
 import { hashKey } from './hashing-utils';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { appendFileSync, writeFileSync, existsSync } from 'fs';
 
 export const cacheClient = createPromiseClient(
   CacheService,
@@ -31,7 +31,7 @@ cacheClient
   .then((resp: RestoreResponse) => {
     if (resp.success) {
       console.log('Found cache entry under key: ' + resp.key);
-      // rememberCacheRestorationForPostStep();
+      rememberCacheRestorationForPostStep();
     } else {
       console.log('Cache miss.');
     }
@@ -40,15 +40,14 @@ cacheClient
 function rememberCacheRestorationForPostStep() {
   try {
     if (existsSync(process.env.NX_CLOUD_ENV)) {
-      const nxCloudEnv = readFileSync(process.env.NX_CLOUD_ENV).toString();
-      writeFileSync(
+      appendFileSync(
         process.env.NX_CLOUD_ENV,
-        `${nxCloudEnv}\nNX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true`,
+        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true\n`,
       );
     } else {
       writeFileSync(
         process.env.NX_CLOUD_ENV,
-        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true`,
+        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true\n`,
       );
     }
   } catch (e) {
