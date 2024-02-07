@@ -1,5 +1,5 @@
 const { execSync } = require('child_process');
-const { existsSync } = require('fs');
+const { existsSync, readFileSync, writeFileSync } = require('fs');
 
 if (existsSync('package-lock.json')) {
   console.log('Using npm');
