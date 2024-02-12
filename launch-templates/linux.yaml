@@ -11,6 +11,14 @@ launch-templates:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
           BASE_BRANCH: 'main'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/Cypress'
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'main'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -26,6 +34,14 @@ launch-templates:
         env:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/Cypress'
+            '../.cache/ms-playwright'
           BASE_BRANCH: 'main'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/install-node-modules/main.yaml'
@@ -43,6 +59,14 @@ launch-templates:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
           BASE_BRANCH: 'main'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/Cypress'
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'main'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -58,6 +82,14 @@ launch-templates:
         env:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/Cypress'
+            '../.cache/ms-playwright'
           BASE_BRANCH: 'main'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/install-node-modules/main.yaml'
@@ -75,6 +107,14 @@ launch-templates:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
           BASE_BRANCH: 'main'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/Cypress'
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'main'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -91,6 +131,14 @@ launch-templates:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
           BASE_BRANCH: 'main'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/Cypress'
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'main'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -106,6 +154,14 @@ launch-templates:
         env:
           KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           PATHS: 'node_modules'
+          BASE_BRANCH: 'main'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/Cypress'
+            '../.cache/ms-playwright'
           BASE_BRANCH: 'main'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v3.1/workflow-steps/install-node-modules/main.yaml'
