@@ -11,6 +11,15 @@ if (existsSync('package.json')) {
       console.log('Installing browsers required by Playwright');
       execSync('npx playwright install', { stdio: 'inherit' });
     }
+
+    const hasCypress =
+      (json.dependencies || {}).hasOwnProperty('cypress') ||
+      (json.devDependencies || {}).hasOwnProperty('cypress');
+    if (hasCypress) {
+      console.log('Installing browsers required by Cypress');
+      execSync('npx cypress install', { stdio: 'inherit' });
+    }
+
   } catch (e) {
     console.error(e);
   }
