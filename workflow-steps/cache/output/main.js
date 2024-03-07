@@ -6009,18 +6009,12 @@ cacheClient.restore(
 });
 function rememberCacheRestorationForPostStep() {
   try {
+    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}=true
+`;
     if ((0, import_fs.existsSync)(process.env.NX_CLOUD_ENV)) {
-      (0, import_fs.appendFileSync)(
-        process.env.NX_CLOUD_ENV,
-        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true
-`
-      );
+      (0, import_fs.appendFileSync)(process.env.NX_CLOUD_ENV, envValue);
     } else {
-      (0, import_fs.writeFileSync)(
-        process.env.NX_CLOUD_ENV,
-        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true
-`
-      );
+      (0, import_fs.writeFileSync)(process.env.NX_CLOUD_ENV, envValue);
     }
   } catch (e) {
     console.log(e);

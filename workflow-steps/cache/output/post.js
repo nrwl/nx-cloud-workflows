@@ -5968,7 +5968,8 @@ function hashKey(key) {
 }
 
 // post.ts
-if (!!process.env.NX_CACHE_STEP_WAS_SUCCESSFUL_HIT) {
+var cacheWasHit = process.env[`NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}`] === "true";
+if (!!cacheWasHit) {
   console.log("Skipped storing to cache");
 } else {
   const cacheClient = createPromiseClient(
