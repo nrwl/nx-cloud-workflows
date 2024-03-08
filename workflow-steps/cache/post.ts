@@ -4,7 +4,11 @@ import { CacheService } from './generated_protos/cache_connect';
 import { StoreRequest, StoreResponse } from './generated_protos/cache_pb';
 import { hashKey } from './hashing-utils';
 
-if (!!process.env.NX_CACHE_STEP_WAS_SUCCESSFUL_HIT) {
+const cacheWasHit =
+  process.env[
+    `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}`
+  ] === 'true';
+if (!!cacheWasHit) {
   console.log('Skipped storing to cache');
 } else {
   const cacheClient = createPromiseClient(

@@ -39,16 +39,11 @@ cacheClient
 
 function rememberCacheRestorationForPostStep() {
   try {
+    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}=true\n`;
     if (existsSync(process.env.NX_CLOUD_ENV)) {
-      appendFileSync(
-        process.env.NX_CLOUD_ENV,
-        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true\n`,
-      );
+      appendFileSync(process.env.NX_CLOUD_ENV, envValue);
     } else {
-      writeFileSync(
-        process.env.NX_CLOUD_ENV,
-        `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT=true\n`,
-      );
+      writeFileSync(process.env.NX_CLOUD_ENV, envValue);
     }
   } catch (e) {
     console.log(e);
