@@ -1,30 +1,37 @@
 const { execSync } = require('child_process');
 const { existsSync, readFileSync, writeFileSync } = require('fs');
 
-if (existsSync('package-lock.json')) {
-  console.log('Using npm');
-  execSync('npm ci --legacy-peer-deps', { stdio: 'inherit' });
+const command = getInstallCommand();
+if (command) {
+  console.log(`Installing dependencies using ${command.split(' ')[0]}`);
+  console.log(`  Running command: ${command}\n`);
+  execSync(command, { stdio: 'inherit' });
   patchJest();
-} else if (existsSync('yarn.lock')) {
-  console.log('Using yarn');
-  const [major] = execSync(`yarn --version`, {
-    encoding: 'utf-8',
-  })
-    .trim()
-    .split('.');
+} else {
+  throw new Error(
+    'Could not find lock file. Please ensure you have a lock file before running this command.',
+  );
+}
 
-  const useBerry = +major >= 2;
-  if (useBerry) {
-    execSync('yarn install --immutable', { stdio: 'inherit' });
-  } else {
-    execSync('yarn install --frozen-lockfile', { stdio: 'inherit' });
+function getInstallCommand() {
+  if (existsSync('package-lock.json')) {
+    return 'npm ci --legacy-peer-deps';
+  } else if (existsSync('yarn.lock')) {
+    const [major] = execSync(`yarn --version`, {
+      encoding: 'utf-8',
+    })
+      .trim()
+      .split('.');
+
+    const useBerry = +major >= 2;
+    if (useBerry) {
+      return 'yarn install --immutable';
+    } else {
+      return 'yarn install --frozen-lockfile';
+    }
+  } else if (existsSync('pnpm-lock.yaml') || existsSync('pnpm-lock.yml')) {
+    return 'pnpm install --frozen-lockfile';
   }
-  patchJest();
-} else if (existsSync('pnpm-lock.yaml') || existsSync('pnpm-lock.yml')) {
-  // base image has to install pnpm
-  console.log('Using pnpm');
-  execSync('pnpm install --frozen-lockfile', { stdio: 'inherit' });
-  patchJest();
 }
 
 function patchJest() {
