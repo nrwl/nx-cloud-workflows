@@ -7,7 +7,18 @@ if (existsSync('package-lock.json')) {
   patchJest();
 } else if (existsSync('yarn.lock')) {
   console.log('Using yarn');
-  execSync('yarn install --frozen-lockfile', { stdio: 'inherit' });
+  const [major] = execSync(`yarn --version`, {
+    encoding: 'utf-8',
+  })
+    .trim()
+    .split('.');
+
+  const useBerry = +major >= 2;
+  if (useBerry) {
+    execSync('yarn install --immutable', { stdio: 'inherit' });
+  } else {
+    execSync('yarn install --frozen-lockfile', { stdio: 'inherit' });
+  }
   patchJest();
 } else if (existsSync('pnpm-lock.yaml') || existsSync('pnpm-lock.yml')) {
   // base image has to install pnpm
