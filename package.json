@@ -13,7 +13,7 @@
     "@bufbuild/connect": "^0.13.0",
     "@bufbuild/connect-web": "^0.13.0",
     "@bufbuild/protobuf": "^1.3.1",
-    "@types/node": "18.19.31"
+    "@types/node": "^20.6.3"
   },
   "devDependencies": {
     "@nx/js": "18.3.4",
