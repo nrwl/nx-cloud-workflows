@@ -1,7 +1,6 @@
 {
   "extends": "nx/presets/npm.json",
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "nxCloudAccessToken": "NjJiMzdhZWItZmJlYy00NjBiLWE1M2QtNTdiNjJhNzEyOWE1fHJlYWQtd3JpdGU=",
   "targetDefaults": {
     "build": {
       "outputs": ["{projectRoot}/output"],
@@ -19,5 +18,8 @@
   },
   "workspaceLayout": {
     "projectNameAndRootFormat": "as-provided"
-  }
+  },
+  "useInferencePlugins": false,
+  "nxCloudAccessToken": "Y2JlNGEwYzAtNjc5OS00YjViLWE0OWMtMDkzNDk4NmM1MTJkfHJlYWQtd3JpdGU=",
+  "nxCloudUrl": "https://staging.nx.app"
 }

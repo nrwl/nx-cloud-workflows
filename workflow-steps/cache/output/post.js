@@ -375,9 +375,9 @@ var require_balanced_match = __commonJS({
   }
 });
 
-// ../../node_modules/brace-expansion/index.js
+// ../../node_modules/minimatch/node_modules/brace-expansion/index.js
 var require_brace_expansion = __commonJS({
-  "../../node_modules/brace-expansion/index.js"(exports, module2) {
+  "../../node_modules/minimatch/node_modules/brace-expansion/index.js"(exports, module2) {
     var concatMap = require_concat_map();
     var balanced = require_balanced_match();
     module2.exports = expandTop;
@@ -1180,8 +1180,6 @@ var require_path_is_absolute = __commonJS({
 // ../../node_modules/glob/common.js
 var require_common = __commonJS({
   "../../node_modules/glob/common.js"(exports) {
-    exports.alphasort = alphasort;
-    exports.alphasorti = alphasorti;
     exports.setopts = setopts;
     exports.ownProp = ownProp;
     exports.makeAbs = makeAbs;
@@ -1192,15 +1190,13 @@ var require_common = __commonJS({
     function ownProp(obj, field) {
       return Object.prototype.hasOwnProperty.call(obj, field);
     }
+    var fs2 = require("fs");
     var path = require("path");
     var minimatch = require_minimatch();
     var isAbsolute = require_path_is_absolute();
     var Minimatch = minimatch.Minimatch;
-    function alphasorti(a, b) {
-      return a.toLowerCase().localeCompare(b.toLowerCase());
-    }
     function alphasort(a, b) {
-      return a.localeCompare(b);
+      return a.localeCompare(b, "en");
     }
     function setupIgnores(self, options) {
       self.ignore = options.ignore || [];
@@ -1249,6 +1245,7 @@ var require_common = __commonJS({
       self.stat = !!options.stat;
       self.noprocess = !!options.noprocess;
       self.absolute = !!options.absolute;
+      self.fs = options.fs || fs2;
       self.maxLength = options.maxLength || Infinity;
       self.cache = options.cache || /* @__PURE__ */ Object.create(null);
       self.statCache = options.statCache || /* @__PURE__ */ Object.create(null);
@@ -1272,6 +1269,7 @@ var require_common = __commonJS({
       self.nomount = !!options.nomount;
       options.nonegate = true;
       options.nocomment = true;
+      options.allowWindowsEscape = false;
       self.minimatch = new Minimatch(pattern, options);
       self.options = self.minimatch.options;
     }
@@ -1301,7 +1299,7 @@ var require_common = __commonJS({
       if (!nou)
         all = Object.keys(all);
       if (!self.nosort)
-        all = all.sort(self.nocase ? alphasorti : alphasort);
+        all = all.sort(alphasort);
       if (self.mark) {
         for (var i = 0; i < all.length; i++) {
           all[i] = self._mark(all[i]);
@@ -1378,7 +1376,6 @@ var require_sync = __commonJS({
   "../../node_modules/glob/sync.js"(exports, module2) {
     module2.exports = globSync;
     globSync.GlobSync = GlobSync;
-    var fs2 = require("fs");
     var rp = require_fs();
     var minimatch = require_minimatch();
     var Minimatch = minimatch.Minimatch;
@@ -1388,8 +1385,6 @@ var require_sync = __commonJS({
     var assert2 = require("assert");
     var isAbsolute = require_path_is_absolute();
     var common = require_common();
-    var alphasort = common.alphasort;
-    var alphasorti = common.alphasorti;
     var setopts = common.setopts;
     var ownProp = common.ownProp;
     var childrenIgnored = common.childrenIgnored;
@@ -1417,7 +1412,7 @@ var require_sync = __commonJS({
       this._finish();
     }
     GlobSync.prototype._finish = function() {
-      assert2(this instanceof GlobSync);
+      assert2.ok(this instanceof GlobSync);
       if (this.realpath) {
         var self = this;
         this.matches.forEach(function(matchset, index) {
@@ -1439,7 +1434,7 @@ var require_sync = __commonJS({
       common.finish(this);
     };
     GlobSync.prototype._process = function(pattern, index, inGlobStar) {
-      assert2(this instanceof GlobSync);
+      assert2.ok(this instanceof GlobSync);
       var n = 0;
       while (typeof pattern[n] === "string") {
         n++;
@@ -1460,7 +1455,9 @@ var require_sync = __commonJS({
       var read;
       if (prefix === null)
         read = ".";
-      else if (isAbsolute(prefix) || isAbsolute(pattern.join("/"))) {
+      else if (isAbsolute(prefix) || isAbsolute(pattern.map(function(p) {
+        return typeof p === "string" ? p : "[*]";
+      }).join("/"))) {
         if (!prefix || !isAbsolute(prefix))
           prefix = "/" + prefix;
         read = prefix;
@@ -1556,7 +1553,7 @@ var require_sync = __commonJS({
       var lstat;
       var stat;
       try {
-        lstat = fs2.lstatSync(abs);
+        lstat = this.fs.lstatSync(abs);
       } catch (er) {
         if (er.code === "ENOENT") {
           return null;
@@ -1582,7 +1579,7 @@ var require_sync = __commonJS({
           return c;
       }
       try {
-        return this._readdirEntries(abs, fs2.readdirSync(abs));
+        return this._readdirEntries(abs, this.fs.readdirSync(abs));
       } catch (er) {
         this._readdirError(abs, er);
         return null;
@@ -1691,7 +1688,7 @@ var require_sync = __commonJS({
       if (!stat) {
         var lstat;
         try {
-          lstat = fs2.lstatSync(abs);
+          lstat = this.fs.lstatSync(abs);
         } catch (er) {
           if (er && (er.code === "ENOENT" || er.code === "ENOTDIR")) {
             this.statCache[abs] = false;
@@ -1700,7 +1697,7 @@ var require_sync = __commonJS({
         }
         if (lstat && lstat.isSymbolicLink()) {
           try {
-            stat = fs2.statSync(abs);
+            stat = this.fs.statSync(abs);
           } catch (er) {
             stat = lstat;
           }
@@ -1853,7 +1850,6 @@ var require_inflight = __commonJS({
 var require_glob = __commonJS({
   "../../node_modules/glob/glob.js"(exports, module2) {
     module2.exports = glob2;
-    var fs2 = require("fs");
     var rp = require_fs();
     var minimatch = require_minimatch();
     var Minimatch = minimatch.Minimatch;
@@ -1864,8 +1860,6 @@ var require_glob = __commonJS({
     var isAbsolute = require_path_is_absolute();
     var globSync = require_sync();
     var common = require_common();
-    var alphasort = common.alphasort;
-    var alphasorti = common.alphasorti;
     var setopts = common.setopts;
     var ownProp = common.ownProp;
     var inflight = require_inflight();
@@ -2085,7 +2079,9 @@ var require_glob = __commonJS({
       var read;
       if (prefix === null)
         read = ".";
-      else if (isAbsolute(prefix) || isAbsolute(pattern.join("/"))) {
+      else if (isAbsolute(prefix) || isAbsolute(pattern.map(function(p) {
+        return typeof p === "string" ? p : "[*]";
+      }).join("/"))) {
         if (!prefix || !isAbsolute(prefix))
           prefix = "/" + prefix;
         read = prefix;
@@ -2198,7 +2194,7 @@ var require_glob = __commonJS({
       var self = this;
       var lstatcb = inflight(lstatkey, lstatcb_);
       if (lstatcb)
-        fs2.lstat(abs, lstatcb);
+        self.fs.lstat(abs, lstatcb);
       function lstatcb_(er, lstat) {
         if (er && er.code === "ENOENT")
           return cb();
@@ -2227,7 +2223,7 @@ var require_glob = __commonJS({
           return cb(null, c);
       }
       var self = this;
-      fs2.readdir(abs, readdirCb(this, abs, cb));
+      self.fs.readdir(abs, readdirCb(this, abs, cb));
     };
     function readdirCb(self, abs, cb) {
       return function(er, entries) {
@@ -2371,10 +2367,10 @@ var require_glob = __commonJS({
       var self = this;
       var statcb = inflight("stat\0" + abs, lstatcb_);
       if (statcb)
-        fs2.lstat(abs, statcb);
+        self.fs.lstat(abs, statcb);
       function lstatcb_(er, lstat) {
         if (lstat && lstat.isSymbolicLink()) {
-          return fs2.stat(abs, function(er2, stat2) {
+          return self.fs.stat(abs, function(er2, stat2) {
             if (er2)
               self._stat2(f, abs, null, lstat, cb);
             else
