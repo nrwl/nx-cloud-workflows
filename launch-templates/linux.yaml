@@ -167,3 +167,73 @@ launch-templates:
         uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'
+  linux-small-jvm:
+    resource-class: 'docker_linux_amd64/small'
+    image: 'ubuntu22.04-node20.11-v5'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
+      - name: Set up Gradle
+        script: ./gradlew wrapper
+      - name: Set up Nx
+        script: ./nx --version
+  linux-medium-jvm:
+    resource-class: 'docker_linux_amd64/medium'
+    image: 'ubuntu22.04-node20.11-v5'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
+      - name: Set up Gradle
+        script: ./gradlew wrapper
+      - name: Set up Nx
+        script: ./nx --version
+  linux-medium-plus-jvm:
+    resource-class: 'docker_linux_amd64/medium+'
+    image: 'ubuntu22.04-node20.11-v5'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
+      - name: Set up Gradle
+        script: ./gradlew wrapper
+      - name: Set up Nx
+        script: ./nx --version
+  linux-large-jvm:
+    resource-class: 'docker_linux_amd64/large'
+    image: 'ubuntu22.04-node20.11-v5'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
+      - name: Set up Gradle
+        script: ./gradlew wrapper
+      - name: Set up Nx
+        script: ./nx --version
+  linux-large-plus-jvm:
+    resource-class: 'docker_linux_amd64/large+'
+    image: 'ubuntu22.04-node20.11-v5'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
+      - name: Set up Gradle
+        script: ./gradlew wrapper
+      - name: Set up Nx
+        script: ./nx --version
+  linux-extra-large-jvm:
+    resource-class: 'docker_linux_amd64/extra_large'
+    image: 'ubuntu22.04-node20.11-v5'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
+      - name: Set up Gradle
+        script: ./gradlew wrapper
+      - name: Set up Nx
+        script: ./nx --version
+  linux-extra-large-plus-jvm:
+    resource-class: 'docker_linux_amd64/extra_large+'
+    image: 'ubuntu22.04-node20.11-v5'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
+      - name: Set up Gradle
+        script: ./gradlew wrapper
+      - name: Set up Nx
+        script: ./nx --version
