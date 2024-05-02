@@ -22,4 +22,5 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Validate workflows
         run: |
-          find "./launch-templates" -type f -exec bash -c 'echo "validating \"$1\"" && npx nx-cloud validate --workflow-file="$1"' _ {} \;
+          chmod +x ./scripts/check-launch-templates.sh
+          ./scripts/check-launch-templates.sh
