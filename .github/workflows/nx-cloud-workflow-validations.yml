@@ -1,0 +1,24 @@
+name: Nx Cloud Workflow Validations
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Validate workflows
+        run: |
+          find "./launch-templates" -type f -exec bash -c 'echo "validating \"$1\"" && npx nx-cloud validate --workflow-file="$1"' _ {} \;
