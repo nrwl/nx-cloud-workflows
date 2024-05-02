@@ -16,14 +16,14 @@
     "@types/node": "^20.6.3"
   },
   "devDependencies": {
-    "@nx/js": "17.1.3",
+    "@nx/js": "18.3.4",
     "esbuild": "^0.19.8",
     "husky": "^8.0.3",
     "install": "^0.13.0",
     "lint-staged": "^15.2.0",
-    "nx": "17.1.3",
+    "nx": "18.3.4",
     "prettier": "^3.1.0",
-    "typescript": "^5.3.3"
+    "typescript": "5.4.5"
   },
   "lint-staged": {
     "*.{ts,js,json,md}": [
