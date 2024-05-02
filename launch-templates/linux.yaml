@@ -1,4 +1,4 @@
-launch-templates:
+launch-templats:
   linux-small-js:
     resource-class: 'docker_linux_amd64/small'
     image: 'ubuntu22.04-node20.11-v5'
