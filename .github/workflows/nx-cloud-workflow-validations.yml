@@ -18,7 +18,8 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-
+      - name: install node_modules
+        run: yarn install --frozen-lockfile
       - name: Validate workflows
         run: |
           find "./launch-templates" -type f -exec bash -c 'echo "validating \"$1\"" && npx nx-cloud validate --workflow-file="$1"' _ {} \;
