@@ -1,0 +1,6 @@
+name: Install Node
+description: Install a specific version of Node.js via nvm
+
+definition:
+  using: 'node'
+  main: workflow-steps/install-node/main.js
