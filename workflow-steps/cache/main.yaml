@@ -1,5 +1,15 @@
 name: 'Cache'
 description: 'Cache artifacts in the repo'
+inputs:
+  - name: key
+    description: 'The key that is used to determine the hash for caching'
+    default: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+  - name: paths
+    description: 'The path to cache'
+    required: true
+  - name: base-branch
+    description:
+    default: 'main'
 
 definition:
   using: 'node'
