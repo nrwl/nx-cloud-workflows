@@ -1,0 +1,67 @@
+name: Nx Cloud Workflow Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit SHA(s) to cherry-pick'
+        required: false
+      version:
+        description: 'Version number for branch and tag'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: |
+          echo "# Nx Cloud Workflows Release" >> $GITHUB_STEP_SUMMARY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --all
+
+      - name: Create or checkout branch
+        run: |
+          MAJOR_VERSION=$(echo ${{ github.event.inputs.version }} | cut -d. -f1)
+          if git show-ref --verify --quiet refs/remotes/origin/releases/v$MAJOR_VERSION; then
+            git checkout releases/v$MAJOR_VERSION
+          else
+            git checkout -b releases/v$MAJOR_VERSION
+          fi
+
+      - name: Cherry-pick commits
+        run: |
+          IFS=',' read -ra COMMITS <<< "${{ github.event.inputs.commit }}"
+          for i in "${COMMITS[@]}"; do
+            git cherry-pick $i
+          done
+        if: ${{ github.event.inputs.commit }}
+
+      - name: Push changes
+        run: |
+          MAJOR_VERSION=$(echo ${{ github.event.inputs.version }} | cut -d. -f1)
+          git push origin releases/v$MAJOR_VERSION
+          echo "releases/v$MAJOR_VERSION updated" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create or update tags
+        run: |
+          IFS='.' read -ra VERSIONS <<< "${{ github.event.inputs.version }}"
+          TAG=""
+          for i in "${VERSIONS[@]}"; do
+            if [ -z "$TAG" ]; then
+              TAG="$i"
+            else
+              TAG="$TAG.$i"
+            fi
+            git tag -f v$TAG
+            git push -f origin v$TAG
+            echo "v$TAG created :rocket:" >> $GITHUB_STEP_SUMMARY
+          done
