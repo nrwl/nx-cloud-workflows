@@ -6,7 +6,7 @@ launch-templates:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/checkout/main.yaml'
       - name: Restore Node Modules Cache
-        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/cache/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/update-steps-to-include-inputs-instead-of-env/workflow-steps/cache/main.yaml'
         inputs:
           # testing validation
           # paths: 'node_modules'
