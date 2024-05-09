@@ -8,23 +8,24 @@
    1. Important: The generated `dist/` files need to be checked in as well
 4. Push your changes
 
-## Releasing new versions
+## Process for Releasing New Versions
 
-Versioning requires triggering the [ Nx Cloud Workflow Release workflow ](https://github.com/nrwl/nx-cloud-workflows/actions/workflows/nx-cloud-workflow-release.yml) with comma separated commits to cherry pick and the version to release as.
+To release a new version, you'll need to run the [ Nx Cloud Workflow Release workflow ](https://github.com/nrwl/nx-cloud-workflows/actions/workflows/nx-cloud-workflow-release.yml). You would do this by providing the workflow with comma-separated commits that need cherry-picking, and the version you wish to release.
 
 > [!NOTE]
-> Only the version number is needed if a new release is needed. The workflow will automatically create the branch and tag from the HEAD of `main` if the new version is a major. Or it will use the latest HEAD on the relative major branch based on the version number. (This allows us to place commits in release branches, and tag them when needed)
+> If a new release is required, you only need to provide the version number. This is because the workflow is designed to automatically create the branch and tag from the `main` HEAD if the new version is a major one. In contrast, for minor or patch versions, the latest HEAD on the related major branch is used based on the version number.
 
-The workflow will do the following:
+Below is a summary of what the workflow does:
 
-- All major releases will have its own `releases/v*` branch
-- The head of each release branch will **_always_** have the major `v*` tag pointing to the HEAD of the branch. If minor/patch releases are needed multiple tags will be created for it.
-- Examples:
-  - Releasing 4.1 will have tags `v4` and `v4.1` created at the HEAD of the release branch.
-  - Releasing 4.2 will have tags `v4` and `v4.2` created at the HEAD of the release branch. Previous tags (`v4.1` in this case) will remain unchanged
-  - Releasing 4.2.1 will have tags `v4`, `v4.2` and `v4.2.1` created at the HEAD.
-- Users are able to use `v4` and get all **_minor_** and **_patches_** automatically
-- Users are able to use `v4.1` and get all **_patches_** automatically
+- For every major release, a `releases/v*` branch is created
+- The HEAD of each release branch will always have a major `v*` tag pointing to the HEAD of the branch
+- Multiple tags could be created for branches needing minor/patch releases
+- Here's how it works:
+  - For a 4.1 release, `v4` and `v4.1` tags are created at the HEAD of the release branch
+  - For a 4.2 release, `v4` and `v4.2` tags are created at the HEAD of the release branch, and the previous `v4.1` tag continues to exist
+  - For a 4.2.1 release, `v4`, `v4.2`, and `v4.2.1` tags are created at the HEAD
+- Therefore, users can use `v4` to get all **_minor_** and **_patches_** automatically, or
+- Use `v4.1` to get all **_patches_** automatically
 
 > [!IMPORTANT]
-> Tags should not be created directly on `main`, and will always be created off release branches. This allows us to iterate on `main` without causing too many disruptions for users.
+> Always create tags off the release branches, and not directly on `main`. This allows the flexibility to work on `main` without unwarranted disruptions to users.
