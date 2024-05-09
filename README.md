@@ -13,7 +13,7 @@
 Versioning requires triggering the [ Nx Cloud Workflow Release workflow ](https://github.com/nrwl/nx-cloud-workflows/actions/workflows/nx-cloud-workflow-release.yml) with comma separated commits to cherry pick and the version to release as.
 
 > [!NOTE]
-> Only the major version number is needed if a new major is ready to release. The workflow will automatically create the branch and tag from the HEAD of `main`
+> Only the version number is needed if a new release is needed. The workflow will automatically create the branch and tag from the HEAD of `main` if the new version is a major. Or it will use the latest HEAD on the relative major branch based on the version number. (This allows us to place commits in release branches, and tag them when needed)
 
 The workflow will do the following:
 
