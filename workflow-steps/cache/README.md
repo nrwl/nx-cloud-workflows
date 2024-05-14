@@ -1,4 +1,4 @@
-## Usage
+# Usage and Inputs
 
 ```yaml
 - name: Git Cache Step
@@ -9,9 +9,7 @@
     base_branch: 'main'
 ```
 
-### Inputs
-
-#### `key` <img src="https://img.shields.io/badge/default_value-%27package--lock%2Ejson%7Cyarn%2Elock%7Cpnpm--lock%2Eyaml%27-D3D3D3" style="vertical-align: middle;">
+## `key` ![default](https://img.shields.io/badge/default_value-%27package--lock%2Ejson%7Cyarn%2Elock%7Cpnpm--lock%2Eyaml%27-D3D3D3)
 
 The keys can contain a combination of strings or globs that need to be hashed.
 
@@ -31,7 +29,7 @@ You can also point it directly to a specific file to be hashed:
 key: '"some-string" | yarn.lock'
 ```
 
-#### `paths` <img src="https://img.shields.io/badge/required-E53935" style="vertical-align: middle;">
+## `paths` ![required](https://img.shields.io/badge/required-E53935)
 
 You will normally upload a single folder under a key:
 
@@ -51,7 +49,7 @@ paths: |
 
 All above locations will be cached and subsequently restored.
 
-#### `base-branch`
+## `base-branch`
 
 For security reasons, this step will only write cache entries **for the current branch only**. This isolation is
 essential, for example, for open source projects, where anyone can create PRs and potentially push malicious artefacts
