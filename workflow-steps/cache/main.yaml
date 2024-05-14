@@ -9,7 +9,6 @@ inputs:
     required: true
   - name: base-branch
     description:
-    default: 'main'
 
 definition:
   using: 'node'
