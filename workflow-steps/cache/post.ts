@@ -4,6 +4,9 @@ import { CacheService } from './generated_protos/cache_connect';
 import { StoreRequest, StoreResponse } from './generated_protos/cache_pb';
 import { hashKey } from './hashing-utils';
 
+const input_key = process.env.NX_CLOUD_INPUT_key;
+const input_paths = process.env.NX_CLOUD_INPUT_paths;
+
 const cacheWasHit =
   process.env[
     `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}`
@@ -19,11 +22,11 @@ if (!!cacheWasHit) {
   );
 
   const currentBranch = process.env.NX_BRANCH;
-  if (!process.env.KEY || !process.env.PATHS) {
+  if (!input_key || !input_paths) {
     throw new Error('No cache restore key or paths provided.');
   }
-  const key = hashKey(process.env.KEY);
-  const paths = process.env.PATHS.split('\n').filter((p) => p);
+  const key = hashKey(input_key);
+  const paths = input_paths.split('\n').filter((p) => p);
 
   cacheClient
     .store(

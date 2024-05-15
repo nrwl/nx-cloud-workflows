@@ -5974,6 +5974,8 @@ function hashKey(key2) {
 
 // main.ts
 var import_fs = require("fs");
+var input_key = process.env.NX_CLOUD_INPUT_key;
+var input_base_branch = process.env.NX_CLOUD_INPUT_base_branch;
 var cacheClient = createPromiseClient(
   CacheService,
   createConnectTransport({
@@ -5981,11 +5983,11 @@ var cacheClient = createPromiseClient(
   })
 );
 var currentBranch = process.env.NX_BRANCH;
-var baseBranch = process.env.BASE_BRANCH;
-if (!process.env.KEY) {
+var baseBranch = input_base_branch;
+if (!input_key) {
   throw new Error("No cache restore key provided.");
 }
-var key = `${hashKey(process.env.KEY)}`;
+var key = `${hashKey(input_key)}`;
 var currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 var baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 cacheClient.restore(

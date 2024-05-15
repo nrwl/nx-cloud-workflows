@@ -5,6 +5,9 @@ import { RestoreRequest, RestoreResponse } from './generated_protos/cache_pb';
 import { hashKey } from './hashing-utils';
 import { appendFileSync, writeFileSync, existsSync } from 'fs';
 
+const input_key = process.env.NX_CLOUD_INPUT_key;
+const input_base_branch = process.env.NX_CLOUD_INPUT_base_branch;
+
 export const cacheClient = createPromiseClient(
   CacheService,
   createConnectTransport({
@@ -13,12 +16,12 @@ export const cacheClient = createPromiseClient(
 );
 
 const currentBranch = process.env.NX_BRANCH;
-const baseBranch = process.env.BASE_BRANCH;
+const baseBranch = input_base_branch;
 
-if (!process.env.KEY) {
+if (!input_key) {
   throw new Error('No cache restore key provided.');
 }
-const key = `${hashKey(process.env.KEY)}`;
+const key = `${hashKey(input_key)}`;
 const currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 const baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 
