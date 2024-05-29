@@ -3,4 +3,4 @@ description: 'Check out your repository'
 
 definition:
   using: 'node'
-  main: workflow-steps/checkout/output/main.js
+  main: workflow-steps/checkout/output/main222.js
