@@ -21,7 +21,6 @@ if (!!cacheWasHit) {
     }),
   );
 
-  const currentBranch = process.env.NX_BRANCH;
   if (!input_key || !input_paths) {
     throw new Error('No cache restore key or paths provided.');
   }
@@ -31,7 +30,7 @@ if (!!cacheWasHit) {
   cacheClient
     .store(
       new StoreRequest({
-        key: `${currentBranch}-${key}`,
+        key,
         paths,
       }),
     )

@@ -5973,7 +5973,6 @@ if (!!cacheWasHit) {
       baseUrl: "http://127.0.0.1:9000"
     })
   );
-  const currentBranch = process.env.NX_BRANCH;
   if (!input_key || !input_paths) {
     throw new Error("No cache restore key or paths provided.");
   }
@@ -5981,7 +5980,7 @@ if (!!cacheWasHit) {
   const paths = input_paths.split("\n").filter((p) => p);
   cacheClient.store(
     new StoreRequest({
-      key: `${currentBranch}-${key}`,
+      key,
       paths
     })
   ).then((r) => {
