@@ -5956,6 +5956,7 @@ function hashKey(key) {
   const keyParts = key.split("|").map((s) => s.trim());
   const hardcodedKeys = [];
   const globsToHash = [];
+  console.log("keyparts", keyParts);
   keyParts.forEach((key2) => {
     if (key2.startsWith('"') && key2.endsWith('"')) {
       hardcodedKeys.push(key2.slice(1, -1));
