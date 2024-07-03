@@ -28,7 +28,7 @@ if (!!cacheWasHit) {
   const paths = input_paths.split('\n').filter((p) => p);
 
   cacheClient
-    .store(
+    .storeV2(
       new StoreRequest({
         key,
         paths,
