@@ -29,7 +29,6 @@ export function hashKey(key: string): string {
   const hardcodedKeys: string[] = [];
   const globsToHash: string[] = [];
 
-  console.log('keyparts', keyParts);
   keyParts.forEach((key) => {
     if (key.startsWith('"') && key.endsWith('"')) {
       hardcodedKeys.push(key.slice(1, -1));
