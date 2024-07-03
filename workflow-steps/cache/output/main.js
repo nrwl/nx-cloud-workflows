@@ -5999,6 +5999,7 @@ if (!input_key) {
 var key = `${hashKey(input_key)}`;
 var currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 var baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
+console.log([...currentBranchKeys, ...baseBranchKeys]);
 cacheClient.restore(
   new RestoreRequest({
     keys: [...currentBranchKeys, ...baseBranchKeys]

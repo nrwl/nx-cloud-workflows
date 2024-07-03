@@ -25,6 +25,7 @@ const key = `${hashKey(input_key)}`;
 const currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 const baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 
+console.log([...currentBranchKeys, ...baseBranchKeys]);
 cacheClient
   .restore(
     new RestoreRequest({
