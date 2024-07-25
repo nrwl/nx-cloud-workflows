@@ -5923,6 +5923,15 @@ var CacheService = {
       I: StoreRequest,
       O: StoreResponse,
       kind: MethodKind.Unary
+    },
+    /**
+     * @generated from rpc nrwl.grpc.CacheService.StoreV2
+     */
+    storeV2: {
+      name: "StoreV2",
+      I: StoreRequest,
+      O: StoreResponse,
+      kind: MethodKind.Unary
     }
   }
 };
@@ -5973,15 +5982,14 @@ if (!!cacheWasHit) {
       baseUrl: "http://127.0.0.1:9000"
     })
   );
-  const currentBranch = process.env.NX_BRANCH;
   if (!input_key || !input_paths) {
     throw new Error("No cache restore key or paths provided.");
   }
   const key = hashKey(input_key);
   const paths = input_paths.split("\n").filter((p) => p);
-  cacheClient.store(
+  cacheClient.storeV2(
     new StoreRequest({
-      key: `${currentBranch}-${key}`,
+      key,
       paths
     })
   ).then((r) => {

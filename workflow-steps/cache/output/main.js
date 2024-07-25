@@ -5935,6 +5935,15 @@ var CacheService = {
       I: StoreRequest,
       O: StoreResponse,
       kind: MethodKind.Unary
+    },
+    /**
+     * @generated from rpc nrwl.grpc.CacheService.StoreV2
+     */
+    storeV2: {
+      name: "StoreV2",
+      I: StoreRequest,
+      O: StoreResponse,
+      kind: MethodKind.Unary
     }
   }
 };
