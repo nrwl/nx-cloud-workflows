@@ -5947,8 +5947,8 @@ function hashFileContents(pattern) {
   let megaHash = "";
   files.forEach((file) => {
     const fileContent = fs.readFileSync(file);
-    const fileHash = crypto.createHash("sha256").update(fileContent).digest("hex");
-    megaHash = crypto.createHash("sha256").update(fileHash + megaHash).digest("hex");
+    const fileHash = hash(fileContent);
+    megaHash = hash(fileHash + megaHash);
   });
   return megaHash;
 }
@@ -5966,7 +5966,11 @@ function hashKey(key) {
   const globHashes = globsToHash.map((globPattern) => {
     return hashFileContents(globPattern);
   });
-  return [...hardcodedKeys, ...globHashes].join(" | ");
+  const hashCollections = [...hardcodedKeys, ...globHashes].join(" | ");
+  return hash(hashCollections);
+}
+function hash(input) {
+  return crypto.createHash("sha256").update(input).digest("hex");
 }
 
 // post.ts
