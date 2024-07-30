@@ -1,3 +1,5 @@
+import * as string_decoder from 'string_decoder';
+
 const fs = require('fs');
 const crypto = require('crypto');
 import { glob } from 'glob';
@@ -11,14 +13,8 @@ function hashFileContents(pattern: string) {
   let megaHash = '';
   files.forEach((file) => {
     const fileContent = fs.readFileSync(file);
-    const fileHash = crypto
-      .createHash('sha256')
-      .update(fileContent)
-      .digest('hex');
-    megaHash = crypto
-      .createHash('sha256')
-      .update(fileHash + megaHash)
-      .digest('hex');
+    const fileHash = hash(fileContent);
+    megaHash = hash(fileHash + megaHash);
   });
   return megaHash;
 }
@@ -40,5 +36,16 @@ export function hashKey(key: string): string {
   const globHashes = globsToHash.map((globPattern) => {
     return hashFileContents(globPattern);
   });
-  return [...hardcodedKeys, ...globHashes].join(' | ');
+  const hashCollections = [...hardcodedKeys, ...globHashes];
+
+  // we are only doing this for backwards compatibility purposes, so we don't bust everyone's cache when it gets merged in
+  // otherwise, it would've been fine to hash another hash
+  if (hashCollections.length > 1) {
+    return hash(hashCollections.join(' | '));
+  }
+  return hashCollections.join(' | ');
+}
+
+function hash(input: string) {
+  return crypto.createHash('sha256').update(input).digest('hex');
 }
