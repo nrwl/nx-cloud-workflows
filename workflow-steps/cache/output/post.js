@@ -5966,8 +5966,11 @@ function hashKey(key) {
   const globHashes = globsToHash.map((globPattern) => {
     return hashFileContents(globPattern);
   });
-  const hashCollections = [...hardcodedKeys, ...globHashes].join(" | ");
-  return hash(hashCollections);
+  const hashCollections = [...hardcodedKeys, ...globHashes];
+  if (hashCollections.length > 1) {
+    return hash(hashCollections.join(" | "));
+  }
+  return hashCollections.join(" | ");
 }
 function hash(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
