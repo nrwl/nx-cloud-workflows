@@ -38,6 +38,8 @@ export function hashKey(key: string): string {
   });
   const hashCollections = [...hardcodedKeys, ...globHashes];
 
+  // we are only doing this for backwards compatibility purposes, so we don't bust everyone's cache when it gets merged in
+  // otherwise, it would've been fine to hash another hash
   if (hashCollections.length > 1) {
     return hash(hashCollections.join(' | '));
   }
