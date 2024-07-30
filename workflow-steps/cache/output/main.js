@@ -380,9 +380,9 @@ var require_balanced_match = __commonJS({
   }
 });
 
-// ../../node_modules/minimatch/node_modules/brace-expansion/index.js
+// ../../node_modules/glob/node_modules/brace-expansion/index.js
 var require_brace_expansion = __commonJS({
-  "../../node_modules/minimatch/node_modules/brace-expansion/index.js"(exports, module2) {
+  "../../node_modules/glob/node_modules/brace-expansion/index.js"(exports, module2) {
     var concatMap = require_concat_map();
     var balanced = require_balanced_match();
     module2.exports = expandTop;
@@ -525,9 +525,9 @@ var require_brace_expansion = __commonJS({
   }
 });
 
-// ../../node_modules/minimatch/minimatch.js
+// ../../node_modules/glob/node_modules/minimatch/minimatch.js
 var require_minimatch = __commonJS({
-  "../../node_modules/minimatch/minimatch.js"(exports, module2) {
+  "../../node_modules/glob/node_modules/minimatch/minimatch.js"(exports, module2) {
     module2.exports = minimatch;
     minimatch.Minimatch = Minimatch;
     var path = function() {
@@ -6012,10 +6012,10 @@ cacheClient.restore(
   })
 ).then((resp) => {
   if (resp.success) {
-    console.log("Found cache entry under key: " + resp.key);
+    console.log("Found cache entry on key: " + resp.key);
     rememberCacheRestorationForPostStep();
   } else {
-    console.log("Cache miss.");
+    console.log("Cache miss on key: " + key);
   }
 });
 function rememberCacheRestorationForPostStep() {
