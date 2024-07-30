@@ -1,9 +1,10 @@
 {
-    "name": "cache-step",
-    "version": "0.0.0",
-    "main": "output/main.js",
-    "devDependencies": {},
-    "scripts": {
-      "build": "npx esbuild main.ts --bundle --platform=node --target=node20 --outfile=output/main.js && npx esbuild post.ts --bundle --platform=node --target=node20 --outfile=output/post.js"
-    }
+  "name": "cache-step",
+  "version": "0.0.0",
+  "main": "output/main.js",
+  "devDependencies": {},
+  "scripts": {
+    "build": "npx esbuild main.ts --bundle --platform=node --target=node20 --outfile=output/main.js && npx esbuild post.ts --bundle --platform=node --target=node20 --outfile=output/post.js",
+    "test": "npx jest --cwd=workflow-steps/cache"
   }
+}
