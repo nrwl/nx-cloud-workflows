@@ -1,7 +1,6 @@
 import { hashKey } from './hashing-utils';
 import * as path from 'path';
 
-console.log(hashKey);
 describe('hashing-utils', () => {
   const testDir = path.join(__dirname, 'test-files');
   it('should hash a single file', () => {
