@@ -5986,10 +5986,10 @@ function buildCachePaths(inputPaths) {
   );
   const invalidDirectories = directories.filter((dir) => !fs.existsSync(dir));
   if (invalidDirectories.length > 0) {
-    throw `The following paths are not valid:
+    console.warn(`The following paths are not valid or empty:
 ${invalidDirectories.join(
       "\n"
-    )}`;
+    )}`);
   }
   return directories;
 }
