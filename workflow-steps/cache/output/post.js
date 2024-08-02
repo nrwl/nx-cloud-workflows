@@ -5975,6 +5975,33 @@ function hashKey(key) {
 function hash(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
+function buildCachePaths(inputPaths) {
+  const directories = Array.from(
+    new Set(
+      inputPaths.split("\n").filter((p) => p).reduce(
+        (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
+        []
+      )
+    )
+  );
+  const invalidDirectories = directories.filter(
+    (dir) => !fs.existsSync(dir) || !fs.statSync(dir).isDirectory()
+  );
+  if (invalidDirectories.length > 0) {
+    throw `The following paths are not valid directories:
+${invalidDirectories.join(
+      "\n"
+    )}`;
+  }
+  return directories;
+}
+function expandPath(pattern) {
+  const globExpandedPaths = import_glob.glob.sync(pattern);
+  if (globExpandedPaths.length == 0) {
+    return [pattern];
+  }
+  return globExpandedPaths;
+}
 
 // post.ts
 var input_key = process.env.NX_CLOUD_INPUT_key;
@@ -5993,7 +6020,7 @@ if (!!cacheWasHit) {
     throw new Error("No cache restore key or paths provided.");
   }
   const key = hashKey(input_key);
-  const paths = input_paths.split("\n").filter((p) => p);
+  const paths = buildCachePaths(input_paths);
   cacheClient.storeV2(
     new StoreRequest({
       key,
