@@ -27,6 +27,8 @@ if (!!cacheWasHit) {
   const key = hashKey(input_key);
   const paths = buildCachePaths(input_paths);
 
+  console.log('Storing the following directories..\n' + paths.join('\n'));
+
   cacheClient
     .storeV2(
       new StoreRequest({
