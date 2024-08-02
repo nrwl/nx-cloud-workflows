@@ -61,11 +61,9 @@ export function buildCachePaths(inputPaths: string) {
     ),
   );
 
-  const invalidDirectories = directories.filter(
-    (dir) => !fs.existsSync(dir) || !fs.statSync(dir).isDirectory(),
-  );
+  const invalidDirectories = directories.filter((dir) => !fs.existsSync(dir));
   if (invalidDirectories.length > 0) {
-    throw `The following paths are not valid directories:\n${invalidDirectories.join(
+    throw `The following paths are not valid:\n${invalidDirectories.join(
       '\n',
     )}`;
   }

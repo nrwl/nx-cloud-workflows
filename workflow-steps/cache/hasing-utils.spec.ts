@@ -36,32 +36,25 @@ describe('hashing-utils', () => {
     input = `test-files/packages/app2\ntest-files/packages/app3\n\n`;
     expected = [`test-files/packages/app2`, `test-files/packages/app3`];
     expect(buildCachePaths(input)).toEqual(expected);
+
+    input = `test-files/yarn.lock\ntest-files/packages/app3\n\n`;
+    expected = [`test-files/yarn.lock`, `test-files/packages/app3`];
+    expect(buildCachePaths(input)).toEqual(expected);
+
+    input = `test-files/yarn.lock\ntest-files/main.js`;
+    expected = [`test-files/yarn.lock`, `test-files/main.js`];
+    expect(buildCachePaths(input)).toEqual(expected);
   });
 
   it('should throw when invalid dirs are specified', () => {
-    let input = `test-files/packages/app1\ntest-files/yarn.lock`;
+    let input = `test-files/packages/app6`;
     expect(() => buildCachePaths(input)).toThrow(
-      'The following paths are not valid directories:\n' +
-        'test-files/yarn.lock',
-    );
-
-    input = `test-files/yarn.lock\ntest-files/main.js`;
-    expect(() => buildCachePaths(input)).toThrow(
-      'The following paths are not valid directories:\n' +
-        'test-files/yarn.lock\n' +
-        'test-files/main.js',
-    );
-
-    input = `test-files/packages/app6`;
-    expect(() => buildCachePaths(input)).toThrow(
-      'The following paths are not valid directories:\n' +
-        'test-files/packages/app6',
+      'The following paths are not valid:\n' + 'test-files/packages/app6',
     );
 
     input = `test-files/packages/app2\ntest-files/packages/app7\n\n`;
     expect(() => buildCachePaths(input)).toThrow(
-      'The following paths are not valid directories:\n' +
-        'test-files/packages/app7',
+      'The following paths are not valid:\n' + 'test-files/packages/app7',
     );
   });
 
