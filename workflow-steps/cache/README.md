@@ -49,6 +49,13 @@ paths: |
 
 All above locations will be cached and subsequently restored.
 
+If you have multiple `node_modules` folder you can also pass in a glob path:
+
+```yaml
+paths: |
+  packages/*/node_modules
+```
+
 ## `base-branch`
 
 For security reasons, this step will only write cache entries **for the current branch only**. This isolation is

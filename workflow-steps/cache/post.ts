@@ -2,7 +2,7 @@ import { createPromiseClient } from '@bufbuild/connect';
 import { createConnectTransport } from '@bufbuild/connect-web';
 import { CacheService } from './generated_protos/cache_connect';
 import { StoreRequest, StoreResponse } from './generated_protos/cache_pb';
-import { hashKey } from './hashing-utils';
+import { buildCachePaths, hashKey } from './hashing-utils';
 
 const input_key = process.env.NX_CLOUD_INPUT_key;
 const input_paths = process.env.NX_CLOUD_INPUT_paths;
@@ -25,7 +25,9 @@ if (!!cacheWasHit) {
     throw new Error('No cache restore key or paths provided.');
   }
   const key = hashKey(input_key);
-  const paths = input_paths.split('\n').filter((p) => p);
+  const paths = buildCachePaths(input_paths);
+
+  console.log('Storing the following directories..\n' + paths.join('\n'));
 
   cacheClient
     .storeV2(
