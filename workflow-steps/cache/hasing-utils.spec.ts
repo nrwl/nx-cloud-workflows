@@ -1,4 +1,4 @@
-import { hashKey } from './hashing-utils';
+import { buildCachePaths, hashKey } from './hashing-utils';
 import * as path from 'path';
 
 describe('hashing-utils', () => {
@@ -26,5 +26,74 @@ describe('hashing-utils', () => {
     ).toEqual(
       '226f813c92638665c8daa0920cfb83e5f33732f8843042deee348032a1abee40',
     );
+  });
+
+  it('should validate simple dirs', () => {
+    let input = `test-files/packages/app1`;
+    let expected = [`test-files/packages/app1`];
+    expect(buildCachePaths(input)).toEqual(expected);
+
+    input = `test-files/packages/app2\ntest-files/packages/app3\n\n`;
+    expected = [`test-files/packages/app2`, `test-files/packages/app3`];
+    expect(buildCachePaths(input)).toEqual(expected);
+  });
+
+  it('should throw when invalid dirs are specified', () => {
+    let input = `test-files/packages/app1\ntest-files/yarn.lock`;
+    expect(() => buildCachePaths(input)).toThrow(
+      'The following paths are not valid directories:\n' +
+        'test-files/yarn.lock',
+    );
+
+    input = `test-files/yarn.lock\ntest-files/main.js`;
+    expect(() => buildCachePaths(input)).toThrow(
+      'The following paths are not valid directories:\n' +
+        'test-files/yarn.lock\n' +
+        'test-files/main.js',
+    );
+
+    input = `test-files/packages/app6`;
+    expect(() => buildCachePaths(input)).toThrow(
+      'The following paths are not valid directories:\n' +
+        'test-files/packages/app6',
+    );
+
+    input = `test-files/packages/app2\ntest-files/packages/app7\n\n`;
+    expect(() => buildCachePaths(input)).toThrow(
+      'The following paths are not valid directories:\n' +
+        'test-files/packages/app7',
+    );
+  });
+
+  it('should support glob paths', () => {
+    let input = `test-files/packages/*/mock_node_modules`;
+    let expected = [
+      `test-files/packages/app1/mock_node_modules`,
+      `test-files/packages/app2/mock_node_modules`,
+      `test-files/packages/app3/mock_node_modules`,
+    ];
+    expect(buildCachePaths(input)).toEqual(expected);
+
+    // it should filter out duplicates
+    input = `test-files/packages/app1/mock_node_modules\ntest-files/packages/*/mock_node_modules\ntest-files/packages`;
+    expected = [
+      `test-files/packages/app1/mock_node_modules`,
+      `test-files/packages/app2/mock_node_modules`,
+      `test-files/packages/app3/mock_node_modules`,
+      `test-files/packages`,
+    ];
+    expect(buildCachePaths(input)).toEqual(expected);
+  });
+
+  it('should filter out duplicates', () => {
+    const input = `test-files/packages/app1\ntest-files/packages/app1/mock_node_modules\ntest-files/packages/*/mock_node_modules\ntest-files/packages`;
+    const expected = [
+      `test-files/packages/app1`,
+      `test-files/packages/app1/mock_node_modules`,
+      `test-files/packages/app2/mock_node_modules`,
+      `test-files/packages/app3/mock_node_modules`,
+      `test-files/packages`,
+    ];
+    expect(buildCachePaths(input)).toEqual(expected);
   });
 });
