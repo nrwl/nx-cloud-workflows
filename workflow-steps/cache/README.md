@@ -49,13 +49,13 @@ paths: |
 
 All above locations will be cached and subsequently restored.
 
-## `base-branch`
+## `base_branch`
 
 For security reasons, this step will only write cache entries **for the current branch only**. This isolation is
 essential, for example, for open source projects, where anyone can create PRs and potentially push malicious artefacts
 to the cache.
 
-So by default, if you do not pass the `base-branch`, the cache step will only attempt to restore caches written **by the
+So by default, if you do not pass the `base_branch`, the cache step will only attempt to restore caches written **by the
 current branch only**. This can be fine, as any subsequent pushes to your PR will re-use the cache, and all the commits
 that go into your
 `main` branch will also re-use the cache.
@@ -63,7 +63,7 @@ that go into your
 However, for an extra optimisation, we recommend setting:
 
 ```yaml
-base-branch: 'main' # or another branch
+base_branch: 'main' # or another branch
 ```
 
 This will ensure that when you first open a PR, if a cached entry isn't found for the current branch, it will try to
