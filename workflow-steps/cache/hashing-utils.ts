@@ -1,5 +1,3 @@
-import * as string_decoder from 'string_decoder';
-
 const fs = require('fs');
 const crypto = require('crypto');
 import { glob } from 'glob';
@@ -48,4 +46,37 @@ export function hashKey(key: string): string {
 
 function hash(input: string) {
   return crypto.createHash('sha256').update(input).digest('hex');
+}
+
+export function buildCachePaths(inputPaths: string) {
+  const directories = Array.from(
+    new Set(
+      inputPaths
+        .split('\n')
+        .filter((p) => p)
+        .reduce(
+          (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
+          [],
+        ),
+    ),
+  );
+
+  const invalidDirectories = directories.filter((dir) => !fs.existsSync(dir));
+  if (invalidDirectories.length > 0) {
+    console.warn(
+      `The following paths are not valid or empty:\n${invalidDirectories.join(
+        '\n',
+      )}`,
+    );
+  }
+  return directories;
+}
+
+function expandPath(pattern: string): string[] {
+  const globExpandedPaths = glob.sync(pattern);
+  if (globExpandedPaths.length == 0) {
+    // it's probably not a valid path so we return it so it can be included in the error above
+    return [pattern];
+  }
+  return globExpandedPaths;
 }
