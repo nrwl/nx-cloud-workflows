@@ -6,7 +6,9 @@ import { hashKey } from './hashing-utils';
 import { appendFileSync, writeFileSync, existsSync } from 'fs';
 
 const input_key = process.env.NX_CLOUD_INPUT_key;
-const input_base_branch = process.env.NX_CLOUD_INPUT_base_branch;
+const baseBranch =
+  process.env.NX_CLOUD_INPUT_base_branch ||
+  process.env['NX_CLOUD_INPUT_base-branch'];
 
 export const cacheClient = createPromiseClient(
   CacheService,
@@ -16,7 +18,6 @@ export const cacheClient = createPromiseClient(
 );
 
 const currentBranch = process.env.NX_BRANCH;
-const baseBranch = input_base_branch;
 
 if (!input_key) {
   throw new Error('No cache restore key provided.');

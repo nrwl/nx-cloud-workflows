@@ -11,8 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -24,3 +25,9 @@ jobs:
         run: |
           chmod +x ./scripts/check-launch-templates.sh
           ./scripts/check-launch-templates.sh
+      - uses: nrwl/nx-set-shas@v4
+      - run: git branch --track main origin/main
+        if: ${{ github.event_name == 'pull_request' }}
+      - name: Run checks
+        run: |
+          yarn nx affected -t test
