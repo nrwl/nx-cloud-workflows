@@ -6,7 +6,7 @@
   inputs:
     key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
     paths: 'node_modules'
-    base_branch: 'main'
+    base-branch: 'main'
 ```
 
 ## `key` ![default](https://img.shields.io/badge/default_value-%27package--lock%2Ejson%7Cyarn%2Elock%7Cpnpm--lock%2Eyaml%27-D3D3D3)
