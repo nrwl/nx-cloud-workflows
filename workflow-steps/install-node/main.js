@@ -56,9 +56,9 @@ if (platform === 'win32') {
 
   function runNvmInstall(version) {
     try {
-      // enable nvm and then run the install command
+      // enable nvm and then run the install command with -b to only install pre-build binaries
       // nvm command isn't available since nx agents don't run the bash profile
-      const installNodeWithNvm = `. $NVM_DIR/nvm.sh && nvm install ${
+      const installNodeWithNvm = `. $NVM_DIR/nvm.sh && nvm install -b ${
         version || ''
       } --default`;
       const reenableCorePack = `corepack enable`;
