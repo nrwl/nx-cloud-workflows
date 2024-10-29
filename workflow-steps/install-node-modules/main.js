@@ -1,17 +1,40 @@
 const { execSync } = require('child_process');
 const { existsSync, readFileSync, writeFileSync } = require('fs');
 
-const command = getInstallCommand();
+async function main() {
+  const command = getInstallCommand();
 
-if (command) {
-  console.log(`Installing dependencies using ${command.split(' ')[0]}`);
-  console.log(`  Running command: ${command}\n`);
-  execSync(command, { stdio: 'inherit' });
-  patchJest();
-} else {
-  throw new Error(
-    'Could not find lock file. Please ensure you have a lock file before running this command.',
-  );
+  if (command) {
+    console.log(`Installing dependencies using ${command.split(' ')[0]}`);
+    console.log(`  Running command: ${command}\n`);
+
+    const retries = 3;
+
+    while (retries > 0) {
+      try {
+        await exec(command);
+        break;
+      } catch (e) {
+        if (retryCount <= 0) {
+          throw new Error(`Failed to install node modules`);
+        }
+
+        const delay = Math.max(3_000, Math.pow(2, retries) * 1_250);
+        console.warn(
+          `Failed to install dependencies, Retrying in ${(delay / 1000).toFixed(
+            0,
+          )}...`,
+        );
+        retries--;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+    patchJest();
+  } else {
+    throw new Error(
+      'Could not find lock file. Please ensure you have a lock file before running this command.',
+    );
+  }
 }
 
 function getInstallCommand() {
@@ -69,3 +92,5 @@ function patchJest() {
     console.log('no need to patch jest');
   }
 }
+
+main();
