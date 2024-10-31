@@ -8,9 +8,10 @@ async function main() {
     console.log(`Installing dependencies using ${command.split(' ')[0]}`);
     console.log(`  Running command: ${command}\n`);
 
-    const retries = 3;
+    let retries = 3;
 
     while (retries > 0) {
+      console.log(retries);
       try {
         await exec(command);
         break;
