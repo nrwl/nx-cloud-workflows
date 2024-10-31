@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const { existsSync, readFileSync, writeFileSync } = require('fs');
+const { maxHeaderSize } = require('http');
 
 async function main() {
   const command = getInstallCommand();
@@ -8,29 +9,30 @@ async function main() {
     console.log(`Installing dependencies using ${command.split(' ')[0]}`);
     console.log(`  Running command: ${command}\n`);
 
-    let retries = 3;
+    const maxRetries = 3;
+    let attempts = 0;
 
-    while (retries > 0) {
-      console.log(retries);
+    while (attempts < maxRetries) {
       try {
         await exec(command);
         break;
       } catch (e) {
-        if (retries <= 0) {
+        if (attempts >= maxRetries) {
           throw new Error(`Failed to install node modules`);
         }
 
-        const delay = Math.max(3_000, Math.pow(2, retries) * 1_250);
+        const delay = Math.max(3_000, Math.pow(2, attempts) * 1_250);
         console.warn(
           `Failed to install dependencies, Retrying in ${(delay / 1000).toFixed(
             0,
           )}...`,
         );
-        retries--;
+        attempts++;
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
     patchJest();
+    console.log('Installed dependencies');
   } else {
     throw new Error(
       'Could not find lock file. Please ensure you have a lock file before running this command.',
