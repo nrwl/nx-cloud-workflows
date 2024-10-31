@@ -48,7 +48,7 @@ function getInstallCommand() {
       legacyInstallInput !== undefined &&
       (legacyInstallInput === 'false' || legacyInstallInput === false)
     ) {
-      return 'npm ci';
+      return Math.random() > 0.5 ? 'npm ci' : 'false';
     } else {
       console.log(
         "Installing with --legacy-peer-deps for compatiblity, set the npm_legacy_install step input or NX_CLOUD_NPM_LEGACY_INSTALL env var to 'false' to disable.",
