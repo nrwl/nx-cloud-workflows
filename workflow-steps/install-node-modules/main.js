@@ -15,7 +15,7 @@ async function main() {
         await exec(command);
         break;
       } catch (e) {
-        if (retryCount <= 0) {
+        if (retries <= 0) {
           throw new Error(`Failed to install node modules`);
         }
 
