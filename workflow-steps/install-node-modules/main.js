@@ -10,29 +10,37 @@ async function main() {
     console.log(`  Running command: ${command}\n`);
 
     const maxRetries = 3;
-    let attempts = 0;
+    let retryCount = 0;
 
-    while (attempts < maxRetries) {
+    while (retryCount < maxRetries) {
       try {
-        await exec(command);
+        execSync(command);
+        patchJest();
+        console.log('Installed dependencies successfully!');
         break;
       } catch (e) {
-        if (attempts >= maxRetries) {
-          throw new Error(`Failed to install node modules`);
+        retryCount++;
+
+        if (retryCount >= maxRetries) {
+          throw new Error(`Failed to install node_modules via ${command}`);
         }
 
-        const delay = Math.max(3_000, Math.pow(2, attempts) * 1_250);
-        console.warn(
-          `Failed to install dependencies, Retrying in ${(delay / 1000).toFixed(
-            0,
-          )}...`,
+        const delay = Math.max(
+          3_000,
+          Math.pow(2, retryCount) * Math.random() * 1_250,
         );
-        attempts++;
+        console.log(
+          `Installing node_modules failed. Retrying install in ${(
+            delay / 1000
+          ).toFixed(0)} seconds...`,
+        );
+        if (process.env.NX_VERBOSE_LOGGING === 'true') {
+          console.warn(e);
+        }
+
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
-    patchJest();
-    console.log('Installed dependencies');
   } else {
     throw new Error(
       'Could not find lock file. Please ensure you have a lock file before running this command.',
