@@ -6019,7 +6019,8 @@ cacheClient.restore(
 });
 function rememberCacheRestorationForPostStep() {
   try {
-    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}=true
+    const stepGroupId = process.env.NX_STEP_GROUP_ID ? process.env.NX_STEP_GROUP_ID.replace("-", "_") : "";
+    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${stepGroupId}=true
 `;
     if ((0, import_fs.existsSync)(process.env.NX_CLOUD_ENV)) {
       (0, import_fs.appendFileSync)(process.env.NX_CLOUD_ENV, envValue);
