@@ -8,7 +8,7 @@ const input_key = process.env.NX_CLOUD_INPUT_key;
 const input_paths = process.env.NX_CLOUD_INPUT_paths;
 
 const stepGroupId = process.env.NX_STEP_GROUP_ID
-  ? process.env.NX_STEP_GROUP_ID.replace('-', '_')
+  ? process.env.NX_STEP_GROUP_ID.replace(/-/g, '_')
   : '';
 const cacheWasHit = stepGroupId === 'true';
 if (!!cacheWasHit) {

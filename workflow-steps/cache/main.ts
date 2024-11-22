@@ -44,7 +44,7 @@ cacheClient
 function rememberCacheRestorationForPostStep() {
   try {
     const stepGroupId = process.env.NX_STEP_GROUP_ID
-      ? process.env.NX_STEP_GROUP_ID.replace('-', '_')
+      ? process.env.NX_STEP_GROUP_ID.replace(/-/g, '_')
       : '';
     const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${stepGroupId}=true\n`;
     if (existsSync(process.env.NX_CLOUD_ENV)) {
