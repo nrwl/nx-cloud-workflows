@@ -1,6 +1,10 @@
 name: Install Node Modules
 description: Installs node_modules using your configured package manager.
 
+inputs:
+  - name: npm_legacy_install
+    description: 'Install with legacy peer dependency resolution. This only applies to npm.'
+
 definition:
   using: 'node'
   main: workflow-steps/install-node-modules/main.js

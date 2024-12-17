@@ -7,10 +7,11 @@ import { buildCachePaths, hashKey } from './hashing-utils';
 const input_key = process.env.NX_CLOUD_INPUT_key;
 const input_paths = process.env.NX_CLOUD_INPUT_paths;
 
+const stepGroupId = process.env.NX_STEP_GROUP_ID
+  ? process.env.NX_STEP_GROUP_ID.replace(/-/g, '_')
+  : '';
 const cacheWasHit =
-  process.env[
-    `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}`
-  ] === 'true';
+  process.env[`NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${stepGroupId}`] === 'true';
 if (!!cacheWasHit) {
   console.log('Skipped storing to cache');
 } else {
