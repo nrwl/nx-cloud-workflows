@@ -380,9 +380,9 @@ var require_balanced_match = __commonJS({
   }
 });
 
-// ../../node_modules/glob/node_modules/brace-expansion/index.js
+// ../../node_modules/minimatch/node_modules/brace-expansion/index.js
 var require_brace_expansion = __commonJS({
-  "../../node_modules/glob/node_modules/brace-expansion/index.js"(exports, module2) {
+  "../../node_modules/minimatch/node_modules/brace-expansion/index.js"(exports, module2) {
     var concatMap = require_concat_map();
     var balanced = require_balanced_match();
     module2.exports = expandTop;
@@ -525,9 +525,9 @@ var require_brace_expansion = __commonJS({
   }
 });
 
-// ../../node_modules/glob/node_modules/minimatch/minimatch.js
+// ../../node_modules/minimatch/minimatch.js
 var require_minimatch = __commonJS({
-  "../../node_modules/glob/node_modules/minimatch/minimatch.js"(exports, module2) {
+  "../../node_modules/minimatch/minimatch.js"(exports, module2) {
     module2.exports = minimatch;
     minimatch.Minimatch = Minimatch;
     var path = function() {
@@ -6019,7 +6019,8 @@ cacheClient.restore(
 });
 function rememberCacheRestorationForPostStep() {
   try {
-    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${process.env.NX_STEP_GROUP_ID}=true
+    const stepGroupId = process.env.NX_STEP_GROUP_ID ? process.env.NX_STEP_GROUP_ID.replace(/-/g, "_") : "";
+    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${stepGroupId}=true
 `;
     if ((0, import_fs.existsSync)(process.env.NX_CLOUD_ENV)) {
       (0, import_fs.appendFileSync)(process.env.NX_CLOUD_ENV, envValue);
