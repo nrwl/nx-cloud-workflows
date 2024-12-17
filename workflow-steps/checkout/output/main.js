@@ -10,9 +10,10 @@ if (process.platform != "win32") {
 }
 (0, import_child_process.execSync)("git init .");
 (0, import_child_process.execSync)(`git remote add origin ${repoUrl}`);
+(0, import_child_process.execSync)(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
 if (depth === "0") {
   (0, import_child_process.execSync)(
-    'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"'
+    'git fetch -c protocol.version=2 --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"'
   );
 } else {
   const tagsArg = fetchTags ? " --tags" : "--no-tags";
