@@ -16,7 +16,7 @@ execSync(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
 if (depth === '0') {
   // Fetch all branches and tags if depth is 0
   execSync(
-    'git fetch -c protocol.version=2 --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"',
+    'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"',
   );
 } else {
   // Fetch with specified depth
