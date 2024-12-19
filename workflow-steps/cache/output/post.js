@@ -5978,7 +5978,7 @@ function hash(input) {
 function buildCachePaths(inputPaths) {
   const directories = Array.from(
     new Set(
-      inputPaths.split("\n").filter((p) => p).reduce(
+      inputPaths.split("\n").filter((p) => p).map((p) => p.replace(/^~/, "..")).reduce(
         (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
         []
       )

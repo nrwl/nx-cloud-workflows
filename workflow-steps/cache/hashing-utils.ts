@@ -54,6 +54,7 @@ export function buildCachePaths(inputPaths: string) {
       inputPaths
         .split('\n')
         .filter((p) => p)
+        .map((p) => p.replace(/^~/, '..'))
         .reduce(
           (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
           [],
