@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const { existsSync, readFileSync, writeFileSync } = require('fs');
+const { platform } = require('os');
 
 async function main() {
   const command = getInstallCommand();
@@ -27,7 +28,7 @@ async function runCommandWithRetries(command, maxRetries) {
 
   while (retryCount < maxRetries) {
     try {
-      execSync(command);
+      execSync(command, { stdio: 'inherit' });
       patchJest();
       console.log('Installed dependencies successfully!');
       break;

@@ -4,8 +4,8 @@ import { CacheService } from './generated_protos/cache_connect';
 import { StoreRequest, StoreResponse } from './generated_protos/cache_pb';
 import { buildCachePaths, hashKey } from './hashing-utils';
 
-const input_key = process.env.NX_CLOUD_INPUT_key;
-const input_paths = process.env.NX_CLOUD_INPUT_paths;
+const inputKey = process.env.NX_CLOUD_INPUT_key;
+const inputPaths = process.env.NX_CLOUD_INPUT_paths;
 
 const stepGroupId = process.env.NX_STEP_GROUP_ID
   ? process.env.NX_STEP_GROUP_ID.replace(/-/g, '_')
@@ -22,13 +22,12 @@ if (!!cacheWasHit) {
     }),
   );
 
-  if (!input_key || !input_paths) {
-    throw new Error('No cache restore key or paths provided.');
-  }
-  const key = hashKey(input_key);
-  const paths = buildCachePaths(input_paths);
+  const paths = buildCachePaths(inputPaths);
+  const stringifiedPaths = paths.join(',');
+  const key = hashKey(`${inputKey}|${stringifiedPaths}`);
 
   console.log('Storing the following directories..\n' + paths.join('\n'));
+  console.log(`\nUsing key..${key}`);
 
   cacheClient
     .storeV2(

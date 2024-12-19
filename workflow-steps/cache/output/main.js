@@ -5989,10 +5989,38 @@ function hashKey(key2) {
 function hash(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
+function buildCachePaths(inputPaths2, warnInvalidPaths = true) {
+  const directories = Array.from(
+    new Set(
+      inputPaths2.split("\n").filter((p) => p).map((p) => p.replace(/^~/, "..")).reduce(
+        (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
+        []
+      )
+    )
+  );
+  const invalidDirectories = directories.filter((dir) => !fs.existsSync(dir));
+  if (invalidDirectories.length > 0 && warnInvalidPaths) {
+    console.warn(
+      `The following paths are not valid or empty:
+${invalidDirectories.join(
+        "\n"
+      )}`
+    );
+  }
+  return directories;
+}
+function expandPath(pattern) {
+  const globExpandedPaths = import_glob.glob.sync(pattern);
+  if (globExpandedPaths.length == 0) {
+    return [pattern];
+  }
+  return globExpandedPaths;
+}
 
 // main.ts
 var import_fs = require("fs");
-var input_key = process.env.NX_CLOUD_INPUT_key;
+var inputKey = process.env.NX_CLOUD_INPUT_key;
+var inputPaths = process.env.NX_CLOUD_INPUT_paths;
 var baseBranch = process.env.NX_CLOUD_INPUT_base_branch || process.env["NX_CLOUD_INPUT_base-branch"];
 var cacheClient = createPromiseClient(
   CacheService,
@@ -6001,10 +6029,12 @@ var cacheClient = createPromiseClient(
   })
 );
 var currentBranch = process.env.NX_BRANCH;
-if (!input_key) {
-  throw new Error("No cache restore key provided.");
+if (!inputKey || !inputPaths) {
+  throw new Error("No cache restore key or paths provided.");
 }
-var key = `${hashKey(input_key)}`;
+var paths = buildCachePaths(inputPaths, false);
+var stringifiedPaths = paths.join(",");
+var key = hashKey(`${inputKey}|${stringifiedPaths}`);
 var currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 var baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 cacheClient.restore(

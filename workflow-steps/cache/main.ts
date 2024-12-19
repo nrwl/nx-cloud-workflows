@@ -2,10 +2,11 @@ import { createPromiseClient } from '@bufbuild/connect';
 import { createConnectTransport } from '@bufbuild/connect-web';
 import { CacheService } from './generated_protos/cache_connect';
 import { RestoreRequest, RestoreResponse } from './generated_protos/cache_pb';
-import { hashKey } from './hashing-utils';
+import { buildCachePaths, hashKey } from './hashing-utils';
 import { appendFileSync, writeFileSync, existsSync } from 'fs';
 
-const input_key = process.env.NX_CLOUD_INPUT_key;
+const inputKey = process.env.NX_CLOUD_INPUT_key;
+const inputPaths = process.env.NX_CLOUD_INPUT_paths;
 const baseBranch =
   process.env.NX_CLOUD_INPUT_base_branch ||
   process.env['NX_CLOUD_INPUT_base-branch'];
@@ -19,10 +20,13 @@ export const cacheClient = createPromiseClient(
 
 const currentBranch = process.env.NX_BRANCH;
 
-if (!input_key) {
-  throw new Error('No cache restore key provided.');
+if (!inputKey || !inputPaths) {
+  throw new Error('No cache restore key or paths provided.');
 }
-const key = `${hashKey(input_key)}`;
+
+const paths = buildCachePaths(inputPaths, false);
+const stringifiedPaths = paths.join(',');
+const key = hashKey(`${inputKey}|${stringifiedPaths}`);
 const currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 const baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 
