@@ -5984,17 +5984,17 @@ function tildePathToRelative(cachedFolderPath) {
   }
   return cachedFolderPath;
 }
-function buildCachePaths(inputPaths) {
+function buildCachePaths(inputPaths2, warnInvalidPaths = true) {
   const directories = Array.from(
     new Set(
-      inputPaths.split("\n").filter((p) => p).map((p) => tildePathToRelative(p)).reduce(
+      inputPaths2.split("\n").filter((p) => p).map((p) => tildePathToRelative(p)).reduce(
         (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
         []
       )
     )
   );
   const invalidDirectories = directories.filter((dir) => !fs.existsSync(dir));
-  if (invalidDirectories.length > 0) {
+  if (invalidDirectories.length > 0 && warnInvalidPaths) {
     console.warn(
       `The following paths are not valid or empty:
 ${invalidDirectories.join(
@@ -6013,8 +6013,8 @@ function expandPath(pattern) {
 }
 
 // post.ts
-var input_key = process.env.NX_CLOUD_INPUT_key;
-var input_paths = process.env.NX_CLOUD_INPUT_paths;
+var inputKey = process.env.NX_CLOUD_INPUT_key;
+var inputPaths = process.env.NX_CLOUD_INPUT_paths;
 var stepGroupId = process.env.NX_STEP_GROUP_ID ? process.env.NX_STEP_GROUP_ID.replace(/-/g, "_") : "";
 var cacheWasHit = process.env[`NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${stepGroupId}`] === "true";
 if (!!cacheWasHit) {
@@ -6026,12 +6026,12 @@ if (!!cacheWasHit) {
       baseUrl: "http://127.0.0.1:9000"
     })
   );
-  if (!input_key || !input_paths) {
-    throw new Error("No cache restore key or paths provided.");
-  }
-  const key = hashKey(input_key);
-  const paths = buildCachePaths(input_paths);
+  const paths = buildCachePaths(inputPaths);
+  const stringifiedPaths = paths.join(",");
+  const key = hashKey(`${inputKey}|${stringifiedPaths}`);
   console.log("Storing the following directories..\n" + paths.join("\n"));
+  console.log(`
+Using key..${key}`);
   cacheClient.storeV2(
     new StoreRequest({
       key,

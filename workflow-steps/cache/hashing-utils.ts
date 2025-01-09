@@ -59,7 +59,10 @@ function tildePathToRelative(cachedFolderPath: string) {
   return cachedFolderPath;
 }
 
-export function buildCachePaths(inputPaths: string) {
+export function buildCachePaths(
+  inputPaths: string,
+  warnInvalidPaths: boolean = true,
+) {
   const directories = Array.from(
     new Set(
       inputPaths
@@ -74,7 +77,7 @@ export function buildCachePaths(inputPaths: string) {
   );
 
   const invalidDirectories = directories.filter((dir) => !fs.existsSync(dir));
-  if (invalidDirectories.length > 0) {
+  if (invalidDirectories.length > 0 && warnInvalidPaths) {
     console.warn(
       `The following paths are not valid or empty:\n${invalidDirectories.join(
         '\n',

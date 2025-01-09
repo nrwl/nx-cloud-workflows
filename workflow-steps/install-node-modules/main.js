@@ -27,7 +27,7 @@ async function runCommandWithRetries(command, maxRetries) {
 
   while (retryCount < maxRetries) {
     try {
-      execSync(command);
+      execSync(command, { stdio: 'inherit' });
       patchJest();
       console.log('Installed dependencies successfully!');
       break;
