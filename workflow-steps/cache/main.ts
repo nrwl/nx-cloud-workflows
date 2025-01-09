@@ -26,7 +26,7 @@ if (!inputKey || !inputPaths) {
 
 const paths = buildCachePaths(inputPaths, false);
 const stringifiedPaths = paths.join(',');
-const key = hashKey(`${inputKey}|${stringifiedPaths}`);
+const key = hashKey(`${inputKey}|"${stringifiedPaths}"`);
 const currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 const baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 

@@ -6041,7 +6041,7 @@ if (!inputKey || !inputPaths) {
 }
 var paths = buildCachePaths(inputPaths, false);
 var stringifiedPaths = paths.join(",");
-var key = hashKey(`${inputKey}|${stringifiedPaths}`);
+var key = hashKey(`${inputKey}|"${stringifiedPaths}"`);
 var currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
 var baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
 cacheClient.restore(
