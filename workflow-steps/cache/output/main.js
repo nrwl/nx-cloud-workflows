@@ -5989,10 +5989,17 @@ function hashKey(key2) {
 function hash(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
+function tildePathToRelative(cachedFolderPath) {
+  if (cachedFolderPath.startsWith("~")) {
+    const expandedPath = cachedFolderPath.replace(/^~/, os.homedir());
+    return path.relative(process.cwd(), expandedPath);
+  }
+  return cachedFolderPath;
+}
 function buildCachePaths(inputPaths2, warnInvalidPaths = true) {
   const directories = Array.from(
     new Set(
-      inputPaths2.split("\n").filter((p) => p).reduce(
+      inputPaths2.split("\n").filter((p) => p).map((p) => tildePathToRelative(p)).reduce(
         (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
         []
       )
