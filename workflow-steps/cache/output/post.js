@@ -5978,7 +5978,7 @@ function hash(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 function tildePathToRelative(cachedFolderPath) {
-  if (cachedFolderPath.includes("~")) {
+  if (cachedFolderPath.startsWith("~")) {
     const expandedPath = cachedFolderPath.replace(/^~/, os.homedir());
     return path.relative(process.cwd(), expandedPath);
   }

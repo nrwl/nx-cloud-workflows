@@ -52,7 +52,7 @@ function hash(input: string) {
 }
 
 function tildePathToRelative(cachedFolderPath: string) {
-  if (cachedFolderPath.includes('~')) {
+  if (cachedFolderPath.startsWith('~')) {
     const expandedPath = cachedFolderPath.replace(/^~/, os.homedir());
     return path.relative(process.cwd(), expandedPath);
   }
