@@ -2,6 +2,9 @@ const fs = require('fs');
 const crypto = require('crypto');
 import { glob } from 'glob';
 
+const path = require('path');
+const os = require('os');
+
 function hashFileContents(pattern: string) {
   const files = glob
     .sync(pattern, { ignore: 'node_modules/**' })
@@ -48,12 +51,21 @@ function hash(input: string) {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
+function tildePathToRelative(cachedFolderPath: string) {
+  if (cachedFolderPath.startsWith('~')) {
+    const expandedPath = cachedFolderPath.replace(/^~/, os.homedir());
+    return path.relative(process.cwd(), expandedPath);
+  }
+  return cachedFolderPath;
+}
+
 export function buildCachePaths(inputPaths: string) {
   const directories = Array.from(
     new Set(
       inputPaths
         .split('\n')
         .filter((p) => p)
+        .map((p) => tildePathToRelative(p))
         .reduce(
           (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
           [],
