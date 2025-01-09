@@ -1,6 +1,5 @@
 const { execSync } = require('child_process');
 const { existsSync, readFileSync, writeFileSync } = require('fs');
-const { platform } = require('os');
 
 async function main() {
   const command = getInstallCommand();
