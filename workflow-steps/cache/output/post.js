@@ -525,7 +525,7 @@ var require_minimatch = __commonJS({
   "../../node_modules/minimatch/minimatch.js"(exports, module2) {
     module2.exports = minimatch;
     minimatch.Minimatch = Minimatch;
-    var path = function() {
+    var path2 = function() {
       try {
         return require("path");
       } catch (e) {
@@ -533,7 +533,7 @@ var require_minimatch = __commonJS({
     }() || {
       sep: "/"
     };
-    minimatch.sep = path.sep;
+    minimatch.sep = path2.sep;
     var GLOBSTAR = minimatch.GLOBSTAR = Minimatch.GLOBSTAR = {};
     var expand = require_brace_expansion();
     var plTypes = {
@@ -624,8 +624,8 @@ var require_minimatch = __commonJS({
       if (!options)
         options = {};
       pattern = pattern.trim();
-      if (!options.allowWindowsEscape && path.sep !== "/") {
-        pattern = pattern.split(path.sep).join("/");
+      if (!options.allowWindowsEscape && path2.sep !== "/") {
+        pattern = pattern.split(path2.sep).join("/");
       }
       this.options = options;
       this.set = [];
@@ -1002,8 +1002,8 @@ var require_minimatch = __commonJS({
       if (f === "/" && partial)
         return true;
       var options = this.options;
-      if (path.sep !== "/") {
-        f = f.split(path.sep).join("/");
+      if (path2.sep !== "/") {
+        f = f.split(path2.sep).join("/");
       }
       f = f.split(slashSplit);
       this.debug(this.pattern, "split", f);
@@ -1161,12 +1161,12 @@ var require_inherits = __commonJS({
 var require_path_is_absolute = __commonJS({
   "../../node_modules/path-is-absolute/index.js"(exports, module2) {
     "use strict";
-    function posix(path) {
-      return path.charAt(0) === "/";
+    function posix(path2) {
+      return path2.charAt(0) === "/";
     }
-    function win32(path) {
+    function win32(path2) {
       var splitDeviceRe = /^([a-zA-Z]:|[\\\/]{2}[^\\\/]+[\\\/]+[^\\\/]+)?([\\\/])?([\s\S]*?)$/;
-      var result = splitDeviceRe.exec(path);
+      var result = splitDeviceRe.exec(path2);
       var device = result[1] || "";
       var isUnc = Boolean(device && device.charAt(1) !== ":");
       return Boolean(result[2] || isUnc);
@@ -1191,7 +1191,7 @@ var require_common = __commonJS({
       return Object.prototype.hasOwnProperty.call(obj, field);
     }
     var fs2 = require("fs");
-    var path = require("path");
+    var path2 = require("path");
     var minimatch = require_minimatch();
     var isAbsolute = require_path_is_absolute();
     var Minimatch = minimatch.Minimatch;
@@ -1256,11 +1256,11 @@ var require_common = __commonJS({
       if (!ownProp(options, "cwd"))
         self.cwd = cwd;
       else {
-        self.cwd = path.resolve(options.cwd);
+        self.cwd = path2.resolve(options.cwd);
         self.changedCwd = self.cwd !== cwd;
       }
-      self.root = options.root || path.resolve(self.cwd, "/");
-      self.root = path.resolve(self.root);
+      self.root = options.root || path2.resolve(self.cwd, "/");
+      self.root = path2.resolve(self.root);
       if (process.platform === "win32")
         self.root = self.root.replace(/\\/g, "/");
       self.cwdAbs = isAbsolute(self.cwd) ? self.cwd : makeAbs(self, self.cwd);
@@ -1342,30 +1342,30 @@ var require_common = __commonJS({
     function makeAbs(self, f) {
       var abs = f;
       if (f.charAt(0) === "/") {
-        abs = path.join(self.root, f);
+        abs = path2.join(self.root, f);
       } else if (isAbsolute(f) || f === "") {
         abs = f;
       } else if (self.changedCwd) {
-        abs = path.resolve(self.cwd, f);
+        abs = path2.resolve(self.cwd, f);
       } else {
-        abs = path.resolve(f);
+        abs = path2.resolve(f);
       }
       if (process.platform === "win32")
         abs = abs.replace(/\\/g, "/");
       return abs;
     }
-    function isIgnored(self, path2) {
+    function isIgnored(self, path3) {
       if (!self.ignore.length)
         return false;
       return self.ignore.some(function(item) {
-        return item.matcher.match(path2) || !!(item.gmatcher && item.gmatcher.match(path2));
+        return item.matcher.match(path3) || !!(item.gmatcher && item.gmatcher.match(path3));
       });
     }
-    function childrenIgnored(self, path2) {
+    function childrenIgnored(self, path3) {
       if (!self.ignore.length)
         return false;
       return self.ignore.some(function(item) {
-        return !!(item.gmatcher && item.gmatcher.match(path2));
+        return !!(item.gmatcher && item.gmatcher.match(path3));
       });
     }
   }
@@ -1381,7 +1381,7 @@ var require_sync = __commonJS({
     var Minimatch = minimatch.Minimatch;
     var Glob = require_glob().Glob;
     var util = require("util");
-    var path = require("path");
+    var path2 = require("path");
     var assert2 = require("assert");
     var isAbsolute = require_path_is_absolute();
     var common = require_common();
@@ -1509,7 +1509,7 @@ var require_sync = __commonJS({
               e = prefix + e;
           }
           if (e.charAt(0) === "/" && !this.nomount) {
-            e = path.join(this.root, e);
+            e = path2.join(this.root, e);
           }
           this._emitMatch(index, e);
         }
@@ -1658,9 +1658,9 @@ var require_sync = __commonJS({
       if (prefix && isAbsolute(prefix) && !this.nomount) {
         var trail = /[\/\\]$/.test(prefix);
         if (prefix.charAt(0) === "/") {
-          prefix = path.join(this.root, prefix);
+          prefix = path2.join(this.root, prefix);
         } else {
-          prefix = path.resolve(this.root, prefix);
+          prefix = path2.resolve(this.root, prefix);
           if (trail)
             prefix += "/";
         }
@@ -1855,7 +1855,7 @@ var require_glob = __commonJS({
     var Minimatch = minimatch.Minimatch;
     var inherits = require_inherits();
     var EE = require("events").EventEmitter;
-    var path = require("path");
+    var path2 = require("path");
     var assert2 = require("assert");
     var isAbsolute = require_path_is_absolute();
     var globSync = require_sync();
@@ -2138,7 +2138,7 @@ var require_glob = __commonJS({
               e = prefix + e;
           }
           if (e.charAt(0) === "/" && !this.nomount) {
-            e = path.join(this.root, e);
+            e = path2.join(this.root, e);
           }
           this._emitMatch(index, e);
         }
@@ -2325,9 +2325,9 @@ var require_glob = __commonJS({
       if (prefix && isAbsolute(prefix) && !this.nomount) {
         var trail = /[\/\\]$/.test(prefix);
         if (prefix.charAt(0) === "/") {
-          prefix = path.join(this.root, prefix);
+          prefix = path2.join(this.root, prefix);
         } else {
-          prefix = path.resolve(this.root, prefix);
+          prefix = path2.resolve(this.root, prefix);
           if (trail)
             prefix += "/";
         }
@@ -5940,9 +5940,11 @@ var CacheService = {
 var import_glob = __toESM(require_glob());
 var fs = require("fs");
 var crypto = require("crypto");
+var path = require("path");
+var os = require("os");
 function hashFileContents(pattern) {
-  const files = import_glob.glob.sync(pattern, { ignore: "node_modules/**" }).filter((path) => {
-    return fs.statSync(path).isFile();
+  const files = import_glob.glob.sync(pattern, { ignore: "node_modules/**" }).filter((path2) => {
+    return fs.statSync(path2).isFile();
   });
   let megaHash = "";
   files.forEach((file) => {
@@ -5975,10 +5977,17 @@ function hashKey(key) {
 function hash(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
+function tildePathToRelative(cachedFolderPath) {
+  if (cachedFolderPath.includes("~")) {
+    const expandedPath = cachedFolderPath.replace(/^~/, os.homedir());
+    return path.relative(process.cwd(), expandedPath);
+  }
+  return cachedFolderPath;
+}
 function buildCachePaths(inputPaths) {
   const directories = Array.from(
     new Set(
-      inputPaths.split("\n").filter((p) => p).map((p) => p.replace(/^~/, "..")).reduce(
+      inputPaths.split("\n").filter((p) => p).map((p) => tildePathToRelative(p)).reduce(
         (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
         []
       )
