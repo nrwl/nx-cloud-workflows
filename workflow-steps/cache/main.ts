@@ -26,9 +26,14 @@ if (!inputKey || !inputPaths) {
 
 const paths = buildCachePaths(inputPaths, false);
 const stringifiedPaths = paths.join(',');
-const key = hashKey(`${inputKey}|"${stringifiedPaths}"`);
-const currentBranchKeys = [key].map((k) => `${currentBranch}-${k}`);
-const baseBranchKeys = baseBranch ? [key].map((k) => `${baseBranch}-${k}`) : [];
+const key = `${inputKey} | "${stringifiedPaths}"`;
+const hashedKey = hashKey(key);
+const currentBranchKeys = [hashedKey].map((k) => `${currentBranch}-${k}`);
+const baseBranchKeys = baseBranch
+  ? [hashedKey].map((k) => `${baseBranch}-${k}`)
+  : [];
+
+console.log(`Expanded unhashed key is: ${key}\n`);
 
 cacheClient
   .restore(
@@ -38,10 +43,14 @@ cacheClient
   )
   .then((resp: RestoreResponse) => {
     if (resp.success) {
-      console.log('Found cache entry on hashed key: ' + resp.key);
+      console.log('Found cache entry on: ' + resp.key);
       rememberCacheRestorationForPostStep();
     } else {
-      console.log('Cache miss on hashed key: ' + key);
+      console.log(`Cache miss on:`);
+      console.log(`- ${currentBranch}-${hashedKey}`);
+      if (baseBranch && currentBranch !== baseBranch) {
+        console.log(`- ${baseBranch}-${hashedKey}`);
+      }
     }
   });
 

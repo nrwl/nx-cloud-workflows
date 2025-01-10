@@ -63,7 +63,7 @@ export function buildCachePaths(
   inputPaths: string,
   warnInvalidPaths: boolean = true,
 ) {
-  const directories = Array.from(
+  const directories: string[] = Array.from(
     new Set(
       inputPaths
         .split('\n')
