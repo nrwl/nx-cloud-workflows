@@ -6028,21 +6028,25 @@ if (!!cacheWasHit) {
   );
   const paths = buildCachePaths(inputPaths);
   const stringifiedPaths = paths.join(",");
-  const key = hashKey(`${inputKey}|${stringifiedPaths}`);
-  console.log("Storing the following directories..\n" + paths.join("\n"));
-  console.log(`
-Using key..${key}`);
+  const key = `${inputKey} | "${stringifiedPaths}"`;
+  const hashedKey = hashKey(key);
+  console.log(`Expanded unhashed cache key is: ${key}`);
+  console.log(
+    `Hashed key that will be used for storage: ${process.env.NX_BRANCH}-${hashedKey}`
+  );
+  console.log("\nDirectories marked for upload:\n" + paths.join("\n"));
   cacheClient.storeV2(
     new StoreRequest({
-      key,
+      key: hashedKey,
       paths
     })
   ).then((r) => {
     if (r.success)
-      console.log(`Successfully stored to cache under key ${key}`);
+      console.log(`
+Successfully uploaded marked directories.`);
     if (r.skipped)
       console.log(
-        "Skipped storing to cache, another instance has already started the upload"
+        "\nSkipped storing to cache, another instance has already started the upload."
       );
   });
 }
