@@ -40,6 +40,7 @@ cacheClient
     if (resp.success) {
       console.log('Found cache entry on hashed key: ' + resp.key);
       rememberCacheRestorationForPostStep();
+      console.log('post rememberCacheRestorationForPostStep()');
     } else {
       console.log('Cache miss on hashed key: ' + key);
     }
@@ -60,3 +61,5 @@ function rememberCacheRestorationForPostStep() {
     console.log(e);
   }
 }
+
+console.log('caching step finished');

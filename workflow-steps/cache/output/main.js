@@ -6052,6 +6052,7 @@ cacheClient.restore(
   if (resp.success) {
     console.log("Found cache entry on hashed key: " + resp.key);
     rememberCacheRestorationForPostStep();
+    console.log("post rememberCacheRestorationForPostStep()");
   } else {
     console.log("Cache miss on hashed key: " + key);
   }
@@ -6070,6 +6071,7 @@ function rememberCacheRestorationForPostStep() {
     console.log(e);
   }
 }
+console.log("caching step finished");
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   cacheClient
