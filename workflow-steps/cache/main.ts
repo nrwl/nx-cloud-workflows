@@ -45,6 +45,7 @@ cacheClient
     if (resp.success) {
       console.log('Found cache entry on: ' + resp.key);
       rememberCacheRestorationForPostStep();
+      console.log("post rememberCacheRestorationForPostStep()");
     } else {
       console.log(`Cache miss on:`);
       console.log(`- ${currentBranch}-${hashedKey}`);
@@ -69,3 +70,5 @@ function rememberCacheRestorationForPostStep() {
     console.log(e);
   }
 }
+
+console.log("reached end of caching step");
