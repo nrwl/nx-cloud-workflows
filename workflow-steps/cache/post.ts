@@ -46,5 +46,10 @@ if (!!cacheWasHit) {
         console.log(
           '\nSkipped storing to cache, another instance has already started the upload.',
         );
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('Cache upload failed:', err);
+      process.exit(1);
     });
 }
