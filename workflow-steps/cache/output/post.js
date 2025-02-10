@@ -6053,5 +6053,4 @@ Successfully uploaded marked directories.`);
     console.error("Cache upload failed:", err);
     process.exit(1);
   });
-  ;
 }
