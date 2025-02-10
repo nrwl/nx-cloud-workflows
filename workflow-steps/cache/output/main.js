@@ -6062,6 +6062,10 @@ cacheClient.restore(
       console.log(`- ${baseBranch}-${hashedKey}`);
     }
   }
+  process.exit(0);
+}).catch((err) => {
+  console.error("Cache restoration failed:", err);
+  process.exit(1);
 });
 function rememberCacheRestorationForPostStep() {
   try {
