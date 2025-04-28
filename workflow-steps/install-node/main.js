@@ -9,6 +9,10 @@ async function main() {
     // Allow using inputs or env until we fully switch to inputs
     const nodeVersionInput =
       process.env.NX_CLOUD_INPUT_node_version || process.env.NODE_VERSION;
+
+    const pnpmVersionInput =
+      process.env.NX_CLOUD_INPUT_pnpm_version || process.env.PNPM_VERSION;
+
     const maxRetries = process.env.NX_CLOUD_INPUT_max_retries || 3;
 
     // set defaults incase they are not set yet
@@ -18,12 +22,12 @@ async function main() {
     const maybeVoltaNodeVersion = getVoltaNodeVersion();
 
     if (nodeVersionInput) {
-      await runNvmInstall(nodeVersionInput, maxRetries);
+      await runNvmInstall(nodeVersionInput, maxRetries, pnpmVersionInput);
     } else if (isUsingNvm()) {
       // nvm will auto detect version in .nvmrc, no need to pass version
-      await runNvmInstall(null, maxRetries);
+      await runNvmInstall(null, maxRetries, pnpmVersionInput);
     } else if (maybeVoltaNodeVersion) {
-      await runNvmInstall(maybeVoltaNodeVersion, maxRetries);
+      await runNvmInstall(maybeVoltaNodeVersion, maxRetries, pnpmVersionInput);
     } else {
       console.warn(
         `No node version specified. You can use the step inputs to define a node version.`,
@@ -56,7 +60,7 @@ async function main() {
     }
   }
 
-  async function runNvmInstall(version, maxRetries = 3) {
+  async function runNvmInstall(version, maxRetries = 3, pnpmVersion = '8') {
     // enable nvm and then run the install command with -b to only install pre-build binaries
     // nvm command isn't available since nx agents don't run the bash profile
     const installNodeWithNvm = `. $NVM_DIR/nvm.sh && nvm install -b ${
@@ -65,7 +69,7 @@ async function main() {
     const reenableCorePack = `corepack enable`;
     // install outside of the current directory,
     // otherwise corepack errors if a different package mangager is used than is defined in the workspace
-    const reinstallPackageManagers = `cd .. && corepack prepare yarn@1 && corepack prepare pnpm@8`;
+    const reinstallPackageManagers = `cd .. && corepack prepare yarn@1 && corepack prepare pnpm@${pnpmVersion}`;
     const printVersions = ['node', 'npm', 'yarn', 'pnpm']
       .map((cmd) => `echo "${cmd}: $(${cmd} -v)"`)
       .join(' && ');

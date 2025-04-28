@@ -4,6 +4,10 @@ inputs:
   - name: node_version
     description: 'The node version to be installed'
 
+  - name: pnpm_version
+    description: 'The pnpm version to be installed'
+    default: '8'
+
 definition:
   using: 'node'
   main: workflow-steps/install-node/main.js
