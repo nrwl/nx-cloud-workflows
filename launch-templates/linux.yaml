@@ -1,7 +1,7 @@
 launch-templates:
   linux-small-js:
     resource-class: 'docker_linux_amd64/small'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -18,13 +18,15 @@ launch-templates:
           paths: |
             '../.cache/Cypress'
           base-branch: 'main'
+      - name: Install Node
+        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-browsers/main.yaml'
   linux-medium-js:
     resource-class: 'docker_linux_amd64/medium'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -41,13 +43,15 @@ launch-templates:
           paths: |
             '../.cache/Cypress'
           base-branch: 'main'
+      - name: Install Node
+        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-browsers/main.yaml'
   linux-medium-plus-js:
     resource-class: 'docker_linux_amd64/medium+'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -64,13 +68,15 @@ launch-templates:
           paths: |
             '../.cache/Cypress'
           base-branch: 'main'
+      - name: Install Node
+        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-browsers/main.yaml'
   linux-large-js:
     resource-class: 'docker_linux_amd64/large'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -87,13 +93,15 @@ launch-templates:
           paths: |
             '../.cache/Cypress'
           base-branch: 'main'
+      - name: Install Node
+        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-browsers/main.yaml'
   linux-large-plus-js:
     resource-class: 'docker_linux_amd64/large+'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -110,13 +118,15 @@ launch-templates:
           paths: |
             '../.cache/Cypress'
           base-branch: 'main'
+      - name: Install Node
+        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-browsers/main.yaml'
   linux-extra-large-js:
     resource-class: 'docker_linux_amd64/extra_large'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -133,13 +143,15 @@ launch-templates:
           paths: |
             '../.cache/Cypress'
           base-branch: 'main'
+      - name: Install Node
+        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-browsers/main.yaml'
   linux-extra-large-plus-js:
     resource-class: 'docker_linux_amd64/extra_large+'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -156,13 +168,15 @@ launch-templates:
           paths: |
             '../.cache/Cypress'
           base-branch: 'main'
+      - name: Install Node
+        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-browsers/main.yaml'
   linux-small-jvm:
     resource-class: 'docker_linux_amd64/small'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -172,7 +186,7 @@ launch-templates:
         script: ./nx --version
   linux-medium-jvm:
     resource-class: 'docker_linux_amd64/medium'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -182,7 +196,7 @@ launch-templates:
         script: ./nx --version
   linux-medium-plus-jvm:
     resource-class: 'docker_linux_amd64/medium+'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -192,7 +206,7 @@ launch-templates:
         script: ./nx --version
   linux-large-jvm:
     resource-class: 'docker_linux_amd64/large'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -202,7 +216,7 @@ launch-templates:
         script: ./nx --version
   linux-large-plus-jvm:
     resource-class: 'docker_linux_amd64/large+'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -212,7 +226,7 @@ launch-templates:
         script: ./nx --version
   linux-extra-large-jvm:
     resource-class: 'docker_linux_amd64/extra_large'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
@@ -222,7 +236,7 @@ launch-templates:
         script: ./nx --version
   linux-extra-large-plus-jvm:
     resource-class: 'docker_linux_amd64/extra_large+'
-    image: 'ubuntu22.04-node20.11-v10'
+    image: 'ubuntu22.04-node20.19-v2'
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
