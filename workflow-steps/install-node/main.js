@@ -65,7 +65,7 @@ async function main() {
     const reenableCorePack = `npm install -g corepack@latest && corepack enable`;
     // install outside of the current directory,
     // otherwise corepack errors if a different package mangager is used than is defined in the workspace
-    const reinstallPackageManagers = `cd .. && corepack prepare yarn@1 && corepack prepare pnpm@8`;
+    const reinstallPackageManagers = `cd .. && corepack prepare yarn@1 && corepack prepare pnpm@9`;
     const printVersions = ['node', 'npm', 'yarn', 'pnpm']
       .map((cmd) => `echo "${cmd}: $(${cmd} -v)"`)
       .join(' && ');
