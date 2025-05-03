@@ -62,10 +62,10 @@ async function main() {
     const installNodeWithNvm = `. $NVM_DIR/nvm.sh && nvm install -b ${
       version || ''
     } --default`;
-    const reenableCorePack = `corepack enable`;
+    const reenableCorePack = `npm install -g corepack@latest && corepack enable`;
     // install outside of the current directory,
     // otherwise corepack errors if a different package mangager is used than is defined in the workspace
-    const reinstallPackageManagers = `cd .. && corepack prepare yarn@1 && corepack prepare pnpm@8`;
+    const reinstallPackageManagers = `cd .. && corepack prepare yarn@1 && corepack prepare pnpm@9`;
     const printVersions = ['node', 'npm', 'yarn', 'pnpm']
       .map((cmd) => `echo "${cmd}: $(${cmd} -v)"`)
       .join(' && ');
