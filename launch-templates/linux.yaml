@@ -19,7 +19,7 @@ launch-templates:
             '../.cache/Cypress'
           base-branch: 'main'
       - name: Install Node
-        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -44,7 +44,7 @@ launch-templates:
             '../.cache/Cypress'
           base-branch: 'main'
       - name: Install Node
-        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -69,7 +69,7 @@ launch-templates:
             '../.cache/Cypress'
           base-branch: 'main'
       - name: Install Node
-        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -94,7 +94,7 @@ launch-templates:
             '../.cache/Cypress'
           base-branch: 'main'
       - name: Install Node
-        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -119,7 +119,7 @@ launch-templates:
             '../.cache/Cypress'
           base-branch: 'main'
       - name: Install Node
-        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -144,7 +144,7 @@ launch-templates:
             '../.cache/Cypress'
           base-branch: 'main'
       - name: Install Node
-        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
@@ -169,7 +169,7 @@ launch-templates:
             '../.cache/Cypress'
           base-branch: 'main'
       - name: Install Node
-        uses: 'nrwl/nx-cloud-workflows/v1/workflow-steps/install-node/main.yaml'
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node/main.yaml'
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
