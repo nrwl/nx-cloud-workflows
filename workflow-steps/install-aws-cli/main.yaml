@@ -1,0 +1,6 @@
+name: 'Install AWS CLI'
+description: 'Install the AWS CLI and check the AWS configured identity'
+# no inputs as the keys should be passed from your main machine via --with-env-vars
+definition:
+  using: 'node'
+  main: workflow-steps/install-aws-cli/main.js
