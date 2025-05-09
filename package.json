@@ -16,6 +16,7 @@
     "@types/node": "^20.6.3"
   },
   "devDependencies": {
+    "@nx/conformance": "^2.0.1",
     "@nx/js": "18.3.4",
     "@types/jest": "^29.4.0",
     "esbuild": "^0.19.8",
