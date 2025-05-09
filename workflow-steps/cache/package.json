@@ -4,7 +4,8 @@
   "main": "output/main.js",
   "devDependencies": {},
   "scripts": {
-    "build": "npx esbuild main.ts --bundle --platform=node --target=node20 --outfile=output/main.js && npx esbuild post.ts --bundle --platform=node --target=node20 --outfile=output/post.js",
+    "//": "purpusefully don't provide a tsconfig to prevent resolution to root tsconfig causing a breaking build",
+    "build": "npx esbuild main.ts  --tsconfig=   --bundle --platform=node --target=node20 --outfile=output/main.js && npx esbuild post.ts --tsconfig=   --bundle --platform=node --target=node20 --outfile=output/post.js",
     "test": "npx jest --cwd=workflow-steps/cache"
   }
 }
