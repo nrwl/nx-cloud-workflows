@@ -23,8 +23,7 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Validate workflows
         run: |
-          chmod +x ./scripts/check-launch-templates.sh
-          ./scripts/check-launch-templates.sh
+          yarn nx-cloud conformance
       - uses: nrwl/nx-set-shas@v4
       - run: git branch --track main origin/main
         if: ${{ github.event_name == 'pull_request' }}

@@ -21,5 +21,15 @@
   },
   "useInferencePlugins": false,
   "nxCloudAccessToken": "MWIzNjZmNjQtMTQyNC00MzE2LWJhOTktMmY4NGE5MDk2YzNlfHJlYWQ=",
-  "nxCloudUrl": "https://staging.nx.app"
+  "nxCloudUrl": "https://staging.nx.app",
+  "conformance": {
+    "rules": [
+      {
+        "rule": "./scripts/validate-launch-template-urls/check-urls-resolve.ts"
+      },
+      {
+        "rule": "./scripts/validate-launch-templates-schema/check-schemas.ts"
+      }
+    ]
+  }
 }

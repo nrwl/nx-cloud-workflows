@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "validate-launch-templates-schema",
+  "title": "validate-launch-templates-schema rule configuration",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}
