@@ -13,17 +13,24 @@ execSync('git init .');
 execSync(`git remote add origin ${repoUrl}`);
 execSync(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
 
-if (depth === '0') {
-  // Fetch all branches and tags if depth is 0
+// Checkout branch. Used in custom workflows where we don't run against a certain sha, but against latest.
+if (commitSha.startsWith('origin/')) {
   execSync(
-    'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"',
+    `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin ${nxBranch}`,
   );
 } else {
-  // Fetch with specified depth
-  const tagsArg = fetchTags ? ' --tags' : '--no-tags';
-  execSync(
-    `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`,
-  );
+  if (depth === '0') {
+    // Fetch all branches and tags if depth is 0
+    execSync(
+      'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"',
+    );
+  } else {
+    // Fetch with specified depth
+    const tagsArg = fetchTags ? ' --tags' : '--no-tags';
+    execSync(
+      `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`,
+    );
+  }
 }
 
 // Checkout the branch or PR
