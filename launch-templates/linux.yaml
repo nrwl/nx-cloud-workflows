@@ -12,7 +12,7 @@ common-js-init-steps: &common-js-init-steps
   - name: Restore Node Modules Cache
     uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/cache/main.yaml'
     inputs:
-      key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+      key: 'package-lock.json|yarn.lock|pnpm-lock.yaml|patches/**|.yarn/patches/**'
       paths: 'node_modules'
       base-branch: 'main'
   - name: Restore Browser Binary Cache
