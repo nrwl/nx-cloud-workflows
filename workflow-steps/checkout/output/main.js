@@ -5,26 +5,47 @@ var commitSha = process.env.NX_COMMIT_SHA;
 var nxBranch = process.env.NX_BRANCH;
 var depth = process.env.GIT_CHECKOUT_DEPTH || 1;
 var fetchTags = process.env.GIT_FETCH_TAGS === "true";
-if (process.platform != "win32") {
-  (0, import_child_process.execSync)(`git config --global --add safe.directory $PWD`);
-}
-(0, import_child_process.execSync)("git init .");
-(0, import_child_process.execSync)(`git remote add origin ${repoUrl}`);
-(0, import_child_process.execSync)(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
-if (commitSha.startsWith("origin/")) {
-  (0, import_child_process.execSync)(
-    `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin ${nxBranch}`
-  );
-} else {
-  if (depth === "0") {
-    (0, import_child_process.execSync)(
-      'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"'
-    );
+var maxRetries = 3;
+async function main() {
+  if (process.platform != "win32") {
+    (0, import_child_process.execSync)(`git config --global --add safe.directory $PWD`);
+  }
+  (0, import_child_process.execSync)("git init .");
+  (0, import_child_process.execSync)(`git remote add origin ${repoUrl}`);
+  (0, import_child_process.execSync)(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
+  let fetchCommand;
+  if (commitSha.startsWith("origin/")) {
+    fetchCommand = `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin ${nxBranch}`;
   } else {
-    const tagsArg = fetchTags ? " --tags" : "--no-tags";
-    (0, import_child_process.execSync)(
-      `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`
-    );
+    if (depth === "0") {
+      fetchCommand = 'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"';
+    } else {
+      const tagsArg = fetchTags ? " --tags" : "--no-tags";
+      fetchCommand = `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`;
+    }
+  }
+  await runWithRetries(() => (0, import_child_process.execSync)(fetchCommand), "git fetch", maxRetries);
+  const checkoutCommand = `git checkout --progress --force -B ${nxBranch} ${commitSha}`;
+  await runWithRetries(
+    () => (0, import_child_process.execSync)(checkoutCommand),
+    "git checkout",
+    maxRetries
+  );
+}
+async function runWithRetries(fn, label, maxRetriesLocal) {
+  let attempt = 0;
+  while (attempt < maxRetriesLocal) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      attempt++;
+      if (attempt >= maxRetriesLocal) {
+        throw e;
+      }
+      const delayMs = attempt === 1 ? 1e4 : 6e4;
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
   }
 }
-(0, import_child_process.execSync)(`git checkout --progress --force -B ${nxBranch} ${commitSha}`);
+main();

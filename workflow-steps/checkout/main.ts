@@ -1,37 +1,64 @@
 import { execSync } from 'child_process';
 
-const repoUrl = process.env.GIT_REPOSITORY_URL;
-const commitSha = process.env.NX_COMMIT_SHA;
-const nxBranch = process.env.NX_BRANCH; // This can be a PR number or a branch name
+const repoUrl = process.env.GIT_REPOSITORY_URL as string;
+const commitSha = process.env.NX_COMMIT_SHA as string;
+const nxBranch = process.env.NX_BRANCH as string; // This can be a PR number or a branch name
 const depth = process.env.GIT_CHECKOUT_DEPTH || 1;
 const fetchTags = process.env.GIT_FETCH_TAGS === 'true';
+const maxRetries = 3;
 
-if (process.platform != 'win32') {
-  execSync(`git config --global --add safe.directory $PWD`);
-}
-execSync('git init .');
-execSync(`git remote add origin ${repoUrl}`);
-execSync(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
+async function main() {
+  if (process.platform != 'win32') {
+    execSync(`git config --global --add safe.directory $PWD`);
+  }
+  execSync('git init .');
+  execSync(`git remote add origin ${repoUrl}`);
+  execSync(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
 
-// Checkout branch. Used in custom workflows where we don't run against a certain sha, but against latest.
-if (commitSha.startsWith('origin/')) {
-  execSync(
-    `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin ${nxBranch}`,
-  );
-} else {
-  if (depth === '0') {
-    // Fetch all branches and tags if depth is 0
-    execSync(
-      'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"',
-    );
+  let fetchCommand: string;
+  if (commitSha.startsWith('origin/')) {
+    fetchCommand = `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin ${nxBranch}`;
   } else {
-    // Fetch with specified depth
-    const tagsArg = fetchTags ? ' --tags' : '--no-tags';
-    execSync(
-      `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`,
-    );
+    if (depth === '0') {
+      fetchCommand =
+        'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*"';
+    } else {
+      const tagsArg = fetchTags ? ' --tags' : '--no-tags';
+      fetchCommand = `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`;
+    }
+  }
+
+  await runWithRetries(() => execSync(fetchCommand), 'git fetch', maxRetries);
+
+  const checkoutCommand = `git checkout --progress --force -B ${nxBranch} ${commitSha}`;
+  await runWithRetries(
+    () => execSync(checkoutCommand),
+    'git checkout',
+    maxRetries,
+  );
+}
+
+async function runWithRetries(
+  fn: () => void,
+  label: string,
+  maxRetriesLocal: number,
+) {
+  let attempt = 0;
+  while (attempt < maxRetriesLocal) {
+    try {
+      fn();
+      return;
+    } catch (e) {
+      attempt++;
+
+      if (attempt >= maxRetriesLocal) {
+        throw e;
+      }
+
+      const delayMs = attempt === 1 ? 10_000 : 60_000;
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
   }
 }
 
-// Checkout the branch or PR
-execSync(`git checkout --progress --force -B ${nxBranch} ${commitSha}`);
+main();
