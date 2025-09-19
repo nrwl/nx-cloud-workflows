@@ -46,16 +46,16 @@ async function runWithRetries(fn, label, maxRetriesLocal) {
       const delayMs = attempt === 1 ? 1e4 : 6e4;
       const stderr = e?.stderr?.toString?.() || "";
       const stdout = e?.stdout?.toString?.() || "";
-      console.log(
-        `
---- ${label} attempt ${attempt} failed; retrying in ${delayMs / 1e3}s ---`
-      );
       if (stderr) {
         console.error(stderr.trim());
       }
       if (stdout) {
         console.log(stdout.trim());
       }
+      console.log(
+        `
+--- ${label} attempt ${attempt} failed; retrying in ${delayMs / 1e3}s ---`
+      );
       await new Promise((r) => setTimeout(r, delayMs));
     }
   }
