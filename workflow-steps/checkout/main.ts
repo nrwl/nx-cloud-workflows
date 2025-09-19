@@ -56,6 +56,19 @@ async function runWithRetries(
       }
 
       const delayMs = attempt === 1 ? 10_000 : 60_000;
+      const stderr = (e as any)?.stderr?.toString?.() || '';
+      const stdout = (e as any)?.stdout?.toString?.() || '';
+      console.log(
+        `\n--- ${label} attempt ${attempt} failed; retrying in ${
+          delayMs / 1000
+        }s ---`,
+      );
+      if (stderr) {
+        console.error(stderr.trim());
+      }
+      if (stdout) {
+        console.log(stdout.trim());
+      }
       await new Promise((r) => setTimeout(r, delayMs));
     }
   }
