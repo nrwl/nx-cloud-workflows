@@ -48,4 +48,8 @@ async function runWithRetries(fn, label, maxRetriesLocal) {
     }
   }
 }
-main();
+main().then(() => {
+}).catch((error) => {
+  console.error("Failed:", error);
+  process.exit(1);
+});
