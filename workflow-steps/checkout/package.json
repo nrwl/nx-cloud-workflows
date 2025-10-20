@@ -1,9 +1,9 @@
 {
-    "name": "checkout-step",
-    "version": "0.0.0",
-    "main": "output/main.js",
-    "devDependencies": {},
-    "scripts": {
-      "build": "npx esbuild main.ts --bundle --platform=node --target=node20 --outfile=output/main.js"
-    }
+  "name": "checkout-step",
+  "version": "0.0.0",
+  "main": "output/main.js",
+  "devDependencies": {},
+  "scripts": {
+    "build": "npx esbuild main.ts --bundle --platform=node --format=cjs --target=node20 --outfile=output/main.js"
   }
+}

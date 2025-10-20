@@ -1,5 +1,13 @@
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
+import * as path from 'node:path';
 import { buildCachePaths, hashKey } from './hashing-utils';
-import * as path from 'path';
 
 describe('hashing-utils', () => {
   const testDir = path.join(__dirname, 'test-files');
@@ -77,9 +85,9 @@ describe('hashing-utils', () => {
   it('should support glob paths', () => {
     let input = `test-files/packages/*/mock_node_modules`;
     let expected = [
-      `test-files/packages/app1/mock_node_modules`,
-      `test-files/packages/app2/mock_node_modules`,
       `test-files/packages/app3/mock_node_modules`,
+      `test-files/packages/app2/mock_node_modules`,
+      `test-files/packages/app1/mock_node_modules`,
     ];
     expect(buildCachePaths(input)).toEqual(expected);
 
@@ -87,8 +95,8 @@ describe('hashing-utils', () => {
     input = `test-files/packages/app1/mock_node_modules\ntest-files/packages/*/mock_node_modules\ntest-files/packages`;
     expected = [
       `test-files/packages/app1/mock_node_modules`,
-      `test-files/packages/app2/mock_node_modules`,
       `test-files/packages/app3/mock_node_modules`,
+      `test-files/packages/app2/mock_node_modules`,
       `test-files/packages`,
     ];
     expect(buildCachePaths(input)).toEqual(expected);
@@ -99,8 +107,8 @@ describe('hashing-utils', () => {
     const expected = [
       `test-files/packages/app1`,
       `test-files/packages/app1/mock_node_modules`,
-      `test-files/packages/app2/mock_node_modules`,
       `test-files/packages/app3/mock_node_modules`,
+      `test-files/packages/app2/mock_node_modules`,
       `test-files/packages`,
     ];
     expect(buildCachePaths(input)).toEqual(expected);
