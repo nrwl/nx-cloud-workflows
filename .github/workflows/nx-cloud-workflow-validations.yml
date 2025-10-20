@@ -27,6 +27,8 @@ jobs:
       - uses: nrwl/nx-set-shas@826660b82addbef3abff5fa871492ebad618c9e1 # v4
 
       - name: Run checks
+        env:
+          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
         run: |
           yarn nx-cloud conformance
           yarn nx affected -t test
