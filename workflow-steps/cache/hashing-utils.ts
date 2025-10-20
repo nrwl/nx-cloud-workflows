@@ -1,9 +1,8 @@
-const fs = require('fs');
-const crypto = require('crypto');
 import { glob } from 'glob';
-
-const path = require('path');
-const os = require('os');
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 function hashFileContents(pattern: string) {
   const files = glob
@@ -13,7 +12,7 @@ function hashFileContents(pattern: string) {
     });
   let megaHash = '';
   files.forEach((file) => {
-    const fileContent = fs.readFileSync(file);
+    const fileContent = fs.readFileSync(file, 'utf8');
     const fileHash = hash(fileContent);
     megaHash = hash(fileHash + megaHash);
   });
@@ -71,7 +70,7 @@ export function buildCachePaths(
         .map((p) => tildePathToRelative(p))
         .reduce(
           (allPaths, currPath) => [...allPaths, ...expandPath(currPath)],
-          [],
+          [] as string[],
         ),
     ),
   );

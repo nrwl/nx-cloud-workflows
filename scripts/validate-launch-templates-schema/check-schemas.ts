@@ -1,11 +1,8 @@
-import {
-  createConformanceRule,
-  NonProjectFilesViolation,
-} from '@nx/conformance';
-import { extname, join, relative } from 'node:path';
+import { ConformanceViolation, createConformanceRule } from '@nx/conformance';
 import { workspaceRoot } from '@nx/devkit';
-import { existsSync, readdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
+import { extname, join, relative } from 'node:path';
 
 const allowed_ext = ['.yaml', '.yml'];
 export default createConformanceRule({
@@ -13,9 +10,8 @@ export default createConformanceRule({
   category: 'reliability',
   description:
     'Make sure launch template files are structurally correct with Nx Cloud',
-  reporter: 'non-project-files-reporter',
-  implementation: async (context) => {
-    const violations: NonProjectFilesViolation[] = [];
+  implementation: async () => {
+    const violations: ConformanceViolation[] = [];
 
     const launchTemplateDir = join(workspaceRoot, 'launch-templates');
 
@@ -38,10 +34,7 @@ export default createConformanceRule({
           });
         } catch (e) {
           console.error(e);
-          violations.push({
-            file: relativePath,
-            message: e.message,
-          });
+          violations.push({ file: relativePath, message: e.message });
         }
       }
     }
@@ -66,27 +59,15 @@ export default createConformanceRule({
           // this will throw locally bc needs to be ran in CI
           execSync(
             `npx nx-cloud validate --workflow-file=./${relativePath} --step-file`,
-            {
-              stdio: 'inherit',
-              encoding: 'utf-8',
-              cwd: workspaceRoot,
-            },
+            { stdio: 'inherit', encoding: 'utf-8', cwd: workspaceRoot },
           );
         } catch (e) {
           console.error(e);
-          violations.push({
-            file: relativePath,
-            message: e.message,
-          });
+          violations.push({ file: relativePath, message: e.message });
         }
       }
     }
 
-    return {
-      severity: 'high',
-      details: {
-        violations,
-      },
-    };
+    return { severity: 'high', details: { violations } };
   },
 });

@@ -1,10 +1,7 @@
-import {
-  createConformanceRule,
-  NonProjectFilesViolation,
-} from '@nx/conformance';
+import { ConformanceViolation, createConformanceRule } from '@nx/conformance';
 import { workspaceRoot } from '@nx/devkit';
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
-import { join, extname, relative } from 'node:path';
+import { extname, join, relative } from 'node:path';
 import { parse } from 'yaml';
 
 const allowed_ext = ['.yaml', '.yml'];
@@ -16,8 +13,7 @@ export default createConformanceRule({
   name: 'validate-launch-template-urls',
   category: 'reliability',
   description: 'Make sure all launch template steps resolve to valid URLs',
-  reporter: 'non-project-files-reporter',
-  implementation: async (context) => {
+  implementation: async () => {
     const launchTemplateDir = join(workspaceRoot, 'launch-templates');
 
     const templates = getLaunchTemplatesInDir(launchTemplateDir);
@@ -37,7 +33,7 @@ export default createConformanceRule({
       };
     }
 
-    const violations: NonProjectFilesViolation[] = [];
+    const violations: ConformanceViolation[] = [];
 
     for (const template of templates) {
       const maybeViolations = await checkTemplateStepsUrl(template);
@@ -46,12 +42,7 @@ export default createConformanceRule({
       }
     }
 
-    return {
-      severity: 'high',
-      details: {
-        violations,
-      },
-    };
+    return { severity: 'high', details: { violations } };
   },
 });
 
@@ -70,10 +61,7 @@ function getLaunchTemplatesInDir(dir: string) {
     const ext = extname(file);
     if (allowed_ext.includes(ext.toLowerCase())) {
       const path = join(dir, file);
-      found_files.push({
-        path,
-        content: parse(readFileSync(path, 'utf8')),
-      });
+      found_files.push({ path, content: parse(readFileSync(path, 'utf8')) });
     }
   }
 
@@ -89,7 +77,7 @@ async function checkTemplateStepsUrl({
 }: {
   path: string;
   content: Record<any, any>;
-}): Promise<NonProjectFilesViolation[]> {
+}): Promise<ConformanceViolation[]> {
   if (!content?.['launch-templates']) {
     return [
       {
@@ -100,7 +88,7 @@ async function checkTemplateStepsUrl({
   }
 
   const seen_urls = new Set();
-  const violation: NonProjectFilesViolation[] = [];
+  const violation: ConformanceViolation[] = [];
 
   for (const template of Object.values(content['launch-templates'])) {
     for (const step of template['init-steps']) {
