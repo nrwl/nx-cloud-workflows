@@ -103,7 +103,7 @@ function getVersionUrl(_platform, _arch) {
 
   const version = `${miseGhVersion}-${resolvedPlatform}-${resolvedArch}`;
   const url = `https://github.com/jdx/mise/releases/download/${miseGhVersion}/mise-${version}.tar.gz`;
-  console.log(`> Resolved version mise version to download as: ${version}`);
+  console.log(`> Resolved mise version to download as: ${version}`);
 
   return url;
 }
@@ -156,7 +156,7 @@ function setupMise(autoInstall = true, installCommandArgs = '') {
   const miseVersion = `echo "mise version is: $(mise version)"`;
   const installMiseTools = autoInstall
     ? `mise install ${installCommandArgs}`
-    : `echo "Skipping auto install. You will need to manuall run mise install"`;
+    : `echo "Skipping auto install. You will need to manually run mise install"`;
 
   execSync(
     [setPath, setMiseEnvVars, whichMise, miseVersion, installMiseTools].join(
@@ -182,7 +182,7 @@ function setToolVersions(inlineTools) {
 
   if (existsSync('mise.toml')) {
     console.warn(
-      '\n⚠️ Existing mise.toml file found! This file will be overritten by the provided tools input.',
+      '\n⚠️ Existing mise.toml file found! This file will be overwritten by the provided tools input.',
     );
     console.warn(
       'If you do not want this file to be overridden, please remove the tools input from the workflow step.\n',
@@ -192,7 +192,7 @@ function setToolVersions(inlineTools) {
   const toolEntries = inlineTools.split(/\r?\n/).reduce((acc, cur) => {
     const parts = cur
       .trim()
-      .split(/[\s|@|=]/)
+      .split(/[\s@|=]/)
       .filter((m) => m.trim());
     if (parts.length !== 2) {
       return acc;
@@ -231,4 +231,5 @@ try {
 } catch (error) {
   console.error('> Failed to install mise: ');
   console.error(error);
+  process.exit(1);
 }
