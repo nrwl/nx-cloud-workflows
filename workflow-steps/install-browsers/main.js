@@ -63,7 +63,7 @@ async function main() {
       }
     } catch (e) {
       console.error(e);
-      console.error('There is an issue installing playwright dependencies');
+      console.error('There is an issue installing Playwright dependencies');
       process.exit(1);
     }
   }
