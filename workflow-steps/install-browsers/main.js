@@ -26,7 +26,8 @@ async function main() {
     try {
       const output = await runCmdAsync('npx playwright install');
 
-      if (output.stderr.includes('apt-get install')) {
+      // we can special handle missing deps for failed install
+      if (output.code !== 0 && output.stderr.includes('apt-get install')) {
         console.log(
           '\nDetected missing Playwright dependencies. Attempting manual install...',
         );
@@ -34,14 +35,36 @@ async function main() {
         const [installCommand] =
           output.stderr.match(/apt-get install (\b\w+\b )+/gi) || [];
         if (installCommand) {
-          installDeps(`sudo ${installCommand.trim()} -y`);
+          const depsInstalled = installDeps(`sudo ${installCommand.trim()} -y`);
+          if (!depsInstalled) {
+            console.error(
+              'Failed to install system dependencies for Playwright.',
+            );
+            process.exit(1);
+          }
+          console.log('Re-attempting to install browsers...');
+          const reattempt = await runCmdAsync('npx playwright install');
+          if (reattempt.code !== 0) {
+            console.error(
+              'Failed to install Playwright browsers after installing system dependencies.',
+            );
+            process.exit(reattempt.code);
+          }
+          console.log('Successfully installed Playwright browsers.');
         } else {
-          console.warn('Unable to parse install command');
+          console.error('Unable to handle failure automatically.');
+          process.exit(output.code);
         }
+      } else if (output.code !== 0) {
+        console.error(
+          'There was an issue installing Playwright browsers. See above logs.',
+        );
+        process.exit(output.code);
       }
     } catch (e) {
       console.error(e);
-      console.log('There is an issue install playwright dependencies');
+      console.error('There is an issue installing Playwright dependencies');
+      process.exit(1);
     }
   }
 
@@ -80,16 +103,19 @@ async function runCmdAsync(cmd) {
 
 /**
  * @param {string} installCommand
+ * @returns {boolean} true if installation succeeded, false otherwise
  */
 function installDeps(installCommand) {
   try {
     console.log(`Running "${installCommand}"`);
     execSync(installCommand.trim(), { stdio: 'inherit' });
+    return true;
   } catch (installError) {
     console.error('There was an issue installing dependencies for Playwright.');
     console.log(
       'You can create a custom launch template and add a step to manually install the missing Playwright dependencies in order to get around this error.',
     );
     console.log('See docs here: https://nx.dev/ci/reference/launch-templates');
+    return false;
   }
 }
