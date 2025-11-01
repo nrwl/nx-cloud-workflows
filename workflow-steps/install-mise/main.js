@@ -5,8 +5,8 @@ const { writeFileSync, existsSync } = require('fs');
 const runInstall = process.env.NX_CLOUD_INPUT_auto_install
   ? process.env.NX_CLOUD_INPUT_auto_install === 'true'
   : true;
-const miseGhVersion = process.env.NX_CLOUD_INPUT_mise_version || 'v2025.10.19';
-const installArgs = process.env.NX_CLOUD_INPUT_install_args || '';
+const miseGhVersion = process.env.['NX_CLOUD_INPUT_mise-version'] || 'v2025.10.19';
+const installArgs = process.env.['NX_CLOUD_INPUT_install-args'] || '';
 const inlineToolDef = process.env.NX_CLOUD_INPUT_tools || '';
 
 const MISE_INSTALL_DIR = '$HOME/.local/bin';

@@ -4,8 +4,8 @@
 - name: Install mise
   uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-mise/main.yaml'
   inputs:
-    mise_version: 'v2025.10.19'
-    auto_install: true
+    mise-version: 'v2025.10.19'
+    auto-install: true
     tools: |
       rust=1.90
       node=20
