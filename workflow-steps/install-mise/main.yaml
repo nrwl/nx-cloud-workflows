@@ -1,0 +1,16 @@
+name: Install Mise
+description: Install mise and any configured tools. https://mise.jdx.dev/
+inputs:
+  - name: auto-install
+    description: 'Auto run install tools after installing the mise cli'
+    default: true
+  - name: mise-version
+    description: 'Version of mise to use based on the GitHub Releases: https://github.com/jdx/mise/releases'
+    default: 'v2025.10.19'
+  - name: tools
+    description: 'Inline definition of tools to be installed. Tools are defined by a newline separated list where each line defines a tool and version separated by a =, @ or space,`<name>=<version>. e.g. rust=1.90'
+  - name: install-args
+    description: 'Additional arguments to pass to the `mise install` command. Defaults to an empty string.'
+definition:
+  using: 'node'
+  main: workflow-steps/install-mise/main.js
