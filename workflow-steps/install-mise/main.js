@@ -2,12 +2,13 @@ const { platform, arch, tmpdir } = require('os');
 const { execSync } = require('child_process');
 const { writeFileSync, existsSync } = require('fs');
 
-const runInstall = process.env.NX_CLOUD_INPUT_auto_install
-  ? process.env.NX_CLOUD_INPUT_auto_install === 'true'
+const runInstall = process.env['NX_CLOUD_INPUT_auto-install']
+  ? process.env['NX_CLOUD_INPUT_auto-install'] === 'true'
   : true;
-const miseGhVersion = process.env.['NX_CLOUD_INPUT_mise-version'] || 'v2025.10.19';
-const installArgs = process.env.['NX_CLOUD_INPUT_install-args'] || '';
-const inlineToolDef = process.env.NX_CLOUD_INPUT_tools || '';
+const miseGhVersion =
+  process.env['NX_CLOUD_INPUT_mise-version'] || 'v2025.10.19';
+const installArgs = process.env['NX_CLOUD_INPUT_install-args'] || '';
+const inlineToolDef = process.env['NX_CLOUD_INPUT_tools'] || '';
 
 const MISE_INSTALL_DIR = '$HOME/.local/bin';
 const MISE_SHIM_DIR = '$HOME/.local/share/mise/shims';
@@ -192,7 +193,7 @@ function setToolVersions(inlineTools) {
   const toolEntries = inlineTools.split(/\r?\n/).reduce((acc, cur) => {
     const parts = cur
       .trim()
-      .split(/[\s@|=]/)
+      .split(/[\s@=]/)
       .filter((m) => m.trim());
     if (parts.length !== 2) {
       return acc;

@@ -13,13 +13,23 @@
 
 ### Options
 
-#### auto_install
+#### auto-install
 
 Auto run install tools after installing the mise cli. Defaults to `true`.
 
-#### mise_version
+#### mise-version
 
 Version of mise to use based on the [GitHub Releases](https://github.com/jdx/mise/releases). Defaults to `v2025.10.19`.
+
+#### install-args
+
+Additional arguments to pass to the `mise install` command. Defaults to an empty string.
+
+For example:
+
+```yaml
+install-args: '--verbose'
+```
 
 #### tools
 
@@ -28,7 +38,8 @@ Inline definition of tools to be installed. Tools are defined by a newline separ
 > [!warning]
 > Defining tools inline will override a `mise.toml` if the file exists in the repo.
 > This might lead to hard to debug behaviors between CI and Local environments.
-> It's recommended to only use this option if a `mise.toml` doesn't already exists or to define a `mise.toml`
+> It's recommended to only use this option if a `mise.toml` doesn't exists
+> or to define a `mise.toml` instead.
 
 For example:
 
