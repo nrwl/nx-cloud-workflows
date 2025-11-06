@@ -25,7 +25,9 @@ if (!!cacheWasHit) {
   const paths = buildCachePaths(inputPaths);
   const stringifiedPaths = paths.join(',');
   const key = `${inputKey} | "${stringifiedPaths}"`;
-  const hashedKey = hashKey(key);
+
+  const hashedKey =
+    process.env[`NX_CACHE_STEP_HASHED_KEY_${stepGroupId}`] || hashKey(key);
 
   console.log(`Expanded unhashed cache key is: ${key}`);
   console.log(
