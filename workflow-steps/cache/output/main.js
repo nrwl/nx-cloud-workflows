@@ -6047,6 +6047,7 @@ var currentBranchKeys = [hashedKey].map((k) => `${currentBranch}-${k}`);
 var baseBranchKeys = baseBranch ? [hashedKey].map((k) => `${baseBranch}-${k}`) : [];
 console.log(`Expanded unhashed key is: ${key}
 `);
+storeHashedKeyInEnv(hashedKey);
 cacheClient.restore(
   new RestoreRequest({
     keys: [...currentBranchKeys, ...baseBranchKeys]
@@ -6067,10 +6068,11 @@ cacheClient.restore(
   console.error("Cache restoration failed:", err);
   process.exit(1);
 });
-function rememberCacheRestorationForPostStep() {
+function storeEnvVar(name, value) {
   try {
     const stepGroupId = process.env.NX_STEP_GROUP_ID ? process.env.NX_STEP_GROUP_ID.replace(/-/g, "_") : "";
-    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${stepGroupId}=true
+    const envVarName = stepGroupId ? `${name}_${stepGroupId}` : name;
+    const envValue = `${envVarName}=${value}
 `;
     if ((0, import_fs.existsSync)(process.env.NX_CLOUD_ENV)) {
       (0, import_fs.appendFileSync)(process.env.NX_CLOUD_ENV, envValue);
@@ -6080,6 +6082,12 @@ function rememberCacheRestorationForPostStep() {
   } catch (e) {
     console.log(e);
   }
+}
+function rememberCacheRestorationForPostStep() {
+  storeEnvVar("NX_CACHE_STEP_WAS_SUCCESSFUL_HIT", "true");
+}
+function storeHashedKeyInEnv(hashedKey2) {
+  storeEnvVar("NX_CACHE_STEP_HASHED_KEY", hashedKey2);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
