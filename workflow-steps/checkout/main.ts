@@ -21,7 +21,7 @@ async function main() {
   } else {
     if (depth === '0') {
       fetchCommand =
-        'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*" "+refs/pull/*/head:refs/remotes/origin/pr/*"';
+        'git fetch --prune --progress --no-recurse-submodules --tags origin "+refs/heads/*:refs/remotes/origin/*" "+refs/pull/*/head:refs/remotes/origin/pr/*/head" "+refs/pull/*/merge:refs/remotes/origin/pr/*/merge"';
     } else {
       const tagsArg = fetchTags ? ' --tags' : '--no-tags';
       fetchCommand = `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`;
