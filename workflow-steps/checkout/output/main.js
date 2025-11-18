@@ -8,11 +8,19 @@ var fetchTags = process.env.GIT_FETCH_TAGS === "true";
 var maxRetries = 3;
 async function main() {
   if (process.platform != "win32") {
-    (0, import_child_process.execSync)(`git config --global --add safe.directory $PWD`);
+    runWithRetries(
+      `git config --global --add safe.directory $PWD`,
+      "set safe directory",
+      1
+    );
   }
-  (0, import_child_process.execSync)("git init .");
-  (0, import_child_process.execSync)(`git remote add origin ${repoUrl}`);
-  (0, import_child_process.execSync)(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
+  runWithRetries("git init .", "git init", 1);
+  runWithRetries(`git remote add origin ${repoUrl}`, "git remote add", 1);
+  runWithRetries(
+    `echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`,
+    "persist git url",
+    1
+  );
   let fetchCommand;
   if (commitSha.startsWith("origin/")) {
     fetchCommand = `git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin ${nxBranch}`;
@@ -24,26 +32,25 @@ async function main() {
       fetchCommand = `git fetch ${tagsArg} --prune --progress --no-recurse-submodules --depth=${depth} origin ${commitSha}`;
     }
   }
-  await runWithRetries(() => (0, import_child_process.execSync)(fetchCommand), "git fetch", maxRetries);
+  await runWithRetries(fetchCommand, "git fetch", maxRetries);
   const checkoutCommand = `git checkout --progress --force -B ${nxBranch} ${commitSha}`;
-  await runWithRetries(
-    () => (0, import_child_process.execSync)(checkoutCommand),
-    "git checkout",
-    maxRetries
-  );
+  await runWithRetries(checkoutCommand, "git checkout", maxRetries);
 }
-async function runWithRetries(fn, label, maxRetriesLocal) {
+async function runWithRetries(command, label, maxRetriesLocal) {
   let attempt = 0;
   while (attempt < maxRetriesLocal) {
     try {
-      fn();
+      console.log(`
+--- ${command} attempt ${attempt + 1} ---`);
+      (0, import_child_process.execSync)(command, { stdio: "inherit" });
       return;
     } catch (e) {
       attempt++;
       if (attempt >= maxRetriesLocal) {
         throw e;
       }
-      const delayMs = attempt === 1 ? 1e4 : 6e4;
+      const jitter = Math.floor(Math.random() * 1e3);
+      const delayMs = (attempt === 1 ? 1e4 : 6e4) + jitter;
       const stderr = e?.stderr?.toString?.() || "";
       const stdout = e?.stdout?.toString?.() || "";
       if (stderr) {

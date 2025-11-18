@@ -9,11 +9,19 @@ const maxRetries = 3;
 
 async function main() {
   if (process.platform != 'win32') {
-    execSync(`git config --global --add safe.directory $PWD`);
+    runWithRetries(
+      `git config --global --add safe.directory $PWD`,
+      'set safe directory',
+      1,
+    );
   }
-  execSync('git init .');
-  execSync(`git remote add origin ${repoUrl}`);
-  execSync(`echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`);
+  runWithRetries('git init .', 'git init', 1);
+  runWithRetries(`git remote add origin ${repoUrl}`, 'git remote add', 1);
+  runWithRetries(
+    `echo "GIT_REPOSITORY_URL=''" >> $NX_CLOUD_ENV`,
+    'persist git url',
+    1,
+  );
 
   let fetchCommand: string;
   if (commitSha.startsWith('origin/')) {
@@ -28,25 +36,22 @@ async function main() {
     }
   }
 
-  await runWithRetries(() => execSync(fetchCommand), 'git fetch', maxRetries);
+  await runWithRetries(fetchCommand, 'git fetch', maxRetries);
 
   const checkoutCommand = `git checkout --progress --force -B ${nxBranch} ${commitSha}`;
-  await runWithRetries(
-    () => execSync(checkoutCommand),
-    'git checkout',
-    maxRetries,
-  );
+  await runWithRetries(checkoutCommand, 'git checkout', maxRetries);
 }
 
 async function runWithRetries(
-  fn: () => void,
+  command: string,
   label: string,
   maxRetriesLocal: number,
 ) {
   let attempt = 0;
   while (attempt < maxRetriesLocal) {
     try {
-      fn();
+      console.log(`\n--- ${command} attempt ${attempt + 1} ---`);
+      execSync(command, { stdio: 'inherit' });
       return;
     } catch (e) {
       attempt++;
@@ -54,8 +59,9 @@ async function runWithRetries(
       if (attempt >= maxRetriesLocal) {
         throw e;
       }
+      const jitter = Math.floor(Math.random() * 1_000);
+      const delayMs = (attempt === 1 ? 10_000 : 60_000) + jitter;
 
-      const delayMs = attempt === 1 ? 10_000 : 60_000;
       const stderr = (e as any)?.stderr?.toString?.() || '';
       const stdout = (e as any)?.stdout?.toString?.() || '';
       if (stderr) {
