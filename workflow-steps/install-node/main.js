@@ -108,7 +108,7 @@ function getPMCommands(corepackVersion, packageManager, packageManagerVersion) {
   switch (packageManager) {
     case 'all':
       console.warn(
-        "It is recommened to only install the package manager you use. To do this set the package_manager input to 'npm', 'yarn', or 'pnpm'.",
+        "It is recommended to only install the package manager you use. To do this set the package_manager input to 'npm', 'yarn', or 'pnpm'.",
       );
 
       if (corepackVersion === 'skip') {
@@ -146,7 +146,7 @@ function getPMCommands(corepackVersion, packageManager, packageManagerVersion) {
       break;
     case 'pnpm':
       // install outside of the current directory,
-      // otherwise corepack errors if a different package mangager is used than is defined in the workspace
+      // otherwise corepack errors if a different package manager is used than is defined in the workspace
       commands.push(
         `cd .. && corepack prepare pnpm@${packageManagerVersion || PM_DEFAULTS['pnpm']}`,
       );
@@ -158,9 +158,10 @@ function getPMCommands(corepackVersion, packageManager, packageManagerVersion) {
       break;
     case 'skip':
       commands.push('echo "skipping package manager reinstall"');
+      break;
     default:
       console.error(
-        `Unknown package manager option: ${packageManager} - unable to proceeed with install.`,
+        `Unknown package manager option: ${packageManager} - unable to proceed with install.`,
       );
       process.exit(1);
   }
@@ -173,6 +174,7 @@ function getPMCommands(corepackVersion, packageManager, packageManagerVersion) {
  * @param {number} maxRetries
  * @param {'yarn' | 'npm' | 'pnpm' | 'all' | 'skip' | string} packageManager
  * @param {string | null} packageManagerVersion
+ * @param {string} corepackVersion - The version of corepack to install and enable.
  **/
 async function runNvmInstall(
   version,
