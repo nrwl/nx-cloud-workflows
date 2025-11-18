@@ -3,6 +3,14 @@ description: Install a specific version of Node.js via nvm
 inputs:
   - name: node_version
     description: 'The node version to be installed'
+  - name: package_manager
+    description: 'The package manager to install. use "skip" to not install any package managers or "all" to install all". If using "all" then the defaults are yarn v1, pnpm v10, and bundled npm version with node.'
+    default: 'all'
+  - name: package_manager_version
+    description: 'The version to used with the defined package_manager input. This value is ignored if package_manager is set to "all"'
+  - name: corepack_version
+    description: 'The version of corepack to use.'
+    default: 'latest'
 
 definition:
   using: 'node'
