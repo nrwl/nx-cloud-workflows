@@ -22,14 +22,86 @@ __export(main_exports, {
   GitCheckoutError: () => GitCheckoutError,
   buildFetchCommand: () => buildFetchCommand,
   classifyError: () => classifyError,
+  detectPlatform: () => detectPlatform,
   executeGitCommand: () => executeGitCommand,
   executeWithRetry: () => executeWithRetry,
+  getPullRequestRefs: () => getPullRequestRefs,
+  isMergeQueueRef: () => isMergeQueueRef,
+  isPullRequestRef: () => isPullRequestRef,
   validateEnvironment: () => validateEnvironment,
   writeToNxCloudEnv: () => writeToNxCloudEnv
 });
 module.exports = __toCommonJS(main_exports);
 var import_node_child_process = require("node:child_process");
 var import_promises = require("node:fs/promises");
+function detectPlatform(repoUrl) {
+  const url = repoUrl.toLowerCase();
+  if (url.includes("github.com") || url.includes("github.")) {
+    return "github";
+  }
+  if (url.includes("gitlab.com") || url.includes("gitlab.")) {
+    return "gitlab";
+  }
+  if (url.includes("bitbucket.org") || url.includes("bitbucket.")) {
+    return "bitbucket";
+  }
+  if (url.includes("dev.azure.com") || url.includes("visualstudio.com")) {
+    return "azure";
+  }
+  return "unknown";
+}
+function getPullRequestRefs(platform, prNumber) {
+  switch (platform) {
+    case "github":
+      return [
+        `+refs/pull/${prNumber}/head:refs/remotes/origin/pr/${prNumber}/head`,
+        `+refs/pull/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`
+      ];
+    case "gitlab":
+      return [
+        `+refs/merge-requests/${prNumber}/head:refs/remotes/origin/mr/${prNumber}/head`,
+        `+refs/merge-requests/${prNumber}/merge:refs/remotes/origin/mr/${prNumber}/merge`
+      ];
+    case "bitbucket":
+      return [
+        `+refs/pull-requests/${prNumber}/from:refs/remotes/origin/pr/${prNumber}/from`,
+        `+refs/pull-requests/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`
+      ];
+    case "azure":
+      return [
+        `+refs/pull/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`
+      ];
+    case "unknown":
+    default:
+      return [];
+  }
+}
+function isPullRequestRef(platform, commitSha) {
+  switch (platform) {
+    case "github":
+      return /^(refs\/)?pull\/\d+\/(head|merge)$/i.test(commitSha);
+    case "gitlab":
+      return /^(refs\/)?merge-requests\/\d+\/(head|merge)$/i.test(commitSha);
+    case "bitbucket":
+      return /^(refs\/)?pull-requests\/\d+\/(from|merge)$/i.test(commitSha);
+    case "azure":
+      return /^(refs\/)?pull\/\d+\/merge$/i.test(commitSha);
+    default:
+      return false;
+  }
+}
+function isMergeQueueRef(platform, commitSha, nxBranch) {
+  switch (platform) {
+    case "github":
+      return /^(refs\/heads\/)?gh-readonly-queue\//i.test(commitSha) || /^gh-readonly-queue\//i.test(nxBranch);
+    case "gitlab":
+      return /^(refs\/heads\/)?train\//i.test(commitSha) || /^train\//i.test(nxBranch) || /-merge-train$/i.test(nxBranch);
+    case "azure":
+      return /^(refs\/heads\/)?merge-queue\//i.test(commitSha) || /^merge-queue\//i.test(nxBranch);
+    default:
+      return false;
+  }
+}
 var GitCheckoutError = class extends Error {
   constructor(message, isRetryable = false, originalError) {
     super(message);
@@ -72,7 +144,7 @@ function validateEnvironment() {
     throw new GitCheckoutError(`Invalid GIT_REPOSITORY_URL: ${repoUrl}`, false);
   }
   if (!commitSha.match(
-    /^[a-fA-F0-9]{6,40}$|^origin\/[\w\-\.\/]+$|^pull\/\d+\/(head|merge)$|^refs\/heads\/[\w\-\.\/]+$|^refs\/pull\/\d+\/(head|merge)$/i
+    /^[a-fA-F0-9]{6,40}$|^origin\/[\w\-\.\/]+$|^refs\/[\w\-\.\/]+$|^[\w\-\.\/]+\/\d+\/[\w\-]+$/i
   )) {
     throw new GitCheckoutError(
       `Invalid NX_COMMIT_SHA format: ${commitSha}`,
@@ -227,6 +299,7 @@ async function writeToNxCloudEnv(key, value) {
 }
 function buildFetchCommand(config) {
   const args = [];
+  const platform = detectPlatform(config.repoUrl);
   const headRefMatch = config.commitSha.match(/^refs\/heads\/(.+)$/i);
   if (headRefMatch) {
     const branchName = headRefMatch[1];
@@ -257,7 +330,13 @@ function buildFetchCommand(config) {
       args.push(`--filter=${config.filter}`);
     }
     args.push("origin", branchName);
-  } else if (config.commitSha.startsWith("pull/")) {
+  } else if (isMergeQueueRef(platform, config.commitSha, config.nxBranch)) {
+    let queueBranch;
+    if (/^(refs\/heads\/)?gh-readonly-queue\//i.test(config.commitSha) || /^(refs\/heads\/)?train\//i.test(config.commitSha) || /^(refs\/heads\/)?merge-queue\//i.test(config.commitSha)) {
+      queueBranch = config.commitSha.startsWith("refs/heads/") ? config.commitSha.replace("refs/heads/", "") : config.commitSha;
+    } else {
+      queueBranch = config.nxBranch;
+    }
     args.push(
       "--no-tags",
       "--prune",
@@ -270,20 +349,40 @@ function buildFetchCommand(config) {
     }
     args.push(
       "origin",
-      `refs/${config.commitSha}:refs/remotes/origin/${config.commitSha}`
+      `+refs/heads/${queueBranch}:refs/remotes/origin/${queueBranch}`
     );
+  } else if (isPullRequestRef(platform, config.commitSha)) {
+    args.push(
+      "--no-tags",
+      "--prune",
+      "--progress",
+      "--no-recurse-submodules",
+      `--depth=${config.depth}`
+    );
+    if (config.filter) {
+      args.push(`--filter=${config.filter}`);
+    }
+    if (config.commitSha.startsWith("refs/")) {
+      args.push(
+        "origin",
+        `${config.commitSha}:refs/remotes/origin/${config.commitSha}`
+      );
+    } else {
+      args.push(
+        "origin",
+        `refs/${config.commitSha}:refs/remotes/origin/${config.commitSha}`
+      );
+    }
   } else if (config.depth === 0) {
     args.push("--prune", "--progress", "--no-recurse-submodules", "--tags");
     if (config.filter) {
       args.push(`--filter=${config.filter}`);
     }
     args.push("origin", "+refs/heads/*:refs/remotes/origin/*");
-    if (config.nxBranch.match(/^\d+$/)) {
+    if (config.nxBranch.match(/^\d+$/) && !isMergeQueueRef(platform, config.commitSha, config.nxBranch)) {
       const prNumber = config.nxBranch;
-      args.push(
-        `+refs/pull/${prNumber}/head:refs/remotes/origin/pr/${prNumber}/head`,
-        `+refs/pull/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`
-      );
+      const prRefs = getPullRequestRefs(platform, prNumber);
+      args.push(...prRefs);
     }
   } else {
     const tagsArg = config.fetchTags ? "--tags" : "--no-tags";
@@ -430,8 +529,12 @@ if (require.main === module) {
   GitCheckoutError,
   buildFetchCommand,
   classifyError,
+  detectPlatform,
   executeGitCommand,
   executeWithRetry,
+  getPullRequestRefs,
+  isMergeQueueRef,
+  isPullRequestRef,
   validateEnvironment,
   writeToNxCloudEnv
 });

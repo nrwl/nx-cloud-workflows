@@ -11,10 +11,13 @@ import * as fsPromises from 'node:fs/promises';
 import {
   buildFetchCommand,
   classifyError,
+  detectPlatform,
   executeGitCommand,
   executeWithRetry,
   GitCheckoutConfig,
   GitCheckoutError,
+  isMergeQueueRef,
+  isPullRequestRef,
   validateEnvironment,
   writeToNxCloudEnv,
 } from './main';
@@ -595,6 +598,408 @@ describe('Git Checkout Utility', () => {
         '--filter=blob:none',
         'origin',
         '+refs/heads/*:refs/remotes/origin/*',
+      ]);
+    });
+  });
+
+  describe('Multi-platform support', () => {
+    test('detects GitHub platform', () => {
+      expect(detectPlatform('https://github.com/user/repo.git')).toBe('github');
+      expect(
+        detectPlatform('https://github.enterprise.com/user/repo.git'),
+      ).toBe('github');
+    });
+
+    test('detects GitLab platform', () => {
+      expect(detectPlatform('https://gitlab.com/user/repo.git')).toBe('gitlab');
+      expect(detectPlatform('https://gitlab.example.com/user/repo.git')).toBe(
+        'gitlab',
+      );
+    });
+
+    test('detects Bitbucket platform', () => {
+      expect(detectPlatform('https://bitbucket.org/user/repo.git')).toBe(
+        'bitbucket',
+      );
+      expect(
+        detectPlatform('https://bitbucket.company.com/user/repo.git'),
+      ).toBe('bitbucket');
+    });
+
+    test('detects Azure DevOps platform', () => {
+      expect(
+        detectPlatform('https://dev.azure.com/org/project/_git/repo'),
+      ).toBe('azure');
+      expect(
+        detectPlatform('https://org.visualstudio.com/project/_git/repo'),
+      ).toBe('azure');
+    });
+
+    test('defaults to unknown for unknown platforms', () => {
+      expect(detectPlatform('https://git.company.com/user/repo.git')).toBe(
+        'unknown',
+      );
+      expect(detectPlatform('https://custom-git.example.org/repo.git')).toBe(
+        'unknown',
+      );
+    });
+
+    test('GitHub PR context - fetches GitHub PR refs', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://github.com/user/repo.git',
+        commitSha: 'abc123def456',
+        nxBranch: '123', // PR number
+        depth: 0,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--tags',
+        'origin',
+        '+refs/heads/*:refs/remotes/origin/*',
+        '+refs/pull/123/head:refs/remotes/origin/pr/123/head',
+        '+refs/pull/123/merge:refs/remotes/origin/pr/123/merge',
+      ]);
+    });
+
+    test('GitLab MR context - fetches GitLab MR refs', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://gitlab.com/user/repo.git',
+        commitSha: 'abc123def456',
+        nxBranch: '456', // MR number
+        depth: 0,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--tags',
+        'origin',
+        '+refs/heads/*:refs/remotes/origin/*',
+        '+refs/merge-requests/456/head:refs/remotes/origin/mr/456/head',
+        '+refs/merge-requests/456/merge:refs/remotes/origin/mr/456/merge',
+      ]);
+    });
+
+    test('Bitbucket PR context - fetches Bitbucket PR refs', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://bitbucket.org/user/repo.git',
+        commitSha: 'abc123def456',
+        nxBranch: '789', // PR number
+        depth: 0,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--tags',
+        'origin',
+        '+refs/heads/*:refs/remotes/origin/*',
+        '+refs/pull-requests/789/from:refs/remotes/origin/pr/789/from',
+        '+refs/pull-requests/789/merge:refs/remotes/origin/pr/789/merge',
+      ]);
+    });
+
+    test('Azure DevOps PR context - fetches Azure PR refs', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://dev.azure.com/org/project/_git/repo',
+        commitSha: 'abc123def456',
+        nxBranch: '101', // PR number
+        depth: 0,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--tags',
+        'origin',
+        '+refs/heads/*:refs/remotes/origin/*',
+        '+refs/pull/101/merge:refs/remotes/origin/pr/101/merge',
+      ]);
+    });
+
+    test('Unknown platform - skips PR refs to avoid errors', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://git.company.com/user/repo.git',
+        commitSha: 'abc123def456',
+        nxBranch: '999', // Could be PR number but unknown platform
+        depth: 0,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--tags',
+        'origin',
+        '+refs/heads/*:refs/remotes/origin/*',
+        // No PR refs for unknown platform
+      ]);
+    });
+
+    test('validates GitLab merge request refs', () => {
+      expect(isPullRequestRef('gitlab', 'merge-requests/123/head')).toBe(true);
+      expect(isPullRequestRef('gitlab', 'refs/merge-requests/456/merge')).toBe(
+        true,
+      );
+      expect(isPullRequestRef('gitlab', 'pull/123/head')).toBe(false); // GitHub format
+    });
+
+    test('validates Bitbucket pull request refs', () => {
+      expect(isPullRequestRef('bitbucket', 'pull-requests/789/from')).toBe(
+        true,
+      );
+      expect(
+        isPullRequestRef('bitbucket', 'refs/pull-requests/101/merge'),
+      ).toBe(true);
+      expect(isPullRequestRef('bitbucket', 'pull/789/head')).toBe(false); // GitHub format
+    });
+
+    test('validates Azure DevOps pull request refs', () => {
+      expect(isPullRequestRef('azure', 'pull/555/merge')).toBe(true);
+      expect(isPullRequestRef('azure', 'refs/pull/666/merge')).toBe(true);
+      expect(isPullRequestRef('azure', 'pull/555/head')).toBe(false); // GitHub format
+    });
+  });
+
+  describe('Merge queue support', () => {
+    test('detects GitHub merge queue refs', () => {
+      expect(
+        isMergeQueueRef(
+          'github',
+          'gh-readonly-queue/main/pr-123-abc123def',
+          'some-branch',
+        ),
+      ).toBe(true);
+      expect(
+        isMergeQueueRef(
+          'github',
+          'refs/heads/gh-readonly-queue/main/pr-456-def789',
+          'other-branch',
+        ),
+      ).toBe(true);
+      expect(
+        isMergeQueueRef(
+          'github',
+          'normal-branch',
+          'gh-readonly-queue/main/pr-789-ghi012',
+        ),
+      ).toBe(true);
+      expect(isMergeQueueRef('github', 'normal-branch', 'regular-branch')).toBe(
+        false,
+      );
+    });
+
+    test('detects GitLab merge train refs', () => {
+      expect(isMergeQueueRef('gitlab', 'train/main/123', 'some-branch')).toBe(
+        true,
+      );
+      expect(
+        isMergeQueueRef(
+          'gitlab',
+          'refs/heads/train/develop/456',
+          'other-branch',
+        ),
+      ).toBe(true);
+      expect(
+        isMergeQueueRef('gitlab', 'normal-branch', 'feature-123-merge-train'),
+      ).toBe(true);
+      expect(isMergeQueueRef('gitlab', 'normal-branch', 'train/main/789')).toBe(
+        true,
+      );
+      expect(isMergeQueueRef('gitlab', 'normal-branch', 'regular-branch')).toBe(
+        false,
+      );
+    });
+
+    test('detects Azure DevOps merge queue refs', () => {
+      expect(
+        isMergeQueueRef('azure', 'merge-queue/main/123', 'some-branch'),
+      ).toBe(true);
+      expect(
+        isMergeQueueRef(
+          'azure',
+          'refs/heads/merge-queue/develop/456',
+          'other-branch',
+        ),
+      ).toBe(true);
+      expect(
+        isMergeQueueRef('azure', 'normal-branch', 'merge-queue/main/789'),
+      ).toBe(true);
+      expect(isMergeQueueRef('azure', 'normal-branch', 'regular-branch')).toBe(
+        false,
+      );
+    });
+
+    test('GitHub merge queue - builds correct fetch command', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://github.com/user/repo.git',
+        commitSha: 'gh-readonly-queue/main/pr-123-abc123def',
+        nxBranch: 'gh-readonly-queue/main/pr-123-abc123def',
+        depth: 1,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--no-tags',
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--depth=1',
+        'origin',
+        '+refs/heads/gh-readonly-queue/main/pr-123-abc123def:refs/remotes/origin/gh-readonly-queue/main/pr-123-abc123def',
+      ]);
+    });
+
+    test('GitLab merge train - builds correct fetch command', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://gitlab.com/user/repo.git',
+        commitSha: 'refs/heads/train/main/456',
+        nxBranch: 'feature-456-merge-train',
+        depth: 1,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--no-tags',
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--depth=1',
+        'origin',
+        '+refs/heads/train/main/456:refs/remotes/origin/train/main/456',
+      ]);
+    });
+
+    test('Azure merge queue - builds correct fetch command', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://dev.azure.com/org/project/_git/repo',
+        commitSha: 'merge-queue/main/789',
+        nxBranch: 'merge-queue/main/789',
+        depth: 2,
+        fetchTags: false,
+        filter: 'blob:none',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--no-tags',
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--depth=2',
+        '--filter=blob:none',
+        'origin',
+        '+refs/heads/merge-queue/main/789:refs/remotes/origin/merge-queue/main/789',
+      ]);
+    });
+
+    test('excludes merge queue from PR context detection in full clone', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://github.com/user/repo.git',
+        commitSha: 'abc123def456', // Regular SHA
+        nxBranch: '123', // Numeric that would normally be treated as PR number
+        depth: 0, // Full clone
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--tags',
+        'origin',
+        '+refs/heads/*:refs/remotes/origin/*',
+        '+refs/pull/123/head:refs/remotes/origin/pr/123/head',
+        '+refs/pull/123/merge:refs/remotes/origin/pr/123/merge',
+      ]);
+    });
+
+    test('merge queue branch name prevents PR context detection', () => {
+      const config: GitCheckoutConfig = {
+        repoUrl: 'https://github.com/user/repo.git',
+        commitSha: 'abc123def456', // Regular SHA that would be full clone
+        nxBranch: 'gh-readonly-queue/main/pr-123-abc123def', // Merge queue branch - NOT treated as PR
+        depth: 0,
+        fetchTags: false,
+        filter: '',
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      };
+
+      const args = buildFetchCommand(config);
+      expect(args).toEqual([
+        '--no-tags',
+        '--prune',
+        '--progress',
+        '--no-recurse-submodules',
+        '--depth=0',
+        'origin',
+        '+refs/heads/gh-readonly-queue/main/pr-123-abc123def:refs/remotes/origin/gh-readonly-queue/main/pr-123-abc123def',
       ]);
     });
   });

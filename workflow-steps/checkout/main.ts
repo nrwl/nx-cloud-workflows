@@ -18,6 +18,118 @@ interface RetryableError extends Error {
   isRetryable: boolean;
 }
 
+type GitPlatform = 'github' | 'gitlab' | 'bitbucket' | 'azure' | 'unknown';
+
+/**
+ * Detects git platform from repository URL
+ */
+export function detectPlatform(repoUrl: string): GitPlatform {
+  const url = repoUrl.toLowerCase();
+
+  if (url.includes('github.com') || url.includes('github.')) {
+    return 'github';
+  }
+  if (url.includes('gitlab.com') || url.includes('gitlab.')) {
+    return 'gitlab';
+  }
+  if (url.includes('bitbucket.org') || url.includes('bitbucket.')) {
+    return 'bitbucket';
+  }
+  if (url.includes('dev.azure.com') || url.includes('visualstudio.com')) {
+    return 'azure';
+  }
+
+  return 'unknown';
+}
+
+/**
+ * Detects if nxBranch represents a PR/MR number and returns platform-specific refs
+ */
+export function getPullRequestRefs(
+  platform: GitPlatform,
+  prNumber: string,
+): string[] {
+  switch (platform) {
+    case 'github':
+      return [
+        `+refs/pull/${prNumber}/head:refs/remotes/origin/pr/${prNumber}/head`,
+        `+refs/pull/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`,
+      ];
+    case 'gitlab':
+      return [
+        `+refs/merge-requests/${prNumber}/head:refs/remotes/origin/mr/${prNumber}/head`,
+        `+refs/merge-requests/${prNumber}/merge:refs/remotes/origin/mr/${prNumber}/merge`,
+      ];
+    case 'bitbucket':
+      return [
+        `+refs/pull-requests/${prNumber}/from:refs/remotes/origin/pr/${prNumber}/from`,
+        `+refs/pull-requests/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`,
+      ];
+    case 'azure':
+      return [
+        `+refs/pull/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`,
+      ];
+    case 'unknown':
+    default:
+      // For unknown platforms, don't fetch PR refs to avoid unexpected errors
+      return [];
+  }
+}
+
+/**
+ * Detects if commitSha is a platform-specific PR/MR reference
+ */
+export function isPullRequestRef(
+  platform: GitPlatform,
+  commitSha: string,
+): boolean {
+  switch (platform) {
+    case 'github':
+      return /^(refs\/)?pull\/\d+\/(head|merge)$/i.test(commitSha);
+    case 'gitlab':
+      return /^(refs\/)?merge-requests\/\d+\/(head|merge)$/i.test(commitSha);
+    case 'bitbucket':
+      return /^(refs\/)?pull-requests\/\d+\/(from|merge)$/i.test(commitSha);
+    case 'azure':
+      return /^(refs\/)?pull\/\d+\/merge$/i.test(commitSha);
+    default:
+      return false;
+  }
+}
+
+/**
+ * Detects if commitSha or nxBranch represents a merge queue/train
+ */
+export function isMergeQueueRef(
+  platform: GitPlatform,
+  commitSha: string,
+  nxBranch: string,
+): boolean {
+  switch (platform) {
+    case 'github':
+      // GitHub merge queue: gh-readonly-queue/main/pr-123-abc123def
+      return (
+        /^(refs\/heads\/)?gh-readonly-queue\//i.test(commitSha) ||
+        /^gh-readonly-queue\//i.test(nxBranch)
+      );
+    case 'gitlab':
+      // GitLab merge train: train/main/123 or ends with -merge-train
+      return (
+        /^(refs\/heads\/)?train\//i.test(commitSha) ||
+        /^train\//i.test(nxBranch) ||
+        /-merge-train$/i.test(nxBranch)
+      );
+    case 'azure':
+      // Azure merge queue: merge-queue/main/123
+      return (
+        /^(refs\/heads\/)?merge-queue\//i.test(commitSha) ||
+        /^merge-queue\//i.test(nxBranch)
+      );
+    default:
+      return false;
+  }
+}
+
 class GitCheckoutError extends Error implements RetryableError {
   constructor(
     message: string,
@@ -73,10 +185,11 @@ function validateEnvironment(): GitCheckoutConfig {
     throw new GitCheckoutError(`Invalid GIT_REPOSITORY_URL: ${repoUrl}`, false);
   }
 
-  // Validate commit SHA format (basic check) - allow short SHAs, branch refs, PR refs, etc.
+  // Validate commit SHA format - allow SHAs, branch refs, and any valid git ref format
+  // This is platform-agnostic and lets git itself validate the ref during fetch
   if (
     !commitSha.match(
-      /^[a-fA-F0-9]{6,40}$|^origin\/[\w\-\.\/]+$|^pull\/\d+\/(head|merge)$|^refs\/heads\/[\w\-\.\/]+$|^refs\/pull\/\d+\/(head|merge)$/i,
+      /^[a-fA-F0-9]{6,40}$|^origin\/[\w\-\.\/]+$|^refs\/[\w\-\.\/]+$|^[\w\-\.\/]+\/\d+\/[\w\-]+$/i,
     )
   ) {
     throw new GitCheckoutError(
@@ -326,8 +439,9 @@ async function writeToNxCloudEnv(key: string, value: string): Promise<void> {
  */
 function buildFetchCommand(config: GitCheckoutConfig): string[] {
   const args: string[] = [];
+  const platform = detectPlatform(config.repoUrl);
 
-  // Handle refs/heads/ format (GitHub Actions style)
+  // Handle refs/heads/ format (standard git ref format)
   const headRefMatch = config.commitSha.match(/^refs\/heads\/(.+)$/i);
   if (headRefMatch) {
     const branchName = headRefMatch[1];
@@ -359,8 +473,23 @@ function buildFetchCommand(config: GitCheckoutConfig): string[] {
       args.push(`--filter=${config.filter}`);
     }
     args.push('origin', branchName);
-  } else if (config.commitSha.startsWith('pull/')) {
-    // This is a PR reference
+  } else if (isMergeQueueRef(platform, config.commitSha, config.nxBranch)) {
+    // This is a merge queue/train branch - treat like a regular branch
+    // Use commitSha if it matches queue pattern, otherwise use nxBranch
+    let queueBranch: string;
+    if (
+      /^(refs\/heads\/)?gh-readonly-queue\//i.test(config.commitSha) ||
+      /^(refs\/heads\/)?train\//i.test(config.commitSha) ||
+      /^(refs\/heads\/)?merge-queue\//i.test(config.commitSha)
+    ) {
+      queueBranch = config.commitSha.startsWith('refs/heads/')
+        ? config.commitSha.replace('refs/heads/', '')
+        : config.commitSha;
+    } else {
+      // commitSha is regular SHA, use nxBranch for branch name
+      queueBranch = config.nxBranch;
+    }
+
     args.push(
       '--no-tags',
       '--prune',
@@ -373,8 +502,33 @@ function buildFetchCommand(config: GitCheckoutConfig): string[] {
     }
     args.push(
       'origin',
-      `refs/${config.commitSha}:refs/remotes/origin/${config.commitSha}`,
+      `+refs/heads/${queueBranch}:refs/remotes/origin/${queueBranch}`,
     );
+  } else if (isPullRequestRef(platform, config.commitSha)) {
+    // This is a platform-specific PR/MR reference
+    args.push(
+      '--no-tags',
+      '--prune',
+      '--progress',
+      '--no-recurse-submodules',
+      `--depth=${config.depth}`,
+    );
+    if (config.filter) {
+      args.push(`--filter=${config.filter}`);
+    }
+
+    // Add appropriate ref spec based on platform
+    if (config.commitSha.startsWith('refs/')) {
+      args.push(
+        'origin',
+        `${config.commitSha}:refs/remotes/origin/${config.commitSha}`,
+      );
+    } else {
+      args.push(
+        'origin',
+        `refs/${config.commitSha}:refs/remotes/origin/${config.commitSha}`,
+      );
+    }
   } else if (config.depth === 0) {
     // Full clone - fetch all branches and tags
     args.push('--prune', '--progress', '--no-recurse-submodules', '--tags');
@@ -383,14 +537,16 @@ function buildFetchCommand(config: GitCheckoutConfig): string[] {
     }
     args.push('origin', '+refs/heads/*:refs/remotes/origin/*');
 
-    // Additionally fetch PR refs if we're in a PR context
-    // PR context is detected when nxBranch is a numeric PR number
-    if (config.nxBranch.match(/^\d+$/)) {
+    // Additionally fetch PR/MR refs if we're in a PR context
+    // PR context is detected when nxBranch is a numeric PR/MR number
+    // BUT exclude merge queues which may contain numeric patterns
+    if (
+      config.nxBranch.match(/^\d+$/) &&
+      !isMergeQueueRef(platform, config.commitSha, config.nxBranch)
+    ) {
       const prNumber = config.nxBranch;
-      args.push(
-        `+refs/pull/${prNumber}/head:refs/remotes/origin/pr/${prNumber}/head`,
-        `+refs/pull/${prNumber}/merge:refs/remotes/origin/pr/${prNumber}/merge`,
-      );
+      const prRefs = getPullRequestRefs(platform, prNumber);
+      args.push(...prRefs);
     }
   } else {
     // Regular SHA with depth
