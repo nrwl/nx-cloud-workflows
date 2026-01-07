@@ -35,6 +35,8 @@ const baseBranchKeys = baseBranch
 
 console.log(`Expanded unhashed key is: ${key}\n`);
 
+storeHashedKeyInEnv(hashedKey);
+
 cacheClient
   .restore(
     new RestoreRequest({
@@ -59,12 +61,13 @@ cacheClient
     process.exit(1);
   });
 
-function rememberCacheRestorationForPostStep() {
+function storeEnvVar(name: string, value: string) {
   try {
     const stepGroupId = process.env.NX_STEP_GROUP_ID
       ? process.env.NX_STEP_GROUP_ID.replace(/-/g, '_')
       : '';
-    const envValue = `NX_CACHE_STEP_WAS_SUCCESSFUL_HIT_${stepGroupId}=true\n`;
+    const envVarName = stepGroupId ? `${name}_${stepGroupId}` : name;
+    const envValue = `${envVarName}=${value}\n`;
     if (existsSync(process.env.NX_CLOUD_ENV)) {
       appendFileSync(process.env.NX_CLOUD_ENV, envValue);
     } else {
@@ -73,4 +76,12 @@ function rememberCacheRestorationForPostStep() {
   } catch (e) {
     console.log(e);
   }
+}
+
+function rememberCacheRestorationForPostStep() {
+  storeEnvVar('NX_CACHE_STEP_WAS_SUCCESSFUL_HIT', 'true');
+}
+
+function storeHashedKeyInEnv(hashedKey: string) {
+  storeEnvVar('NX_CACHE_STEP_HASHED_KEY', hashedKey);
 }

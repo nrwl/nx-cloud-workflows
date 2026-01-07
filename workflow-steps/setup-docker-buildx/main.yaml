@@ -1,0 +1,15 @@
+name: Setup Docker Buildx
+description: Configure Docker Buildx
+inputs:
+  - name: buildx-version
+    description: 'Which version of Docker Buildx to install'
+  - name: builder-name
+    description: 'Name for the Docker buildx builder'
+    default: 'nx-agents-builder'
+  - name: driver-opts
+    description: 'Comma-separated driver options for the docker-container driver, see https://docs.docker.com/build/builders/drivers/docker-container/'
+  - name: buildkit-config
+    description: 'Full contents of the buildkitd.toml configuration file'
+definition:
+  using: 'node'
+  main: workflow-steps/setup-docker-buildx/main.js
