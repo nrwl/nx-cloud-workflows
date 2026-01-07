@@ -16,3 +16,7 @@ If set to `true`, the step will install the node modules using `npm ci --legacy-
 If set to `false`, the step will install the node modules using `npm ci` when the npm package manager is used.
 
 If you do not already have a [custom launch template](https://nx.dev/ci/reference/launch-templates), you can also control this behavior by setting the `NX_CLOUD_NPM_LEGACY_INSTALL` environment variable to `true` or `false` in your main agent and [pass the variable via `--with-env-vars="NX_CLOUD_NPM_LEGACY_INSTALL"`](https://nx.dev/ci/reference/launch-templates#pass-environment-variables-to-agents)
+
+### Working Directory
+
+If your Nx workspace is in a subdirectory, the step will automatically use the `NX_WORKING_DIRECTORY` environment variable to change to the correct directory before detecting the package manager and installing dependencies.
