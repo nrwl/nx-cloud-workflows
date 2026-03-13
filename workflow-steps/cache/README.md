@@ -76,3 +76,12 @@ base-branch: 'main' # or another branch
 This will ensure that when you first open a PR, if a cached entry isn't found for the current branch, it will try to
 look at entries
 on your default protected branch (usually `main`).
+
+## Cache writes and access token permissions
+
+The cache step requires a **read-write** access token to write cache entries. If your CI access token only has **read**
+permissions, cache restores will work normally but cache uploads will be skipped with a message indicating the
+permissions issue.
+
+This is expected in setups where PR workflows use read-only tokens for security — cache entries are written by
+your main branch workflow (which uses a read-write token), and PR workflows only restore from that cache.
