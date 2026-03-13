@@ -46,7 +46,7 @@ if (!!cacheWasHit) {
       if (r.success) console.log(`\nSuccessfully uploaded marked directories.`);
       if (r.skipped)
         console.log(
-          '\nSkipped storing to cache, another instance has already started the upload.',
+          `\n${r.skippedMessage || 'Skipped storing to cache, another instance has already started the upload.'}`,
         );
       process.exit(0);
     })
