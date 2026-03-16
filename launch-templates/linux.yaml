@@ -6,6 +6,17 @@ common-jvm-init-steps: &common-jvm-init-steps
   - name: Set up Nx
     script: ./nx --version
 
+common-dotnet-init-steps: &common-dotnet-init-steps
+  - name: Checkout
+    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml'
+  - name: Install Mise
+    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-mise/main.yaml'
+    inputs:
+      tools: |
+        dotnet=10
+  - name: Set up Nx
+    script: ./nx --version
+
 common-js-init-steps: &common-js-init-steps
   - name: Checkout
     uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml'
@@ -86,3 +97,31 @@ launch-templates:
     resource-class: 'docker_linux_amd64/extra_large+'
     image: 'ubuntu22.04-node20.19-v2'
     init-steps: *common-jvm-init-steps
+  linux-small-dotnet:
+    resource-class: 'docker_linux_amd64/small'
+    image: 'ubuntu22.04-node20.19-v2'
+    init-steps: *common-dotnet-init-steps
+  linux-medium-dotnet:
+    resource-class: 'docker_linux_amd64/medium'
+    image: 'ubuntu22.04-node20.19-v2'
+    init-steps: *common-dotnet-init-steps
+  linux-medium-plus-dotnet:
+    resource-class: 'docker_linux_amd64/medium+'
+    image: 'ubuntu22.04-node20.19-v2'
+    init-steps: *common-dotnet-init-steps
+  linux-large-dotnet:
+    resource-class: 'docker_linux_amd64/large'
+    image: 'ubuntu22.04-node20.19-v2'
+    init-steps: *common-dotnet-init-steps
+  linux-large-plus-dotnet:
+    resource-class: 'docker_linux_amd64/large+'
+    image: 'ubuntu22.04-node20.19-v2'
+    init-steps: *common-dotnet-init-steps
+  linux-extra-large-dotnet:
+    resource-class: 'docker_linux_amd64/extra_large'
+    image: 'ubuntu22.04-node20.19-v2'
+    init-steps: *common-dotnet-init-steps
+  linux-extra-large-plus-dotnet:
+    resource-class: 'docker_linux_amd64/extra_large+'
+    image: 'ubuntu22.04-node20.19-v2'
+    init-steps: *common-dotnet-init-steps
