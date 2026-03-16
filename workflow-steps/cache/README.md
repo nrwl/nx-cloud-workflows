@@ -58,30 +58,29 @@ paths: |
 
 ## `base-branch`
 
-For security reasons, this step will only write cache entries **for the current branch only**. This isolation is
-essential, for example, for open source projects, where anyone can create PRs and potentially push malicious artefacts
-to the cache.
+By default, the cache step will only attempt to restore caches written **by the current branch**. This means each
+branch's cache is isolated from other branches.
 
-So by default, if you do not pass the `base-branch`, the cache step will only attempt to restore caches written **by the
-current branch only**. This can be fine, as any subsequent pushes to your PR will re-use the cache, and all the commits
-that go into your
-`main` branch will also re-use the cache.
-
-However, for an extra optimisation, we recommend setting:
+Setting the `base-branch` input allows a branch to fall back to cache entries from another branch when no match is
+found for the current one:
 
 ```yaml
 base-branch: 'main' # or another branch
 ```
 
-This will ensure that when you first open a PR, if a cached entry isn't found for the current branch, it will try to
-look at entries
-on your default protected branch (usually `main`).
+This is especially useful when combined with
+[scoped access tokens](https://nx.dev/docs/concepts/ci-concepts/cache-security#use-scoped-tokens-in-ci) (the
+recommended setup). In this configuration, your protected branch (e.g. `main`) uses a read-write token and writes
+cache entries, while PR branches use read-only tokens and can only restore from the cache. Setting `base-branch`
+ensures PR workflows can still benefit from cache entries written by `main`.
+
+> **Note:** If you use read-write tokens on non-protected branches, each branch will also write its own cache
+> entries, enabling cache reuse across subsequent pushes to the same PR. However, this is **not recommended** as it
+> allows any PR to write to the shared cache, which is a security risk — especially for open source projects where
+> anyone can open a PR and potentially push malicious artifacts.
 
 ## Cache writes and access token permissions
 
 The cache step requires a **read-write** access token to write cache entries. If your CI access token only has **read**
 permissions, cache restores will work normally but cache uploads will be skipped with a message indicating the
-permissions issue.
-
-This is expected in setups where PR workflows use read-only tokens for security — cache entries are written by
-your main branch workflow (which uses a read-write token), and PR workflows only restore from that cache.
+token does not have write permissions.
