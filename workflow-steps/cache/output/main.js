@@ -5878,6 +5878,10 @@ var StoreResponse = class _StoreResponse extends Message {
    * @generated from field: bool skipped = 2;
    */
   skipped = false;
+  /**
+   * @generated from field: string skipped_message = 3;
+   */
+  skippedMessage = "";
   constructor(data) {
     super();
     proto3.util.initPartial(data, this);
@@ -5898,6 +5902,12 @@ var StoreResponse = class _StoreResponse extends Message {
       kind: "scalar",
       T: 8
       /* ScalarType.BOOL */
+    },
+    {
+      no: 3,
+      name: "skipped_message",
+      kind: "scalar",
+      T: 9
     }
   ]);
   static fromBinary(bytes, options) {
