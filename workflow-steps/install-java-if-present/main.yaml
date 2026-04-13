@@ -1,0 +1,10 @@
+name: Install Java (if JVM project present)
+description: Installs Java via mise when a Gradle or Maven project is detected (build.gradle, build.gradle.kts, settings.gradle*, or pom.xml). Otherwise skips.
+inputs:
+  - name: java_version
+    description: 'Java version to install (passed to mise as java=<version>).'
+    default: '21'
+
+definition:
+  using: 'node'
+  main: workflow-steps/install-java-if-present/main.js

@@ -1,0 +1,6 @@
+name: Install Rust (if Rust project present)
+description: Installs rustup/cargo when a Rust project is detected (Cargo.toml, Cargo.lock, or rust-toolchain.toml). Honors rust-toolchain.toml when present.
+
+definition:
+  using: 'node'
+  main: workflow-steps/install-rust-if-present/main.js
