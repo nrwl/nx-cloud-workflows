@@ -82,8 +82,6 @@ common-universal-init-steps: &common-universal-init-steps
     uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-node-if-present/main.yaml'
   - name: Install Node Modules (if lock file)
     uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-node-modules-if-present/main.yaml'
-  - name: Install Browsers (if needed)
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-browsers/main.yaml'
   - name: Install Java (if JVM project)
     uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-java-if-present/main.yaml'
 
