@@ -75,15 +75,15 @@ common-universal-init-steps: &common-universal-init-steps
       paths: '~/.gradle/wrapper'
       base-branch: 'main'
   - name: Install Mise (if config present)
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-mise-if-present/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/8997d86c066a752fc445b711e49b083c21816304/workflow-steps/install-mise-if-present/main.yaml'
   - name: Install Rust (if Rust project)
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-rust-if-present/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/8997d86c066a752fc445b711e49b083c21816304/workflow-steps/install-rust-if-present/main.yaml'
   - name: Install Node (if JS project)
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-node-if-present/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/8997d86c066a752fc445b711e49b083c21816304/workflow-steps/install-node-if-present/main.yaml'
   - name: Install Node Modules (if lock file)
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-node-modules-if-present/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/8997d86c066a752fc445b711e49b083c21816304/workflow-steps/install-node-modules-if-present/main.yaml'
   - name: Install Java (if JVM project)
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-java-if-present/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/8997d86c066a752fc445b711e49b083c21816304/workflow-steps/install-java-if-present/main.yaml'
 
 launch-templates:
   linux-small-js:
