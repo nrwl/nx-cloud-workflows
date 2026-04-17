@@ -1,6 +1,6 @@
 const { execSync } = require('child_process');
 
-execSync('npx nx run-many -t build', { stdio: 'inherit' });
+execSync('pnpm exec nx run-many -t build', { stdio: 'inherit' });
 const output = execSync(
   `git status --porcelain | grep '/output' || true`,
 ).toString('utf-8');
