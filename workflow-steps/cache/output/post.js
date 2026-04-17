@@ -3799,9 +3799,9 @@ var StoreResponse = class _StoreResponse extends Message {
    */
   skipped = false;
   /**
-   * @generated from field: string skipped_message = 3;
+   * @generated from field: string skipped_reason = 3;
    */
-  skippedMessage = "";
+  skippedReason = "";
   constructor(data) {
     super();
     proto3.util.initPartial(data, this);
@@ -3825,7 +3825,7 @@ var StoreResponse = class _StoreResponse extends Message {
     },
     {
       no: 3,
-      name: "skipped_message",
+      name: "skipped_reason",
       kind: "scalar",
       T: 9
     }
@@ -6971,7 +6971,7 @@ Successfully uploaded marked directories.`);
     if (r.skipped)
       console.log(
         `
-${r.skippedMessage || "Skipped storing to cache, another instance has already started the upload."}`
+${r.skippedReason || "Skipped storing to cache, another instance has already started the upload."}`
       );
     process.exit(0);
   }).catch((err) => {
