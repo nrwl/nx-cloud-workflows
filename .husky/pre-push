@@ -1,1 +1,1 @@
-yarn check-build
+pnpm build-all

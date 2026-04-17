@@ -3,10 +3,11 @@
 ## Re-usable workflow step
 
 1. Create your custom step in `workflow-steps/`
-2. Build everything: `nx run-many -t build`
-3. Commit everything
+2. Install dependencies: `pnpm install --frozen-lockfile`
+3. Build everything: `pnpm build-all`
+4. Commit everything
    1. Important: The generated `dist/` files need to be checked in as well
-4. Push your changes
+5. Push your changes
 
 ## Process for Releasing New Versions
 
