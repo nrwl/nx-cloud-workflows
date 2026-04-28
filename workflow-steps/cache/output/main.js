@@ -94,10 +94,10 @@ function getEnumType(enumObject) {
   return t;
 }
 function setEnumType(enumObject, typeName, values, opt) {
-  enumObject[enumTypeSymbol] = makeEnumType(typeName, values.map((v) => ({
-    no: v.no,
-    name: v.name,
-    localName: enumObject[v.no]
+  enumObject[enumTypeSymbol] = makeEnumType(typeName, values.map((v2) => ({
+    no: v2.no,
+    name: v2.name,
+    localName: enumObject[v2.no]
   })), opt);
 }
 function makeEnumType(typeName, values, _opt) {
@@ -105,10 +105,10 @@ function makeEnumType(typeName, values, _opt) {
   const numbers = /* @__PURE__ */ Object.create(null);
   const normalValues = [];
   for (const value of values) {
-    const n = normalizeEnumValue(value);
-    normalValues.push(n);
-    names[value.name] = n;
-    numbers[value.no] = n;
+    const n7 = normalizeEnumValue(value);
+    normalValues.push(n7);
+    names[value.name] = n7;
+    numbers[value.no] = n7;
   }
   return {
     typeName,
@@ -126,9 +126,9 @@ function makeEnumType(typeName, values, _opt) {
 function makeEnum(typeName, values, opt) {
   const enumObject = {};
   for (const value of values) {
-    const n = normalizeEnumValue(value);
-    enumObject[n.localName] = n.no;
-    enumObject[n.no] = n.localName;
+    const n7 = normalizeEnumValue(value);
+    enumObject[n7.localName] = n7.no;
+    enumObject[n7.no] = n7.localName;
   }
   setEnumType(enumObject, typeName, values, opt);
   return enumObject;
@@ -144,6 +144,7 @@ function normalizeEnumValue(value) {
 var Message = class {
   /**
    * Compare with a message of the same type.
+   * Note that this function disregards extensions and unknown fields.
    */
   equals(other) {
     return this.getType().runtime.util.equals(this.getType(), this, other);
@@ -273,42 +274,6 @@ function makeMessageType(runtime, typeName, fields, opt) {
   return type;
 }
 
-// ../../node_modules/@bufbuild/protobuf/dist/esm/private/proto-runtime.js
-function makeProtoRuntime(syntax, json, bin, util) {
-  return {
-    syntax,
-    json,
-    bin,
-    util,
-    makeMessageType(typeName, fields, opt) {
-      return makeMessageType(this, typeName, fields, opt);
-    },
-    makeEnum,
-    makeEnumType,
-    getEnumType
-  };
-}
-
-// ../../node_modules/@bufbuild/protobuf/dist/esm/field.js
-var ScalarType;
-(function(ScalarType2) {
-  ScalarType2[ScalarType2["DOUBLE"] = 1] = "DOUBLE";
-  ScalarType2[ScalarType2["FLOAT"] = 2] = "FLOAT";
-  ScalarType2[ScalarType2["INT64"] = 3] = "INT64";
-  ScalarType2[ScalarType2["UINT64"] = 4] = "UINT64";
-  ScalarType2[ScalarType2["INT32"] = 5] = "INT32";
-  ScalarType2[ScalarType2["FIXED64"] = 6] = "FIXED64";
-  ScalarType2[ScalarType2["FIXED32"] = 7] = "FIXED32";
-  ScalarType2[ScalarType2["BOOL"] = 8] = "BOOL";
-  ScalarType2[ScalarType2["STRING"] = 9] = "STRING";
-  ScalarType2[ScalarType2["BYTES"] = 12] = "BYTES";
-  ScalarType2[ScalarType2["UINT32"] = 13] = "UINT32";
-  ScalarType2[ScalarType2["SFIXED32"] = 15] = "SFIXED32";
-  ScalarType2[ScalarType2["SFIXED64"] = 16] = "SFIXED64";
-  ScalarType2[ScalarType2["SINT32"] = 17] = "SINT32";
-  ScalarType2[ScalarType2["SINT64"] = 18] = "SINT64";
-})(ScalarType || (ScalarType = {}));
-
 // ../../node_modules/@bufbuild/protobuf/dist/esm/google/varint.js
 function varint64read() {
   let lowBits = 0;
@@ -338,24 +303,24 @@ function varint64read() {
   }
   throw new Error("invalid varint");
 }
-function varint64write(lo, hi, bytes) {
+function varint64write(lo, hi2, bytes) {
   for (let i = 0; i < 28; i = i + 7) {
     const shift = lo >>> i;
-    const hasNext = !(shift >>> 7 == 0 && hi == 0);
+    const hasNext = !(shift >>> 7 == 0 && hi2 == 0);
     const byte = (hasNext ? shift | 128 : shift) & 255;
     bytes.push(byte);
     if (!hasNext) {
       return;
     }
   }
-  const splitBits = lo >>> 28 & 15 | (hi & 7) << 4;
-  const hasMoreBits = !(hi >> 3 == 0);
+  const splitBits = lo >>> 28 & 15 | (hi2 & 7) << 4;
+  const hasMoreBits = !(hi2 >> 3 == 0);
   bytes.push((hasMoreBits ? splitBits | 128 : splitBits) & 255);
   if (!hasMoreBits) {
     return;
   }
   for (let i = 3; i < 31; i = i + 7) {
-    const shift = hi >>> i;
+    const shift = hi2 >>> i;
     const hasNext = !(shift >>> 7 == 0);
     const byte = (hasNext ? shift | 128 : shift) & 255;
     bytes.push(byte);
@@ -363,7 +328,7 @@ function varint64write(lo, hi, bytes) {
       return;
     }
   }
-  bytes.push(hi >>> 31 & 1);
+  bytes.push(hi2 >>> 31 & 1);
 }
 var TWO_PWR_32_DBL = 4294967296;
 function int64FromString(dec) {
@@ -389,8 +354,8 @@ function int64FromString(dec) {
   add1e6digit(-6);
   return minus ? negate(lowBits, highBits) : newBits(lowBits, highBits);
 }
-function int64ToString(lo, hi) {
-  let bits = newBits(lo, hi);
+function int64ToString(lo, hi2) {
+  let bits = newBits(lo, hi2);
   const negative = bits.hi & 2147483648;
   if (negative) {
     bits = negate(bits.lo, bits.hi);
@@ -398,14 +363,14 @@ function int64ToString(lo, hi) {
   const result = uInt64ToString(bits.lo, bits.hi);
   return negative ? "-" + result : result;
 }
-function uInt64ToString(lo, hi) {
-  ({ lo, hi } = toUnsigned(lo, hi));
-  if (hi <= 2097151) {
-    return String(TWO_PWR_32_DBL * hi + lo);
+function uInt64ToString(lo, hi2) {
+  ({ lo, hi: hi2 } = toUnsigned(lo, hi2));
+  if (hi2 <= 2097151) {
+    return String(TWO_PWR_32_DBL * hi2 + lo);
   }
   const low = lo & 16777215;
-  const mid = (lo >>> 24 | hi << 8) & 16777215;
-  const high = hi >> 16 & 65535;
+  const mid = (lo >>> 24 | hi2 << 8) & 16777215;
+  const high = hi2 >> 16 & 65535;
   let digitA = low + mid * 6777216 + high * 6710656;
   let digitB = mid + high * 8147497;
   let digitC = high * 2;
@@ -420,11 +385,11 @@ function uInt64ToString(lo, hi) {
   }
   return digitC.toString() + decimalFrom1e7WithLeadingZeros(digitB) + decimalFrom1e7WithLeadingZeros(digitA);
 }
-function toUnsigned(lo, hi) {
-  return { lo: lo >>> 0, hi: hi >>> 0 };
+function toUnsigned(lo, hi2) {
+  return { lo: lo >>> 0, hi: hi2 >>> 0 };
 }
-function newBits(lo, hi) {
-  return { lo: lo | 0, hi: hi | 0 };
+function newBits(lo, hi2) {
+  return { lo: lo | 0, hi: hi2 | 0 };
 }
 function negate(lowBits, highBits) {
   highBits = ~highBits;
@@ -499,18 +464,18 @@ function makeInt64Support() {
       zero: BigInt(0),
       supported: true,
       parse(value) {
-        const bi = typeof value == "bigint" ? value : BigInt(value);
-        if (bi > MAX || bi < MIN) {
+        const bi2 = typeof value == "bigint" ? value : BigInt(value);
+        if (bi2 > MAX || bi2 < MIN) {
           throw new Error(`int64 invalid: ${value}`);
         }
-        return bi;
+        return bi2;
       },
       uParse(value) {
-        const bi = typeof value == "bigint" ? value : BigInt(value);
-        if (bi > UMAX || bi < UMIN) {
+        const bi2 = typeof value == "bigint" ? value : BigInt(value);
+        if (bi2 > UMAX || bi2 < UMIN) {
           throw new Error(`uint64 invalid: ${value}`);
         }
-        return bi;
+        return bi2;
       },
       enc(value) {
         dv.setBigInt64(0, this.parse(value), true);
@@ -526,14 +491,14 @@ function makeInt64Support() {
           hi: dv.getInt32(4, true)
         };
       },
-      dec(lo, hi) {
+      dec(lo, hi2) {
         dv.setInt32(0, lo, true);
-        dv.setInt32(4, hi, true);
+        dv.setInt32(4, hi2, true);
         return dv.getBigInt64(0, true);
       },
-      uDec(lo, hi) {
+      uDec(lo, hi2) {
         dv.setInt32(0, lo, true);
-        dv.setInt32(4, hi, true);
+        dv.setInt32(4, hi2, true);
         return dv.getBigUint64(0, true);
       }
     };
@@ -571,15 +536,103 @@ function makeInt64Support() {
       assertUInt64String(value);
       return int64FromString(value);
     },
-    dec(lo, hi) {
-      return int64ToString(lo, hi);
+    dec(lo, hi2) {
+      return int64ToString(lo, hi2);
     },
-    uDec(lo, hi) {
-      return uInt64ToString(lo, hi);
+    uDec(lo, hi2) {
+      return uInt64ToString(lo, hi2);
     }
   };
 }
 var protoInt64 = makeInt64Support();
+
+// ../../node_modules/@bufbuild/protobuf/dist/esm/scalar.js
+var ScalarType;
+(function(ScalarType2) {
+  ScalarType2[ScalarType2["DOUBLE"] = 1] = "DOUBLE";
+  ScalarType2[ScalarType2["FLOAT"] = 2] = "FLOAT";
+  ScalarType2[ScalarType2["INT64"] = 3] = "INT64";
+  ScalarType2[ScalarType2["UINT64"] = 4] = "UINT64";
+  ScalarType2[ScalarType2["INT32"] = 5] = "INT32";
+  ScalarType2[ScalarType2["FIXED64"] = 6] = "FIXED64";
+  ScalarType2[ScalarType2["FIXED32"] = 7] = "FIXED32";
+  ScalarType2[ScalarType2["BOOL"] = 8] = "BOOL";
+  ScalarType2[ScalarType2["STRING"] = 9] = "STRING";
+  ScalarType2[ScalarType2["BYTES"] = 12] = "BYTES";
+  ScalarType2[ScalarType2["UINT32"] = 13] = "UINT32";
+  ScalarType2[ScalarType2["SFIXED32"] = 15] = "SFIXED32";
+  ScalarType2[ScalarType2["SFIXED64"] = 16] = "SFIXED64";
+  ScalarType2[ScalarType2["SINT32"] = 17] = "SINT32";
+  ScalarType2[ScalarType2["SINT64"] = 18] = "SINT64";
+})(ScalarType || (ScalarType = {}));
+var LongType;
+(function(LongType2) {
+  LongType2[LongType2["BIGINT"] = 0] = "BIGINT";
+  LongType2[LongType2["STRING"] = 1] = "STRING";
+})(LongType || (LongType = {}));
+
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/scalars.js
+function scalarEquals(type, a, b) {
+  if (a === b) {
+    return true;
+  }
+  if (type == ScalarType.BYTES) {
+    if (!(a instanceof Uint8Array) || !(b instanceof Uint8Array)) {
+      return false;
+    }
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  switch (type) {
+    case ScalarType.UINT64:
+    case ScalarType.FIXED64:
+    case ScalarType.INT64:
+    case ScalarType.SFIXED64:
+    case ScalarType.SINT64:
+      return a == b;
+  }
+  return false;
+}
+function scalarZeroValue(type, longType) {
+  switch (type) {
+    case ScalarType.BOOL:
+      return false;
+    case ScalarType.UINT64:
+    case ScalarType.FIXED64:
+    case ScalarType.INT64:
+    case ScalarType.SFIXED64:
+    case ScalarType.SINT64:
+      return longType == 0 ? protoInt64.zero : "0";
+    case ScalarType.DOUBLE:
+    case ScalarType.FLOAT:
+      return 0;
+    case ScalarType.BYTES:
+      return new Uint8Array(0);
+    case ScalarType.STRING:
+      return "";
+    default:
+      return 0;
+  }
+}
+function isScalarZeroValue(type, value) {
+  switch (type) {
+    case ScalarType.BOOL:
+      return value === false;
+    case ScalarType.STRING:
+      return value === "";
+    case ScalarType.BYTES:
+      return value instanceof Uint8Array && !value.byteLength;
+    default:
+      return value == 0;
+  }
+}
 
 // ../../node_modules/@bufbuild/protobuf/dist/esm/binary-encoding.js
 var WireType;
@@ -778,8 +831,8 @@ var BinaryWriter = class {
    * Write a `sint64` value, a signed, zig-zag-encoded 64-bit varint.
    */
   sint64(value) {
-    let tc = protoInt64.enc(value), sign = tc.hi >> 31, lo = tc.lo << 1 ^ sign, hi = (tc.hi << 1 | tc.lo >>> 31) ^ sign;
-    varint64write(lo, hi, this.buf);
+    let tc = protoInt64.enc(value), sign = tc.hi >> 31, lo = tc.lo << 1 ^ sign, hi2 = (tc.hi << 1 | tc.lo >>> 31) ^ sign;
+    varint64write(lo, hi2, this.buf);
     return this;
   }
   /**
@@ -811,10 +864,12 @@ var BinaryReader = class {
     return [fieldNo, wireType];
   }
   /**
-   * Skip one element on the wire and return the skipped data.
-   * Supports WireType.StartGroup since v2.0.0-alpha.23.
+   * Skip one element and return the skipped data.
+   *
+   * When skipping StartGroup, provide the tags field number to check for
+   * matching field number in the EndGroup tag.
    */
-  skip(wireType) {
+  skip(wireType, fieldNo) {
     let start = this.pos;
     switch (wireType) {
       case WireType.Varint:
@@ -835,9 +890,15 @@ var BinaryReader = class {
         this.pos += len;
         break;
       case WireType.StartGroup:
-        let t;
-        while ((t = this.tag()[1]) !== WireType.EndGroup) {
-          this.skip(t);
+        for (; ; ) {
+          const [fn, wt2] = this.tag();
+          if (wt2 === WireType.EndGroup) {
+            if (fieldNo !== void 0 && fn !== fieldNo) {
+              throw new Error("invalid end group tag");
+            }
+            break;
+          }
+          this.skip(wt2, fn);
         }
         break;
       default:
@@ -882,18 +943,18 @@ var BinaryReader = class {
    * Read a `sint64` field, a signed, zig-zag-encoded 64-bit varint.
    */
   sint64() {
-    let [lo, hi] = this.varint64();
+    let [lo, hi2] = this.varint64();
     let s = -(lo & 1);
-    lo = (lo >>> 1 | (hi & 1) << 31) ^ s;
-    hi = hi >>> 1 ^ s;
-    return protoInt64.dec(lo, hi);
+    lo = (lo >>> 1 | (hi2 & 1) << 31) ^ s;
+    hi2 = hi2 >>> 1 ^ s;
+    return protoInt64.dec(lo, hi2);
   }
   /**
    * Read a `bool` field, a variant.
    */
   bool() {
-    let [lo, hi] = this.varint64();
-    return lo !== 0 || hi !== 0;
+    let [lo, hi2] = this.varint64();
+    return lo !== 0 || hi2 !== 0;
   }
   /**
    * Read a `fixed32` field, an unsigned, fixed-length 32-bit integer.
@@ -948,425 +1009,60 @@ var BinaryReader = class {
   }
 };
 
-// ../../node_modules/@bufbuild/protobuf/dist/esm/private/field-wrapper.js
-function wrapField(type, value) {
-  if (value instanceof Message || !type.fieldWrapper) {
-    return value;
-  }
-  return type.fieldWrapper.wrapField(value);
-}
-var wktWrapperToScalarType = {
-  "google.protobuf.DoubleValue": ScalarType.DOUBLE,
-  "google.protobuf.FloatValue": ScalarType.FLOAT,
-  "google.protobuf.Int64Value": ScalarType.INT64,
-  "google.protobuf.UInt64Value": ScalarType.UINT64,
-  "google.protobuf.Int32Value": ScalarType.INT32,
-  "google.protobuf.UInt32Value": ScalarType.UINT32,
-  "google.protobuf.BoolValue": ScalarType.BOOL,
-  "google.protobuf.StringValue": ScalarType.STRING,
-  "google.protobuf.BytesValue": ScalarType.BYTES
-};
-
-// ../../node_modules/@bufbuild/protobuf/dist/esm/private/scalars.js
-function scalarEquals(type, a, b) {
-  if (a === b) {
-    return true;
-  }
-  if (type == ScalarType.BYTES) {
-    if (!(a instanceof Uint8Array) || !(b instanceof Uint8Array)) {
-      return false;
-    }
-    if (a.length !== b.length) {
-      return false;
-    }
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-  switch (type) {
-    case ScalarType.UINT64:
-    case ScalarType.FIXED64:
-    case ScalarType.INT64:
-    case ScalarType.SFIXED64:
-    case ScalarType.SINT64:
-      return a == b;
-  }
-  return false;
-}
-function scalarDefaultValue(type) {
-  switch (type) {
-    case ScalarType.BOOL:
-      return false;
-    case ScalarType.UINT64:
-    case ScalarType.FIXED64:
-    case ScalarType.INT64:
-    case ScalarType.SFIXED64:
-    case ScalarType.SINT64:
-      return protoInt64.zero;
-    case ScalarType.DOUBLE:
-    case ScalarType.FLOAT:
-      return 0;
-    case ScalarType.BYTES:
-      return new Uint8Array(0);
-    case ScalarType.STRING:
-      return "";
-    default:
-      return 0;
-  }
-}
-function scalarTypeInfo(type, value) {
-  const isUndefined = value === void 0;
-  let wireType = WireType.Varint;
-  let isIntrinsicDefault = value === 0;
-  switch (type) {
-    case ScalarType.STRING:
-      isIntrinsicDefault = isUndefined || !value.length;
-      wireType = WireType.LengthDelimited;
-      break;
-    case ScalarType.BOOL:
-      isIntrinsicDefault = value === false;
-      break;
-    case ScalarType.DOUBLE:
-      wireType = WireType.Bit64;
-      break;
-    case ScalarType.FLOAT:
-      wireType = WireType.Bit32;
-      break;
-    case ScalarType.INT64:
-      isIntrinsicDefault = isUndefined || value == 0;
-      break;
-    case ScalarType.UINT64:
-      isIntrinsicDefault = isUndefined || value == 0;
-      break;
-    case ScalarType.FIXED64:
-      isIntrinsicDefault = isUndefined || value == 0;
-      wireType = WireType.Bit64;
-      break;
-    case ScalarType.BYTES:
-      isIntrinsicDefault = isUndefined || !value.byteLength;
-      wireType = WireType.LengthDelimited;
-      break;
-    case ScalarType.FIXED32:
-      wireType = WireType.Bit32;
-      break;
-    case ScalarType.SFIXED32:
-      wireType = WireType.Bit32;
-      break;
-    case ScalarType.SFIXED64:
-      isIntrinsicDefault = isUndefined || value == 0;
-      wireType = WireType.Bit64;
-      break;
-    case ScalarType.SINT64:
-      isIntrinsicDefault = isUndefined || value == 0;
-      break;
-  }
-  const method = ScalarType[type].toLowerCase();
-  return [wireType, method, isUndefined || isIntrinsicDefault];
-}
-
-// ../../node_modules/@bufbuild/protobuf/dist/esm/private/binary-format-common.js
-var unknownFieldsSymbol = Symbol("@bufbuild/protobuf/unknown-fields");
-var readDefaults = {
-  readUnknownFields: true,
-  readerFactory: (bytes) => new BinaryReader(bytes)
-};
-var writeDefaults = {
-  writeUnknownFields: true,
-  writerFactory: () => new BinaryWriter()
-};
-function makeReadOptions(options) {
-  return options ? Object.assign(Object.assign({}, readDefaults), options) : readDefaults;
-}
-function makeWriteOptions(options) {
-  return options ? Object.assign(Object.assign({}, writeDefaults), options) : writeDefaults;
-}
-function makeBinaryFormatCommon() {
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/extensions.js
+function makeExtension(runtime, typeName, extendee, field) {
+  let fi2;
   return {
-    makeReadOptions,
-    makeWriteOptions,
-    listUnknownFields(message) {
-      var _a;
-      return (_a = message[unknownFieldsSymbol]) !== null && _a !== void 0 ? _a : [];
-    },
-    discardUnknownFields(message) {
-      delete message[unknownFieldsSymbol];
-    },
-    writeUnknownFields(message, writer) {
-      const m = message;
-      const c = m[unknownFieldsSymbol];
-      if (c) {
-        for (const f of c) {
-          writer.tag(f.no, f.wireType).raw(f.data);
-        }
+    typeName,
+    extendee,
+    get field() {
+      if (!fi2) {
+        const i = typeof field == "function" ? field() : field;
+        i.name = typeName.split(".").pop();
+        i.jsonName = `[${typeName}]`;
+        fi2 = runtime.util.newFieldList([i]).list()[0];
       }
+      return fi2;
     },
-    onUnknownField(message, no, wireType, data) {
-      const m = message;
-      if (!Array.isArray(m[unknownFieldsSymbol])) {
-        m[unknownFieldsSymbol] = [];
-      }
-      m[unknownFieldsSymbol].push({ no, wireType, data });
-    },
-    readMessage(message, reader, length, options) {
-      const type = message.getType();
-      const end = length === void 0 ? reader.len : reader.pos + length;
-      while (reader.pos < end) {
-        const [fieldNo, wireType] = reader.tag(), field = type.fields.find(fieldNo);
-        if (!field) {
-          const data = reader.skip(wireType);
-          if (options.readUnknownFields) {
-            this.onUnknownField(message, fieldNo, wireType, data);
-          }
-          continue;
-        }
-        let target = message, repeated = field.repeated, localName = field.localName;
-        if (field.oneof) {
-          target = target[field.oneof.localName];
-          if (target.case != localName) {
-            delete target.value;
-          }
-          target.case = localName;
-          localName = "value";
-        }
-        switch (field.kind) {
-          case "scalar":
-          case "enum":
-            const scalarType = field.kind == "enum" ? ScalarType.INT32 : field.T;
-            if (repeated) {
-              let arr = target[localName];
-              if (wireType == WireType.LengthDelimited && scalarType != ScalarType.STRING && scalarType != ScalarType.BYTES) {
-                let e = reader.uint32() + reader.pos;
-                while (reader.pos < e) {
-                  arr.push(readScalar(reader, scalarType));
-                }
-              } else {
-                arr.push(readScalar(reader, scalarType));
-              }
-            } else {
-              target[localName] = readScalar(reader, scalarType);
-            }
-            break;
-          case "message":
-            const messageType = field.T;
-            if (repeated) {
-              target[localName].push(readMessageField(reader, new messageType(), options));
-            } else {
-              if (target[localName] instanceof Message) {
-                readMessageField(reader, target[localName], options);
-              } else {
-                target[localName] = readMessageField(reader, new messageType(), options);
-                if (messageType.fieldWrapper && !field.oneof && !field.repeated) {
-                  target[localName] = messageType.fieldWrapper.unwrapField(target[localName]);
-                }
-              }
-            }
-            break;
-          case "map":
-            let [mapKey, mapVal] = readMapEntry(field, reader, options);
-            target[localName][mapKey] = mapVal;
-            break;
-        }
-      }
-    }
+    runtime
   };
 }
-function readMessageField(reader, message, options) {
-  const format = message.getType().runtime.bin;
-  format.readMessage(message, reader, reader.uint32(), options);
-  return message;
+function createExtensionContainer(extension) {
+  const localName = extension.field.localName;
+  const container = /* @__PURE__ */ Object.create(null);
+  container[localName] = initExtensionField(extension);
+  return [container, () => container[localName]];
 }
-function readMapEntry(field, reader, options) {
-  const length = reader.uint32(), end = reader.pos + length;
-  let key2, val;
-  while (reader.pos < end) {
-    let [fieldNo] = reader.tag();
-    switch (fieldNo) {
-      case 1:
-        key2 = readScalar(reader, field.K);
-        break;
-      case 2:
-        switch (field.V.kind) {
-          case "scalar":
-            val = readScalar(reader, field.V.T);
-            break;
-          case "enum":
-            val = reader.int32();
-            break;
-          case "message":
-            val = readMessageField(reader, new field.V.T(), options);
-            break;
-        }
-        break;
-    }
+function initExtensionField(ext) {
+  const field = ext.field;
+  if (field.repeated) {
+    return [];
   }
-  if (key2 === void 0) {
-    let keyRaw = scalarDefaultValue(field.K);
-    key2 = field.K == ScalarType.BOOL ? keyRaw.toString() : keyRaw;
+  if (field.default !== void 0) {
+    return field.default;
   }
-  if (typeof key2 != "string" && typeof key2 != "number") {
-    key2 = key2.toString();
-  }
-  if (val === void 0) {
-    switch (field.V.kind) {
-      case "scalar":
-        val = scalarDefaultValue(field.V.T);
-        break;
-      case "enum":
-        val = 0;
-        break;
-      case "message":
-        val = new field.V.T();
-        break;
-    }
-  }
-  return [key2, val];
-}
-function readScalar(reader, type) {
-  switch (type) {
-    case ScalarType.STRING:
-      return reader.string();
-    case ScalarType.BOOL:
-      return reader.bool();
-    case ScalarType.DOUBLE:
-      return reader.double();
-    case ScalarType.FLOAT:
-      return reader.float();
-    case ScalarType.INT32:
-      return reader.int32();
-    case ScalarType.INT64:
-      return reader.int64();
-    case ScalarType.UINT64:
-      return reader.uint64();
-    case ScalarType.FIXED64:
-      return reader.fixed64();
-    case ScalarType.BYTES:
-      return reader.bytes();
-    case ScalarType.FIXED32:
-      return reader.fixed32();
-    case ScalarType.SFIXED32:
-      return reader.sfixed32();
-    case ScalarType.SFIXED64:
-      return reader.sfixed64();
-    case ScalarType.SINT64:
-      return reader.sint64();
-    case ScalarType.UINT32:
-      return reader.uint32();
-    case ScalarType.SINT32:
-      return reader.sint32();
-  }
-}
-function writeMapEntry(writer, options, field, key2, value) {
-  writer.tag(field.no, WireType.LengthDelimited);
-  writer.fork();
-  let keyValue = key2;
-  switch (field.K) {
-    case ScalarType.INT32:
-    case ScalarType.FIXED32:
-    case ScalarType.UINT32:
-    case ScalarType.SFIXED32:
-    case ScalarType.SINT32:
-      keyValue = Number.parseInt(key2);
-      break;
-    case ScalarType.BOOL:
-      assert(key2 == "true" || key2 == "false");
-      keyValue = key2 == "true";
-      break;
-  }
-  writeScalar(writer, field.K, 1, keyValue, true);
-  switch (field.V.kind) {
-    case "scalar":
-      writeScalar(writer, field.V.T, 2, value, true);
-      break;
+  switch (field.kind) {
     case "enum":
-      writeScalar(writer, ScalarType.INT32, 2, value, true);
-      break;
+      return field.T.values[0].no;
+    case "scalar":
+      return scalarZeroValue(field.T, field.L);
     case "message":
-      writeMessageField(writer, options, field.V.T, 2, value);
-      break;
-  }
-  writer.join();
-}
-function writeMessageField(writer, options, type, fieldNo, value) {
-  if (value !== void 0) {
-    const message = wrapField(type, value);
-    writer.tag(fieldNo, WireType.LengthDelimited).bytes(message.toBinary(options));
+      const T2 = field.T, value = new T2();
+      return T2.fieldWrapper ? T2.fieldWrapper.unwrapField(value) : value;
+    case "map":
+      throw "map fields are not allowed to be extensions";
   }
 }
-function writeScalar(writer, type, fieldNo, value, emitIntrinsicDefault) {
-  let [wireType, method, isIntrinsicDefault] = scalarTypeInfo(type, value);
-  if (!isIntrinsicDefault || emitIntrinsicDefault) {
-    writer.tag(fieldNo, wireType)[method](value);
-  }
-}
-function writePacked(writer, type, fieldNo, value) {
-  if (!value.length) {
-    return;
-  }
-  writer.tag(fieldNo, WireType.LengthDelimited).fork();
-  let [, method] = scalarTypeInfo(type);
-  for (let i = 0; i < value.length; i++) {
-    writer[method](value[i]);
-  }
-  writer.join();
-}
-
-// ../../node_modules/@bufbuild/protobuf/dist/esm/private/binary-format-proto3.js
-function makeBinaryFormatProto3() {
-  return Object.assign(Object.assign({}, makeBinaryFormatCommon()), { writeMessage(message, writer, options) {
-    const type = message.getType();
-    for (const field of type.fields.byNumber()) {
-      let value, repeated = field.repeated, localName = field.localName;
-      if (field.oneof) {
-        const oneof = message[field.oneof.localName];
-        if (oneof.case !== localName) {
-          continue;
-        }
-        value = oneof.value;
-      } else {
-        value = message[localName];
-      }
-      switch (field.kind) {
-        case "scalar":
-        case "enum":
-          let scalarType = field.kind == "enum" ? ScalarType.INT32 : field.T;
-          if (repeated) {
-            if (field.packed) {
-              writePacked(writer, scalarType, field.no, value);
-            } else {
-              for (const item of value) {
-                writeScalar(writer, scalarType, field.no, item, true);
-              }
-            }
-          } else {
-            if (value !== void 0) {
-              writeScalar(writer, scalarType, field.no, value, !!field.oneof || field.opt);
-            }
-          }
-          break;
-        case "message":
-          if (repeated) {
-            for (const item of value) {
-              writeMessageField(writer, options, field.T, field.no, item);
-            }
-          } else {
-            writeMessageField(writer, options, field.T, field.no, value);
-          }
-          break;
-        case "map":
-          for (const [key2, val] of Object.entries(value)) {
-            writeMapEntry(writer, options, field, key2, val);
-          }
-          break;
+function filterUnknownFields(unknownFields, field) {
+  if (!field.repeated && (field.kind == "enum" || field.kind == "scalar")) {
+    for (let i = unknownFields.length - 1; i >= 0; --i) {
+      if (unknownFields[i].no == field.no) {
+        return [unknownFields[i]];
       }
     }
-    if (options.writeUnknownFields) {
-      this.writeUnknownFields(message, writer);
-    }
-    return writer;
-  } });
+    return [];
+  }
+  return unknownFields.filter((uf) => uf.no === field.no);
 }
 
 // ../../node_modules/@bufbuild/protobuf/dist/esm/proto-base64.js
@@ -1389,12 +1085,12 @@ var protoBase64 = {
    *   no padding
    */
   dec(base64Str) {
-    let es = base64Str.length * 3 / 4;
+    let es2 = base64Str.length * 3 / 4;
     if (base64Str[base64Str.length - 2] == "=")
-      es -= 2;
+      es2 -= 2;
     else if (base64Str[base64Str.length - 1] == "=")
-      es -= 1;
-    let bytes = new Uint8Array(es), bytePos = 0, groupPos = 0, b, p = 0;
+      es2 -= 1;
+    let bytes = new Uint8Array(es2), bytePos = 0, groupPos = 0, b, p = 0;
     for (let i = 0; i < base64Str.length; i++) {
       b = decTable[base64Str.charCodeAt(i)];
       if (b === void 0) {
@@ -1474,7 +1170,134 @@ var protoBase64 = {
   }
 };
 
-// ../../node_modules/@bufbuild/protobuf/dist/esm/private/json-format-common.js
+// ../../node_modules/@bufbuild/protobuf/dist/esm/extension-accessor.js
+function getExtension(message, extension, options) {
+  assertExtendee(extension, message);
+  const opt = extension.runtime.bin.makeReadOptions(options);
+  const ufs = filterUnknownFields(message.getType().runtime.bin.listUnknownFields(message), extension.field);
+  const [container, get] = createExtensionContainer(extension);
+  for (const uf of ufs) {
+    extension.runtime.bin.readField(container, opt.readerFactory(uf.data), extension.field, uf.wireType, opt);
+  }
+  return get();
+}
+function setExtension(message, extension, value, options) {
+  assertExtendee(extension, message);
+  const readOpt = extension.runtime.bin.makeReadOptions(options);
+  const writeOpt = extension.runtime.bin.makeWriteOptions(options);
+  if (hasExtension(message, extension)) {
+    const ufs = message.getType().runtime.bin.listUnknownFields(message).filter((uf) => uf.no != extension.field.no);
+    message.getType().runtime.bin.discardUnknownFields(message);
+    for (const uf of ufs) {
+      message.getType().runtime.bin.onUnknownField(message, uf.no, uf.wireType, uf.data);
+    }
+  }
+  const writer = writeOpt.writerFactory();
+  let f = extension.field;
+  if (!f.opt && !f.repeated && (f.kind == "enum" || f.kind == "scalar")) {
+    f = Object.assign(Object.assign({}, extension.field), { opt: true });
+  }
+  extension.runtime.bin.writeField(f, value, writer, writeOpt);
+  const reader = readOpt.readerFactory(writer.finish());
+  while (reader.pos < reader.len) {
+    const [no, wireType] = reader.tag();
+    const data = reader.skip(wireType, no);
+    message.getType().runtime.bin.onUnknownField(message, no, wireType, data);
+  }
+}
+function hasExtension(message, extension) {
+  const messageType = message.getType();
+  return extension.extendee.typeName === messageType.typeName && !!messageType.runtime.bin.listUnknownFields(message).find((uf) => uf.no == extension.field.no);
+}
+function assertExtendee(extension, message) {
+  assert(extension.extendee.typeName == message.getType().typeName, `extension ${extension.typeName} can only be applied to message ${extension.extendee.typeName}`);
+}
+
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/reflect.js
+function isFieldSet(field, target) {
+  const localName = field.localName;
+  if (field.repeated) {
+    return target[localName].length > 0;
+  }
+  if (field.oneof) {
+    return target[field.oneof.localName].case === localName;
+  }
+  switch (field.kind) {
+    case "enum":
+    case "scalar":
+      if (field.opt || field.req) {
+        return target[localName] !== void 0;
+      }
+      if (field.kind == "enum") {
+        return target[localName] !== field.T.values[0].no;
+      }
+      return !isScalarZeroValue(field.T, target[localName]);
+    case "message":
+      return target[localName] !== void 0;
+    case "map":
+      return Object.keys(target[localName]).length > 0;
+  }
+}
+function clearField(field, target) {
+  const localName = field.localName;
+  const implicitPresence = !field.opt && !field.req;
+  if (field.repeated) {
+    target[localName] = [];
+  } else if (field.oneof) {
+    target[field.oneof.localName] = { case: void 0 };
+  } else {
+    switch (field.kind) {
+      case "map":
+        target[localName] = {};
+        break;
+      case "enum":
+        target[localName] = implicitPresence ? field.T.values[0].no : void 0;
+        break;
+      case "scalar":
+        target[localName] = implicitPresence ? scalarZeroValue(field.T, field.L) : void 0;
+        break;
+      case "message":
+        target[localName] = void 0;
+        break;
+    }
+  }
+}
+
+// ../../node_modules/@bufbuild/protobuf/dist/esm/is-message.js
+function isMessage(arg, type) {
+  if (arg === null || typeof arg != "object") {
+    return false;
+  }
+  if (!Object.getOwnPropertyNames(Message.prototype).every((m) => m in arg && typeof arg[m] == "function")) {
+    return false;
+  }
+  const actualType = arg.getType();
+  if (actualType === null || typeof actualType != "function" || !("typeName" in actualType) || typeof actualType.typeName != "string") {
+    return false;
+  }
+  return type === void 0 ? true : actualType.typeName == type.typeName;
+}
+
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/field-wrapper.js
+function wrapField(type, value) {
+  if (isMessage(value) || !type.fieldWrapper) {
+    return value;
+  }
+  return type.fieldWrapper.wrapField(value);
+}
+var wktWrapperToScalarType = {
+  "google.protobuf.DoubleValue": ScalarType.DOUBLE,
+  "google.protobuf.FloatValue": ScalarType.FLOAT,
+  "google.protobuf.Int64Value": ScalarType.INT64,
+  "google.protobuf.UInt64Value": ScalarType.UINT64,
+  "google.protobuf.Int32Value": ScalarType.INT32,
+  "google.protobuf.UInt32Value": ScalarType.UINT32,
+  "google.protobuf.BoolValue": ScalarType.BOOL,
+  "google.protobuf.StringValue": ScalarType.STRING,
+  "google.protobuf.BytesValue": ScalarType.BYTES
+};
+
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/json-format.js
 var jsonReadDefaults = {
   ignoreUnknownFields: false
 };
@@ -1484,161 +1307,52 @@ var jsonWriteDefaults = {
   useProtoFieldName: false,
   prettySpaces: 0
 };
-function makeReadOptions2(options) {
+function makeReadOptions(options) {
   return options ? Object.assign(Object.assign({}, jsonReadDefaults), options) : jsonReadDefaults;
 }
-function makeWriteOptions2(options) {
+function makeWriteOptions(options) {
   return options ? Object.assign(Object.assign({}, jsonWriteDefaults), options) : jsonWriteDefaults;
 }
-function makeJsonFormatCommon(makeWriteField) {
-  const writeField = makeWriteField(writeEnum, writeScalar2);
+var tokenNull = Symbol();
+var tokenIgnoredUnknownEnum = Symbol();
+function makeJsonFormat() {
   return {
-    makeReadOptions: makeReadOptions2,
-    makeWriteOptions: makeWriteOptions2,
+    makeReadOptions,
+    makeWriteOptions,
     readMessage(type, json, options, message) {
       if (json == null || Array.isArray(json) || typeof json != "object") {
-        throw new Error(`cannot decode message ${type.typeName} from JSON: ${this.debug(json)}`);
+        throw new Error(`cannot decode message ${type.typeName} from JSON: ${debugJsonValue(json)}`);
       }
       message = message !== null && message !== void 0 ? message : new type();
-      const oneofSeen = {};
+      const oneofSeen = /* @__PURE__ */ new Map();
+      const registry = options.typeRegistry;
       for (const [jsonKey, jsonValue] of Object.entries(json)) {
         const field = type.fields.findJsonName(jsonKey);
-        if (!field) {
-          if (!options.ignoreUnknownFields) {
-            throw new Error(`cannot decode message ${type.typeName} from JSON: key "${jsonKey}" is unknown`);
-          }
-          continue;
-        }
-        let localName = field.localName;
-        let target = message;
-        if (field.oneof) {
-          if (jsonValue === null && field.kind == "scalar") {
-            continue;
-          }
-          const seen = oneofSeen[field.oneof.localName];
-          if (seen) {
-            throw new Error(`cannot decode message ${type.typeName} from JSON: multiple keys for oneof "${field.oneof.name}" present: "${seen}", "${jsonKey}"`);
-          }
-          oneofSeen[field.oneof.localName] = jsonKey;
-          target = target[field.oneof.localName] = { case: localName };
-          localName = "value";
-        }
-        if (field.repeated) {
-          if (jsonValue === null) {
-            continue;
-          }
-          if (!Array.isArray(jsonValue)) {
-            throw new Error(`cannot decode field ${type.typeName}.${field.name} from JSON: ${this.debug(jsonValue)}`);
-          }
-          const targetArray = target[localName];
-          for (const jsonItem of jsonValue) {
-            if (jsonItem === null) {
-              throw new Error(`cannot decode field ${type.typeName}.${field.name} from JSON: ${this.debug(jsonItem)}`);
+        if (field) {
+          if (field.oneof) {
+            if (jsonValue === null && field.kind == "scalar") {
+              continue;
             }
-            let val;
-            switch (field.kind) {
-              case "message":
-                val = field.T.fromJson(jsonItem, options);
-                break;
-              case "enum":
-                val = readEnum(field.T, jsonItem, options.ignoreUnknownFields);
-                if (val === void 0)
-                  continue;
-                break;
-              case "scalar":
-                try {
-                  val = readScalar2(field.T, jsonItem);
-                } catch (e) {
-                  let m = `cannot decode field ${type.typeName}.${field.name} from JSON: ${this.debug(jsonItem)}`;
-                  if (e instanceof Error && e.message.length > 0) {
-                    m += `: ${e.message}`;
-                  }
-                  throw new Error(m);
-                }
-                break;
+            const seen = oneofSeen.get(field.oneof);
+            if (seen !== void 0) {
+              throw new Error(`cannot decode message ${type.typeName} from JSON: multiple keys for oneof "${field.oneof.name}" present: "${seen}", "${jsonKey}"`);
             }
-            targetArray.push(val);
+            oneofSeen.set(field.oneof, jsonKey);
           }
-        } else if (field.kind == "map") {
-          if (jsonValue === null) {
-            continue;
-          }
-          if (Array.isArray(jsonValue) || typeof jsonValue != "object") {
-            throw new Error(`cannot decode field ${type.typeName}.${field.name} from JSON: ${this.debug(jsonValue)}`);
-          }
-          const targetMap = target[localName];
-          for (const [jsonMapKey, jsonMapValue] of Object.entries(jsonValue)) {
-            if (jsonMapValue === null) {
-              throw new Error(`cannot decode field ${type.typeName}.${field.name} from JSON: map value null`);
-            }
-            let val;
-            switch (field.V.kind) {
-              case "message":
-                val = field.V.T.fromJson(jsonMapValue, options);
-                break;
-              case "enum":
-                val = readEnum(field.V.T, jsonMapValue, options.ignoreUnknownFields);
-                if (val === void 0)
-                  continue;
-                break;
-              case "scalar":
-                try {
-                  val = readScalar2(field.V.T, jsonMapValue);
-                } catch (e) {
-                  let m = `cannot decode map value for field ${type.typeName}.${field.name} from JSON: ${this.debug(jsonValue)}`;
-                  if (e instanceof Error && e.message.length > 0) {
-                    m += `: ${e.message}`;
-                  }
-                  throw new Error(m);
-                }
-                break;
-            }
-            try {
-              targetMap[readScalar2(field.K, field.K == ScalarType.BOOL ? jsonMapKey == "true" ? true : jsonMapKey == "false" ? false : jsonMapKey : jsonMapKey).toString()] = val;
-            } catch (e) {
-              let m = `cannot decode map key for field ${type.typeName}.${field.name} from JSON: ${this.debug(jsonValue)}`;
-              if (e instanceof Error && e.message.length > 0) {
-                m += `: ${e.message}`;
-              }
-              throw new Error(m);
-            }
-          }
+          readField(message, jsonValue, field, options, type);
         } else {
-          switch (field.kind) {
-            case "message":
-              const messageType = field.T;
-              if (jsonValue === null && messageType.typeName != "google.protobuf.Value") {
-                if (field.oneof) {
-                  throw new Error(`cannot decode field ${type.typeName}.${field.name} from JSON: null is invalid for oneof field "${jsonKey}"`);
-                }
-                continue;
-              }
-              if (target[localName] instanceof Message) {
-                target[localName].fromJson(jsonValue, options);
-              } else {
-                target[localName] = messageType.fromJson(jsonValue, options);
-                if (messageType.fieldWrapper && !field.oneof) {
-                  target[localName] = messageType.fieldWrapper.unwrapField(target[localName]);
-                }
-              }
-              break;
-            case "enum":
-              const enumValue = readEnum(field.T, jsonValue, options.ignoreUnknownFields);
-              if (enumValue !== void 0) {
-                target[localName] = enumValue;
-              }
-              break;
-            case "scalar":
-              try {
-                target[localName] = readScalar2(field.T, jsonValue);
-              } catch (e) {
-                let m = `cannot decode field ${type.typeName}.${field.name} from JSON: ${this.debug(jsonValue)}`;
-                if (e instanceof Error && e.message.length > 0) {
-                  m += `: ${e.message}`;
-                }
-                throw new Error(m);
-              }
-              break;
+          let found = false;
+          if ((registry === null || registry === void 0 ? void 0 : registry.findExtension) && jsonKey.startsWith("[") && jsonKey.endsWith("]")) {
+            const ext = registry.findExtension(jsonKey.substring(1, jsonKey.length - 1));
+            if (ext && ext.extendee.typeName == type.typeName) {
+              found = true;
+              const [container, get] = createExtensionContainer(ext);
+              readField(container, jsonValue, ext.field, options, ext);
+              setExtension(message, ext, get(), options);
+            }
+          }
+          if (!found && !options.ignoreUnknownFields) {
+            throw new Error(`cannot decode message ${type.typeName} from JSON: key "${jsonKey}" is unknown`);
           }
         }
       }
@@ -1649,24 +1363,35 @@ function makeJsonFormatCommon(makeWriteField) {
       const json = {};
       let field;
       try {
-        for (const member of type.fields.byMember()) {
-          let jsonValue;
-          if (member.kind == "oneof") {
-            const oneof = message[member.localName];
-            if (oneof.value === void 0) {
+        for (field of type.fields.byNumber()) {
+          if (!isFieldSet(field, message)) {
+            if (field.req) {
+              throw `required field not set`;
+            }
+            if (!options.emitDefaultValues) {
               continue;
             }
-            field = member.findField(oneof.case);
-            if (!field) {
-              throw "oneof case not found: " + oneof.case;
+            if (!canEmitFieldDefaultValue(field)) {
+              continue;
             }
-            jsonValue = writeField(field, oneof.value, options);
-          } else {
-            field = member;
-            jsonValue = writeField(field, message[field.localName], options);
           }
+          const value = field.oneof ? message[field.oneof.localName].value : message[field.localName];
+          const jsonValue = writeField(field, value, options);
           if (jsonValue !== void 0) {
             json[options.useProtoFieldName ? field.name : field.jsonName] = jsonValue;
+          }
+        }
+        const registry = options.typeRegistry;
+        if (registry === null || registry === void 0 ? void 0 : registry.findExtensionFor) {
+          for (const uf of type.runtime.bin.listUnknownFields(message)) {
+            const ext = registry.findExtensionFor(type.typeName, uf.no);
+            if (ext && hasExtension(message, ext)) {
+              const value = getExtension(message, ext, options);
+              const jsonValue = writeField(ext.field, value, options);
+              if (jsonValue !== void 0) {
+                json[ext.field.jsonName] = jsonValue;
+              }
+            }
           }
         }
       } catch (e) {
@@ -1676,8 +1401,18 @@ function makeJsonFormatCommon(makeWriteField) {
       }
       return json;
     },
-    readScalar: readScalar2,
-    writeScalar: writeScalar2,
+    readScalar(type, json, longType) {
+      return readScalar(type, json, longType !== null && longType !== void 0 ? longType : LongType.BIGINT, true);
+    },
+    writeScalar(type, value, emitDefaultValues) {
+      if (value === void 0) {
+        return void 0;
+      }
+      if (emitDefaultValues || isScalarZeroValue(type, value)) {
+        return writeScalar(type, value);
+      }
+      return void 0;
+    },
     debug: debugJsonValue
   };
 }
@@ -1694,14 +1429,170 @@ function debugJsonValue(json) {
       return String(json);
   }
 }
-function readScalar2(type, json) {
+function readField(target, jsonValue, field, options, parentType) {
+  let localName = field.localName;
+  if (field.repeated) {
+    assert(field.kind != "map");
+    if (jsonValue === null) {
+      return;
+    }
+    if (!Array.isArray(jsonValue)) {
+      throw new Error(`cannot decode field ${parentType.typeName}.${field.name} from JSON: ${debugJsonValue(jsonValue)}`);
+    }
+    const targetArray = target[localName];
+    for (const jsonItem of jsonValue) {
+      if (jsonItem === null) {
+        throw new Error(`cannot decode field ${parentType.typeName}.${field.name} from JSON: ${debugJsonValue(jsonItem)}`);
+      }
+      switch (field.kind) {
+        case "message":
+          targetArray.push(field.T.fromJson(jsonItem, options));
+          break;
+        case "enum":
+          const enumValue = readEnum(field.T, jsonItem, options.ignoreUnknownFields, true);
+          if (enumValue !== tokenIgnoredUnknownEnum) {
+            targetArray.push(enumValue);
+          }
+          break;
+        case "scalar":
+          try {
+            targetArray.push(readScalar(field.T, jsonItem, field.L, true));
+          } catch (e) {
+            let m = `cannot decode field ${parentType.typeName}.${field.name} from JSON: ${debugJsonValue(jsonItem)}`;
+            if (e instanceof Error && e.message.length > 0) {
+              m += `: ${e.message}`;
+            }
+            throw new Error(m);
+          }
+          break;
+      }
+    }
+  } else if (field.kind == "map") {
+    if (jsonValue === null) {
+      return;
+    }
+    if (typeof jsonValue != "object" || Array.isArray(jsonValue)) {
+      throw new Error(`cannot decode field ${parentType.typeName}.${field.name} from JSON: ${debugJsonValue(jsonValue)}`);
+    }
+    const targetMap = target[localName];
+    for (const [jsonMapKey, jsonMapValue] of Object.entries(jsonValue)) {
+      if (jsonMapValue === null) {
+        throw new Error(`cannot decode field ${parentType.typeName}.${field.name} from JSON: map value null`);
+      }
+      let key2;
+      try {
+        key2 = readMapKey(field.K, jsonMapKey);
+      } catch (e) {
+        let m = `cannot decode map key for field ${parentType.typeName}.${field.name} from JSON: ${debugJsonValue(jsonValue)}`;
+        if (e instanceof Error && e.message.length > 0) {
+          m += `: ${e.message}`;
+        }
+        throw new Error(m);
+      }
+      switch (field.V.kind) {
+        case "message":
+          targetMap[key2] = field.V.T.fromJson(jsonMapValue, options);
+          break;
+        case "enum":
+          const enumValue = readEnum(field.V.T, jsonMapValue, options.ignoreUnknownFields, true);
+          if (enumValue !== tokenIgnoredUnknownEnum) {
+            targetMap[key2] = enumValue;
+          }
+          break;
+        case "scalar":
+          try {
+            targetMap[key2] = readScalar(field.V.T, jsonMapValue, LongType.BIGINT, true);
+          } catch (e) {
+            let m = `cannot decode map value for field ${parentType.typeName}.${field.name} from JSON: ${debugJsonValue(jsonValue)}`;
+            if (e instanceof Error && e.message.length > 0) {
+              m += `: ${e.message}`;
+            }
+            throw new Error(m);
+          }
+          break;
+      }
+    }
+  } else {
+    if (field.oneof) {
+      target = target[field.oneof.localName] = { case: localName };
+      localName = "value";
+    }
+    switch (field.kind) {
+      case "message":
+        const messageType = field.T;
+        if (jsonValue === null && messageType.typeName != "google.protobuf.Value") {
+          return;
+        }
+        let currentValue = target[localName];
+        if (isMessage(currentValue)) {
+          currentValue.fromJson(jsonValue, options);
+        } else {
+          target[localName] = currentValue = messageType.fromJson(jsonValue, options);
+          if (messageType.fieldWrapper && !field.oneof) {
+            target[localName] = messageType.fieldWrapper.unwrapField(currentValue);
+          }
+        }
+        break;
+      case "enum":
+        const enumValue = readEnum(field.T, jsonValue, options.ignoreUnknownFields, false);
+        switch (enumValue) {
+          case tokenNull:
+            clearField(field, target);
+            break;
+          case tokenIgnoredUnknownEnum:
+            break;
+          default:
+            target[localName] = enumValue;
+            break;
+        }
+        break;
+      case "scalar":
+        try {
+          const scalarValue = readScalar(field.T, jsonValue, field.L, false);
+          switch (scalarValue) {
+            case tokenNull:
+              clearField(field, target);
+              break;
+            default:
+              target[localName] = scalarValue;
+              break;
+          }
+        } catch (e) {
+          let m = `cannot decode field ${parentType.typeName}.${field.name} from JSON: ${debugJsonValue(jsonValue)}`;
+          if (e instanceof Error && e.message.length > 0) {
+            m += `: ${e.message}`;
+          }
+          throw new Error(m);
+        }
+        break;
+    }
+  }
+}
+function readMapKey(type, json) {
+  if (type === ScalarType.BOOL) {
+    switch (json) {
+      case "true":
+        json = true;
+        break;
+      case "false":
+        json = false;
+        break;
+    }
+  }
+  return readScalar(type, json, LongType.BIGINT, true).toString();
+}
+function readScalar(type, json, longType, nullAsZeroValue) {
+  if (json === null) {
+    if (nullAsZeroValue) {
+      return scalarZeroValue(type, longType);
+    }
+    return tokenNull;
+  }
   switch (type) {
     // float, double: JSON value will be a number or one of the special string values "NaN", "Infinity", and "-Infinity".
     // Either numbers or strings are accepted. Exponent notation is also accepted.
     case ScalarType.DOUBLE:
     case ScalarType.FLOAT:
-      if (json === null)
-        return 0;
       if (json === "NaN")
         return Number.NaN;
       if (json === "Infinity")
@@ -1733,8 +1624,6 @@ function readScalar2(type, json) {
     case ScalarType.SFIXED32:
     case ScalarType.SINT32:
     case ScalarType.UINT32:
-      if (json === null)
-        return 0;
       let int32;
       if (typeof json == "number")
         int32 = json;
@@ -1744,7 +1633,7 @@ function readScalar2(type, json) {
       }
       if (int32 === void 0)
         break;
-      if (type == ScalarType.UINT32)
+      if (type == ScalarType.UINT32 || type == ScalarType.FIXED32)
         assertUInt32(int32);
       else
         assertInt32(int32);
@@ -1753,29 +1642,23 @@ function readScalar2(type, json) {
     case ScalarType.INT64:
     case ScalarType.SFIXED64:
     case ScalarType.SINT64:
-      if (json === null)
-        return protoInt64.zero;
       if (typeof json != "number" && typeof json != "string")
         break;
-      return protoInt64.parse(json);
+      const long = protoInt64.parse(json);
+      return longType ? long.toString() : long;
     case ScalarType.FIXED64:
     case ScalarType.UINT64:
-      if (json === null)
-        return protoInt64.zero;
       if (typeof json != "number" && typeof json != "string")
         break;
-      return protoInt64.uParse(json);
+      const uLong = protoInt64.uParse(json);
+      return longType ? uLong.toString() : uLong;
     // bool:
     case ScalarType.BOOL:
-      if (json === null)
-        return false;
       if (typeof json !== "boolean")
         break;
       return json;
     // string:
     case ScalarType.STRING:
-      if (json === null)
-        return "";
       if (typeof json !== "string") {
         break;
       }
@@ -1788,7 +1671,7 @@ function readScalar2(type, json) {
     // bytes: JSON value will be the data encoded as a string using standard base64 encoding with paddings.
     // Either standard or URL-safe base64 encoding with/without paddings are accepted.
     case ScalarType.BYTES:
-      if (json === null || json === "")
+      if (json === "")
         return new Uint8Array(0);
       if (typeof json !== "string")
         break;
@@ -1796,9 +1679,12 @@ function readScalar2(type, json) {
   }
   throw new Error();
 }
-function readEnum(type, json, ignoreUnknownFields) {
+function readEnum(type, json, ignoreUnknownFields, nullAsZeroValue) {
   if (json === null) {
-    return 0;
+    if (type.typeName == "google.protobuf.NullValue") {
+      return 0;
+    }
+    return nullAsZeroValue ? type.values[0].no : tokenNull;
   }
   switch (typeof json) {
     case "number":
@@ -1808,34 +1694,100 @@ function readEnum(type, json, ignoreUnknownFields) {
       break;
     case "string":
       const value = type.findName(json);
-      if (value || ignoreUnknownFields) {
-        return value === null || value === void 0 ? void 0 : value.no;
+      if (value !== void 0) {
+        return value.no;
+      }
+      if (ignoreUnknownFields) {
+        return tokenIgnoredUnknownEnum;
       }
       break;
   }
   throw new Error(`cannot decode enum ${type.typeName} from JSON: ${debugJsonValue(json)}`);
 }
-function writeEnum(type, value, emitIntrinsicDefault, enumAsInteger) {
-  var _a;
-  if (value === void 0) {
-    return value;
+function canEmitFieldDefaultValue(field) {
+  if (field.repeated || field.kind == "map") {
+    return true;
   }
-  if (value === 0 && !emitIntrinsicDefault) {
-    return void 0;
+  if (field.oneof) {
+    return false;
+  }
+  if (field.kind == "message") {
+    return false;
+  }
+  if (field.opt || field.req) {
+    return false;
+  }
+  return true;
+}
+function writeField(field, value, options) {
+  if (field.kind == "map") {
+    assert(typeof value == "object" && value != null);
+    const jsonObj = {};
+    const entries = Object.entries(value);
+    switch (field.V.kind) {
+      case "scalar":
+        for (const [entryKey, entryValue] of entries) {
+          jsonObj[entryKey.toString()] = writeScalar(field.V.T, entryValue);
+        }
+        break;
+      case "message":
+        for (const [entryKey, entryValue] of entries) {
+          jsonObj[entryKey.toString()] = entryValue.toJson(options);
+        }
+        break;
+      case "enum":
+        const enumType = field.V.T;
+        for (const [entryKey, entryValue] of entries) {
+          jsonObj[entryKey.toString()] = writeEnum(enumType, entryValue, options.enumAsInteger);
+        }
+        break;
+    }
+    return options.emitDefaultValues || entries.length > 0 ? jsonObj : void 0;
+  }
+  if (field.repeated) {
+    assert(Array.isArray(value));
+    const jsonArr = [];
+    switch (field.kind) {
+      case "scalar":
+        for (let i = 0; i < value.length; i++) {
+          jsonArr.push(writeScalar(field.T, value[i]));
+        }
+        break;
+      case "enum":
+        for (let i = 0; i < value.length; i++) {
+          jsonArr.push(writeEnum(field.T, value[i], options.enumAsInteger));
+        }
+        break;
+      case "message":
+        for (let i = 0; i < value.length; i++) {
+          jsonArr.push(value[i].toJson(options));
+        }
+        break;
+    }
+    return options.emitDefaultValues || jsonArr.length > 0 ? jsonArr : void 0;
+  }
+  switch (field.kind) {
+    case "scalar":
+      return writeScalar(field.T, value);
+    case "enum":
+      return writeEnum(field.T, value, options.enumAsInteger);
+    case "message":
+      return wrapField(field.T, value).toJson(options);
+  }
+}
+function writeEnum(type, value, enumAsInteger) {
+  var _a;
+  assert(typeof value == "number");
+  if (type.typeName == "google.protobuf.NullValue") {
+    return null;
   }
   if (enumAsInteger) {
     return value;
   }
-  if (type.typeName == "google.protobuf.NullValue") {
-    return null;
-  }
   const val = type.findNumber(value);
   return (_a = val === null || val === void 0 ? void 0 : val.name) !== null && _a !== void 0 ? _a : value;
 }
-function writeScalar2(type, value, emitIntrinsicDefault) {
-  if (value === void 0) {
-    return void 0;
-  }
+function writeScalar(type, value) {
   switch (type) {
     // int32, fixed32, uint32: JSON value will be a decimal number. Either numbers or strings are accepted.
     case ScalarType.INT32:
@@ -1844,7 +1796,7 @@ function writeScalar2(type, value, emitIntrinsicDefault) {
     case ScalarType.FIXED32:
     case ScalarType.UINT32:
       assert(typeof value == "number");
-      return value != 0 || emitIntrinsicDefault ? value : void 0;
+      return value;
     // float, double: JSON value will be a number or one of the special string values "NaN", "Infinity", and "-Infinity".
     // Either numbers or strings are accepted. Exponent notation is also accepted.
     case ScalarType.FLOAT:
@@ -1857,15 +1809,15 @@ function writeScalar2(type, value, emitIntrinsicDefault) {
         return "Infinity";
       if (value === Number.NEGATIVE_INFINITY)
         return "-Infinity";
-      return value !== 0 || emitIntrinsicDefault ? value : void 0;
+      return value;
     // string:
     case ScalarType.STRING:
       assert(typeof value == "string");
-      return value.length > 0 || emitIntrinsicDefault ? value : void 0;
+      return value;
     // bool:
     case ScalarType.BOOL:
       assert(typeof value == "boolean");
-      return value || emitIntrinsicDefault ? value : void 0;
+      return value;
     // JSON value will be a decimal string. Either numbers or strings are accepted.
     case ScalarType.UINT64:
     case ScalarType.FIXED64:
@@ -1873,77 +1825,371 @@ function writeScalar2(type, value, emitIntrinsicDefault) {
     case ScalarType.SFIXED64:
     case ScalarType.SINT64:
       assert(typeof value == "bigint" || typeof value == "string" || typeof value == "number");
-      return emitIntrinsicDefault || value != 0 ? value.toString(10) : void 0;
+      return value.toString();
     // bytes: JSON value will be the data encoded as a string using standard base64 encoding with paddings.
     // Either standard or URL-safe base64 encoding with/without paddings are accepted.
     case ScalarType.BYTES:
       assert(value instanceof Uint8Array);
-      return emitIntrinsicDefault || value.byteLength > 0 ? protoBase64.enc(value) : void 0;
+      return protoBase64.enc(value);
   }
 }
 
-// ../../node_modules/@bufbuild/protobuf/dist/esm/private/json-format-proto3.js
-function makeJsonFormatProto3() {
-  return makeJsonFormatCommon((writeEnum2, writeScalar3) => {
-    return function writeField(field, value, options) {
-      if (field.kind == "map") {
-        const jsonObj = {};
-        switch (field.V.kind) {
-          case "scalar":
-            for (const [entryKey, entryValue] of Object.entries(value)) {
-              const val = writeScalar3(field.V.T, entryValue, true);
-              assert(val !== void 0);
-              jsonObj[entryKey.toString()] = val;
-            }
-            break;
-          case "message":
-            for (const [entryKey, entryValue] of Object.entries(value)) {
-              jsonObj[entryKey.toString()] = entryValue.toJson(options);
-            }
-            break;
-          case "enum":
-            const enumType = field.V.T;
-            for (const [entryKey, entryValue] of Object.entries(value)) {
-              assert(entryValue === void 0 || typeof entryValue == "number");
-              const val = writeEnum2(enumType, entryValue, true, options.enumAsInteger);
-              assert(val !== void 0);
-              jsonObj[entryKey.toString()] = val;
-            }
-            break;
-        }
-        return options.emitDefaultValues || Object.keys(jsonObj).length > 0 ? jsonObj : void 0;
-      } else if (field.repeated) {
-        const jsonArr = [];
-        switch (field.kind) {
-          case "scalar":
-            for (let i = 0; i < value.length; i++) {
-              jsonArr.push(writeScalar3(field.T, value[i], true));
-            }
-            break;
-          case "enum":
-            for (let i = 0; i < value.length; i++) {
-              jsonArr.push(writeEnum2(field.T, value[i], true, options.enumAsInteger));
-            }
-            break;
-          case "message":
-            for (let i = 0; i < value.length; i++) {
-              jsonArr.push(wrapField(field.T, value[i]).toJson(options));
-            }
-            break;
-        }
-        return options.emitDefaultValues || jsonArr.length > 0 ? jsonArr : void 0;
-      } else {
-        switch (field.kind) {
-          case "scalar":
-            return writeScalar3(field.T, value, !!field.oneof || field.opt || options.emitDefaultValues);
-          case "enum":
-            return writeEnum2(field.T, value, !!field.oneof || field.opt || options.emitDefaultValues, options.enumAsInteger);
-          case "message":
-            return value !== void 0 ? wrapField(field.T, value).toJson(options) : void 0;
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/binary-format.js
+var unknownFieldsSymbol = Symbol("@bufbuild/protobuf/unknown-fields");
+var readDefaults = {
+  readUnknownFields: true,
+  readerFactory: (bytes) => new BinaryReader(bytes)
+};
+var writeDefaults = {
+  writeUnknownFields: true,
+  writerFactory: () => new BinaryWriter()
+};
+function makeReadOptions2(options) {
+  return options ? Object.assign(Object.assign({}, readDefaults), options) : readDefaults;
+}
+function makeWriteOptions2(options) {
+  return options ? Object.assign(Object.assign({}, writeDefaults), options) : writeDefaults;
+}
+function makeBinaryFormat() {
+  return {
+    makeReadOptions: makeReadOptions2,
+    makeWriteOptions: makeWriteOptions2,
+    listUnknownFields(message) {
+      var _a;
+      return (_a = message[unknownFieldsSymbol]) !== null && _a !== void 0 ? _a : [];
+    },
+    discardUnknownFields(message) {
+      delete message[unknownFieldsSymbol];
+    },
+    writeUnknownFields(message, writer) {
+      const m = message;
+      const c = m[unknownFieldsSymbol];
+      if (c) {
+        for (const f of c) {
+          writer.tag(f.no, f.wireType).raw(f.data);
         }
       }
-    };
-  });
+    },
+    onUnknownField(message, no, wireType, data) {
+      const m = message;
+      if (!Array.isArray(m[unknownFieldsSymbol])) {
+        m[unknownFieldsSymbol] = [];
+      }
+      m[unknownFieldsSymbol].push({ no, wireType, data });
+    },
+    readMessage(message, reader, lengthOrEndTagFieldNo, options, delimitedMessageEncoding) {
+      const type = message.getType();
+      const end = delimitedMessageEncoding ? reader.len : reader.pos + lengthOrEndTagFieldNo;
+      let fieldNo, wireType;
+      while (reader.pos < end) {
+        [fieldNo, wireType] = reader.tag();
+        if (delimitedMessageEncoding === true && wireType == WireType.EndGroup) {
+          break;
+        }
+        const field = type.fields.find(fieldNo);
+        if (!field) {
+          const data = reader.skip(wireType, fieldNo);
+          if (options.readUnknownFields) {
+            this.onUnknownField(message, fieldNo, wireType, data);
+          }
+          continue;
+        }
+        readField2(message, reader, field, wireType, options);
+      }
+      if (delimitedMessageEncoding && // eslint-disable-line @typescript-eslint/strict-boolean-expressions
+      (wireType != WireType.EndGroup || fieldNo !== lengthOrEndTagFieldNo)) {
+        throw new Error(`invalid end group tag`);
+      }
+    },
+    readField: readField2,
+    writeMessage(message, writer, options) {
+      const type = message.getType();
+      for (const field of type.fields.byNumber()) {
+        if (!isFieldSet(field, message)) {
+          if (field.req) {
+            throw new Error(`cannot encode field ${type.typeName}.${field.name} to binary: required field not set`);
+          }
+          continue;
+        }
+        const value = field.oneof ? message[field.oneof.localName].value : message[field.localName];
+        writeField2(field, value, writer, options);
+      }
+      if (options.writeUnknownFields) {
+        this.writeUnknownFields(message, writer);
+      }
+      return writer;
+    },
+    writeField(field, value, writer, options) {
+      if (value === void 0) {
+        return void 0;
+      }
+      writeField2(field, value, writer, options);
+    }
+  };
+}
+function readField2(target, reader, field, wireType, options) {
+  let { repeated, localName } = field;
+  if (field.oneof) {
+    target = target[field.oneof.localName];
+    if (target.case != localName) {
+      delete target.value;
+    }
+    target.case = localName;
+    localName = "value";
+  }
+  switch (field.kind) {
+    case "scalar":
+    case "enum":
+      const scalarType = field.kind == "enum" ? ScalarType.INT32 : field.T;
+      let read = readScalar2;
+      if (field.kind == "scalar" && field.L > 0) {
+        read = readScalarLTString;
+      }
+      if (repeated) {
+        let arr = target[localName];
+        const isPacked = wireType == WireType.LengthDelimited && scalarType != ScalarType.STRING && scalarType != ScalarType.BYTES;
+        if (isPacked) {
+          let e = reader.uint32() + reader.pos;
+          while (reader.pos < e) {
+            arr.push(read(reader, scalarType));
+          }
+        } else {
+          arr.push(read(reader, scalarType));
+        }
+      } else {
+        target[localName] = read(reader, scalarType);
+      }
+      break;
+    case "message":
+      const messageType = field.T;
+      if (repeated) {
+        target[localName].push(readMessageField(reader, new messageType(), options, field));
+      } else {
+        if (isMessage(target[localName])) {
+          readMessageField(reader, target[localName], options, field);
+        } else {
+          target[localName] = readMessageField(reader, new messageType(), options, field);
+          if (messageType.fieldWrapper && !field.oneof && !field.repeated) {
+            target[localName] = messageType.fieldWrapper.unwrapField(target[localName]);
+          }
+        }
+      }
+      break;
+    case "map":
+      let [mapKey, mapVal] = readMapEntry(field, reader, options);
+      target[localName][mapKey] = mapVal;
+      break;
+  }
+}
+function readMessageField(reader, message, options, field) {
+  const format = message.getType().runtime.bin;
+  const delimited = field === null || field === void 0 ? void 0 : field.delimited;
+  format.readMessage(
+    message,
+    reader,
+    delimited ? field.no : reader.uint32(),
+    // eslint-disable-line @typescript-eslint/strict-boolean-expressions
+    options,
+    delimited
+  );
+  return message;
+}
+function readMapEntry(field, reader, options) {
+  const length = reader.uint32(), end = reader.pos + length;
+  let key2, val;
+  while (reader.pos < end) {
+    const [fieldNo] = reader.tag();
+    switch (fieldNo) {
+      case 1:
+        key2 = readScalar2(reader, field.K);
+        break;
+      case 2:
+        switch (field.V.kind) {
+          case "scalar":
+            val = readScalar2(reader, field.V.T);
+            break;
+          case "enum":
+            val = reader.int32();
+            break;
+          case "message":
+            val = readMessageField(reader, new field.V.T(), options, void 0);
+            break;
+        }
+        break;
+    }
+  }
+  if (key2 === void 0) {
+    key2 = scalarZeroValue(field.K, LongType.BIGINT);
+  }
+  if (typeof key2 != "string" && typeof key2 != "number") {
+    key2 = key2.toString();
+  }
+  if (val === void 0) {
+    switch (field.V.kind) {
+      case "scalar":
+        val = scalarZeroValue(field.V.T, LongType.BIGINT);
+        break;
+      case "enum":
+        val = field.V.T.values[0].no;
+        break;
+      case "message":
+        val = new field.V.T();
+        break;
+    }
+  }
+  return [key2, val];
+}
+function readScalarLTString(reader, type) {
+  const v2 = readScalar2(reader, type);
+  return typeof v2 == "bigint" ? v2.toString() : v2;
+}
+function readScalar2(reader, type) {
+  switch (type) {
+    case ScalarType.STRING:
+      return reader.string();
+    case ScalarType.BOOL:
+      return reader.bool();
+    case ScalarType.DOUBLE:
+      return reader.double();
+    case ScalarType.FLOAT:
+      return reader.float();
+    case ScalarType.INT32:
+      return reader.int32();
+    case ScalarType.INT64:
+      return reader.int64();
+    case ScalarType.UINT64:
+      return reader.uint64();
+    case ScalarType.FIXED64:
+      return reader.fixed64();
+    case ScalarType.BYTES:
+      return reader.bytes();
+    case ScalarType.FIXED32:
+      return reader.fixed32();
+    case ScalarType.SFIXED32:
+      return reader.sfixed32();
+    case ScalarType.SFIXED64:
+      return reader.sfixed64();
+    case ScalarType.SINT64:
+      return reader.sint64();
+    case ScalarType.UINT32:
+      return reader.uint32();
+    case ScalarType.SINT32:
+      return reader.sint32();
+  }
+}
+function writeField2(field, value, writer, options) {
+  assert(value !== void 0);
+  const repeated = field.repeated;
+  switch (field.kind) {
+    case "scalar":
+    case "enum":
+      let scalarType = field.kind == "enum" ? ScalarType.INT32 : field.T;
+      if (repeated) {
+        assert(Array.isArray(value));
+        if (field.packed) {
+          writePacked(writer, scalarType, field.no, value);
+        } else {
+          for (const item of value) {
+            writeScalar2(writer, scalarType, field.no, item);
+          }
+        }
+      } else {
+        writeScalar2(writer, scalarType, field.no, value);
+      }
+      break;
+    case "message":
+      if (repeated) {
+        assert(Array.isArray(value));
+        for (const item of value) {
+          writeMessageField(writer, options, field, item);
+        }
+      } else {
+        writeMessageField(writer, options, field, value);
+      }
+      break;
+    case "map":
+      assert(typeof value == "object" && value != null);
+      for (const [key2, val] of Object.entries(value)) {
+        writeMapEntry(writer, options, field, key2, val);
+      }
+      break;
+  }
+}
+function writeMapEntry(writer, options, field, key2, value) {
+  writer.tag(field.no, WireType.LengthDelimited);
+  writer.fork();
+  let keyValue = key2;
+  switch (field.K) {
+    case ScalarType.INT32:
+    case ScalarType.FIXED32:
+    case ScalarType.UINT32:
+    case ScalarType.SFIXED32:
+    case ScalarType.SINT32:
+      keyValue = Number.parseInt(key2);
+      break;
+    case ScalarType.BOOL:
+      assert(key2 == "true" || key2 == "false");
+      keyValue = key2 == "true";
+      break;
+  }
+  writeScalar2(writer, field.K, 1, keyValue);
+  switch (field.V.kind) {
+    case "scalar":
+      writeScalar2(writer, field.V.T, 2, value);
+      break;
+    case "enum":
+      writeScalar2(writer, ScalarType.INT32, 2, value);
+      break;
+    case "message":
+      assert(value !== void 0);
+      writer.tag(2, WireType.LengthDelimited).bytes(value.toBinary(options));
+      break;
+  }
+  writer.join();
+}
+function writeMessageField(writer, options, field, value) {
+  const message = wrapField(field.T, value);
+  if (field.delimited)
+    writer.tag(field.no, WireType.StartGroup).raw(message.toBinary(options)).tag(field.no, WireType.EndGroup);
+  else
+    writer.tag(field.no, WireType.LengthDelimited).bytes(message.toBinary(options));
+}
+function writeScalar2(writer, type, fieldNo, value) {
+  assert(value !== void 0);
+  let [wireType, method] = scalarTypeInfo(type);
+  writer.tag(fieldNo, wireType)[method](value);
+}
+function writePacked(writer, type, fieldNo, value) {
+  if (!value.length) {
+    return;
+  }
+  writer.tag(fieldNo, WireType.LengthDelimited).fork();
+  let [, method] = scalarTypeInfo(type);
+  for (let i = 0; i < value.length; i++) {
+    writer[method](value[i]);
+  }
+  writer.join();
+}
+function scalarTypeInfo(type) {
+  let wireType = WireType.Varint;
+  switch (type) {
+    case ScalarType.BYTES:
+    case ScalarType.STRING:
+      wireType = WireType.LengthDelimited;
+      break;
+    case ScalarType.DOUBLE:
+    case ScalarType.FIXED64:
+    case ScalarType.SFIXED64:
+      wireType = WireType.Bit64;
+      break;
+    case ScalarType.FIXED32:
+    case ScalarType.SFIXED32:
+    case ScalarType.FLOAT:
+      wireType = WireType.Bit32;
+      break;
+  }
+  const method = ScalarType[type].toLowerCase();
+  return [wireType, method];
 }
 
 // ../../node_modules/@bufbuild/protobuf/dist/esm/private/util-common.js
@@ -1957,7 +2203,7 @@ function makeUtilCommon() {
       const type = target.getType();
       for (const member of type.fields.byMember()) {
         const localName = member.localName, t = target, s = source;
-        if (s[localName] === void 0) {
+        if (s[localName] == null) {
           continue;
         }
         switch (member.kind) {
@@ -1968,7 +2214,7 @@ function makeUtilCommon() {
             }
             const sourceField = member.findField(sk);
             let val = s[localName].value;
-            if (sourceField && sourceField.kind == "message" && !(val instanceof sourceField.T)) {
+            if (sourceField && sourceField.kind == "message" && !isMessage(val, sourceField.T)) {
               val = new sourceField.T(val);
             } else if (sourceField && sourceField.kind === "scalar" && sourceField.T === ScalarType.BYTES) {
               val = toU8Arr(val);
@@ -1988,8 +2234,8 @@ function makeUtilCommon() {
               case "scalar":
               case "enum":
                 if (member.V.T === ScalarType.BYTES) {
-                  for (const [k, v] of Object.entries(s[localName])) {
-                    t[localName][k] = toU8Arr(v);
+                  for (const [k2, v2] of Object.entries(s[localName])) {
+                    t[localName][k2] = toU8Arr(v2);
                   }
                 } else {
                   Object.assign(t[localName], s[localName]);
@@ -1997,39 +2243,40 @@ function makeUtilCommon() {
                 break;
               case "message":
                 const messageType = member.V.T;
-                for (const k of Object.keys(s[localName])) {
-                  let val2 = s[localName][k];
+                for (const k2 of Object.keys(s[localName])) {
+                  let val2 = s[localName][k2];
                   if (!messageType.fieldWrapper) {
                     val2 = new messageType(val2);
                   }
-                  t[localName][k] = val2;
+                  t[localName][k2] = val2;
                 }
                 break;
             }
             break;
           case "message":
-            const mt = member.T;
+            const mt2 = member.T;
             if (member.repeated) {
-              t[localName] = s[localName].map((val2) => val2 instanceof mt ? val2 : new mt(val2));
-            } else if (s[localName] !== void 0) {
+              t[localName] = s[localName].map((val2) => isMessage(val2, mt2) ? val2 : new mt2(val2));
+            } else {
               const val2 = s[localName];
-              if (mt.fieldWrapper) {
+              if (mt2.fieldWrapper) {
                 if (
                   // We can't use BytesValue.typeName as that will create a circular import
-                  mt.typeName === "google.protobuf.BytesValue"
+                  mt2.typeName === "google.protobuf.BytesValue"
                 ) {
                   t[localName] = toU8Arr(val2);
                 } else {
                   t[localName] = val2;
                 }
               } else {
-                t[localName] = val2 instanceof mt ? val2 : new mt(val2);
+                t[localName] = isMessage(val2, mt2) ? val2 : new mt2(val2);
               }
             }
             break;
         }
       }
     },
+    // TODO use isFieldSet() here to support future field presence
     equals(type, a, b) {
       if (a === b) {
         return true;
@@ -2056,7 +2303,17 @@ function makeUtilCommon() {
         }
         switch (m.kind) {
           case "message":
-            return m.T.equals(va, vb);
+            let a2 = va;
+            let b2 = vb;
+            if (m.T.fieldWrapper) {
+              if (a2 !== void 0 && !isMessage(a2)) {
+                a2 = m.T.fieldWrapper.wrapField(a2);
+              }
+              if (b2 !== void 0 && !isMessage(b2)) {
+                b2 = m.T.fieldWrapper.wrapField(b2);
+              }
+            }
+            return m.T.equals(a2, b2);
           case "enum":
             return scalarEquals(ScalarType.INT32, va, vb);
           case "scalar":
@@ -2083,17 +2340,18 @@ function makeUtilCommon() {
             switch (m.V.kind) {
               case "message":
                 const messageType = m.V.T;
-                return keys.every((k) => messageType.equals(va[k], vb[k]));
+                return keys.every((k2) => messageType.equals(va[k2], vb[k2]));
               case "enum":
-                return keys.every((k) => scalarEquals(ScalarType.INT32, va[k], vb[k]));
+                return keys.every((k2) => scalarEquals(ScalarType.INT32, va[k2], vb[k2]));
               case "scalar":
                 const scalarType = m.V.T;
-                return keys.every((k) => scalarEquals(scalarType, va[k], vb[k]));
+                return keys.every((k2) => scalarEquals(scalarType, va[k2], vb[k2]));
             }
             break;
         }
       });
     },
+    // TODO use isFieldSet() here to support future field presence
     clone(message) {
       const type = message.getType(), target = new type(), any = target;
       for (const member of type.fields.byMember()) {
@@ -2103,8 +2361,8 @@ function makeUtilCommon() {
           copy = source.map(cloneSingularField);
         } else if (member.kind == "map") {
           copy = any[member.localName];
-          for (const [key2, v] of Object.entries(source)) {
-            copy[key2] = cloneSingularField(v);
+          for (const [key2, v2] of Object.entries(source)) {
+            copy[key2] = cloneSingularField(v2);
           }
         } else if (member.kind == "oneof") {
           const f = member.findField(source.case);
@@ -2114,6 +2372,9 @@ function makeUtilCommon() {
         }
         any[member.localName] = copy;
       }
+      for (const uf of type.runtime.bin.listUnknownFields(message)) {
+        type.runtime.bin.onUnknownField(any, uf.no, uf.wireType, uf.data);
+      }
       return target;
     }
   };
@@ -2122,7 +2383,7 @@ function cloneSingularField(value) {
   if (value === void 0) {
     return value;
   }
-  if (value instanceof Message) {
+  if (isMessage(value)) {
     return value.clone();
   }
   if (value instanceof Uint8Array) {
@@ -2134,6 +2395,28 @@ function cloneSingularField(value) {
 }
 function toU8Arr(input) {
   return input instanceof Uint8Array ? input : new Uint8Array(input);
+}
+
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/proto-runtime.js
+function makeProtoRuntime(syntax, newFieldList, initFields) {
+  return {
+    syntax,
+    json: makeJsonFormat(),
+    bin: makeBinaryFormat(),
+    util: Object.assign(Object.assign({}, makeUtilCommon()), {
+      newFieldList,
+      initFields
+    }),
+    makeMessageType(typeName, fields, opt) {
+      return makeMessageType(this, typeName, fields, opt);
+    },
+    makeEnum,
+    makeEnumType,
+    getEnumType,
+    makeExtension(typeName, extendee, field) {
+      return makeExtension(this, typeName, extendee, field);
+    }
+  };
 }
 
 // ../../node_modules/@bufbuild/protobuf/dist/esm/private/field-list.js
@@ -2281,6 +2564,7 @@ var InternalOneofInfo = class {
     this.repeated = false;
     this.packed = false;
     this.opt = false;
+    this.req = false;
     this.default = void 0;
     this.fields = [];
     this.name = name;
@@ -2301,12 +2585,50 @@ var InternalOneofInfo = class {
   }
 };
 
+// ../../node_modules/@bufbuild/protobuf/dist/esm/private/field-normalize.js
+function normalizeFieldInfos(fieldInfos, packedByDefault) {
+  var _a, _b, _c, _d, _e2, _f;
+  const r = [];
+  let o;
+  for (const field of typeof fieldInfos == "function" ? fieldInfos() : fieldInfos) {
+    const f = field;
+    f.localName = localFieldName(field.name, field.oneof !== void 0);
+    f.jsonName = (_a = field.jsonName) !== null && _a !== void 0 ? _a : fieldJsonName(field.name);
+    f.repeated = (_b = field.repeated) !== null && _b !== void 0 ? _b : false;
+    if (field.kind == "scalar") {
+      f.L = (_c = field.L) !== null && _c !== void 0 ? _c : LongType.BIGINT;
+    }
+    f.delimited = (_d = field.delimited) !== null && _d !== void 0 ? _d : false;
+    f.req = (_e2 = field.req) !== null && _e2 !== void 0 ? _e2 : false;
+    f.opt = (_f = field.opt) !== null && _f !== void 0 ? _f : false;
+    if (field.packed === void 0) {
+      if (packedByDefault) {
+        f.packed = field.kind == "enum" || field.kind == "scalar" && field.T != ScalarType.BYTES && field.T != ScalarType.STRING;
+      } else {
+        f.packed = false;
+      }
+    }
+    if (field.oneof !== void 0) {
+      const ooname = typeof field.oneof == "string" ? field.oneof : field.oneof.name;
+      if (!o || o.name != ooname) {
+        o = new InternalOneofInfo(ooname);
+      }
+      f.oneof = o;
+      o.addField(f);
+    }
+    r.push(f);
+  }
+  return r;
+}
+
 // ../../node_modules/@bufbuild/protobuf/dist/esm/proto3.js
-var proto3 = makeProtoRuntime("proto3", makeJsonFormatProto3(), makeBinaryFormatProto3(), Object.assign(Object.assign({}, makeUtilCommon()), {
-  newFieldList(fields) {
-    return new InternalFieldList(fields, normalizeFieldInfosProto3);
+var proto3 = makeProtoRuntime(
+  "proto3",
+  (fields) => {
+    return new InternalFieldList(fields, (source) => normalizeFieldInfos(source, true));
   },
-  initFields(target) {
+  // TODO merge with proto2 and initExtensionField, also see initPartial, equals, clone
+  (target) => {
     for (const member of target.getType().fields.byMember()) {
       if (member.opt) {
         continue;
@@ -2327,36 +2649,14 @@ var proto3 = makeProtoRuntime("proto3", makeJsonFormatProto3(), makeBinaryFormat
           t[name] = {};
           break;
         case "scalar":
-          t[name] = scalarDefaultValue(member.T);
+          t[name] = scalarZeroValue(member.T, member.L);
           break;
         case "message":
           break;
       }
     }
   }
-}));
-function normalizeFieldInfosProto3(fieldInfos) {
-  var _a, _b, _c;
-  const r = [];
-  let o;
-  for (const field of typeof fieldInfos == "function" ? fieldInfos() : fieldInfos) {
-    const f = field;
-    f.localName = localFieldName(field.name, field.oneof !== void 0);
-    f.jsonName = (_a = field.jsonName) !== null && _a !== void 0 ? _a : fieldJsonName(field.name);
-    f.repeated = (_b = field.repeated) !== null && _b !== void 0 ? _b : false;
-    f.packed = (_c = field.packed) !== null && _c !== void 0 ? _c : field.kind == "enum" || field.kind == "scalar" && field.T != ScalarType.BYTES && field.T != ScalarType.STRING;
-    if (field.oneof !== void 0) {
-      const ooname = typeof field.oneof == "string" ? field.oneof : field.oneof.name;
-      if (!o || o.name != ooname) {
-        o = new InternalOneofInfo(ooname);
-      }
-      f.oneof = o;
-      o.addField(f);
-    }
-    r.push(f);
-  }
-  return r;
-}
+);
 
 // ../../node_modules/@bufbuild/protobuf/dist/esm/service-type.js
 var MethodKind;
@@ -2453,7 +2753,7 @@ var ConnectError = class _ConnectError extends Error {
       if (type) {
         try {
           details.push(type.fromBinary(data.value));
-        } catch (_) {
+        } catch (_2) {
         }
       }
     }
@@ -2491,18 +2791,18 @@ function makeAnyClient(service, createMethod) {
 }
 
 // ../../node_modules/@bufbuild/connect/dist/esm/protocol/envelope.js
-function createEnvelopeReadableStream(stream2) {
+function createEnvelopeReadableStream(stream) {
   let reader;
   let buffer = new Uint8Array(0);
   function append(chunk) {
-    const n = new Uint8Array(buffer.length + chunk.length);
-    n.set(buffer);
-    n.set(chunk, buffer.length);
-    buffer = n;
+    const n7 = new Uint8Array(buffer.length + chunk.length);
+    n7.set(buffer);
+    n7.set(chunk, buffer.length);
+    buffer = n7;
   }
   return new ReadableStream({
     start() {
-      reader = stream2.getReader();
+      reader = stream.getReader();
     },
     async pull(controller) {
       let header = void 0;
@@ -2543,9 +2843,9 @@ function createEnvelopeReadableStream(stream2) {
 function encodeEnvelope(flags, data) {
   const bytes = new Uint8Array(data.length + 5);
   bytes.set(data, 5);
-  const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  v.setUint8(0, flags);
-  v.setUint32(1, data.length);
+  const v2 = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  v2.setUint8(0, flags);
+  v2.setUint32(1, data.length);
   return bytes;
 }
 
@@ -2556,44 +2856,44 @@ var __asyncValues = function(o) {
   return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i);
-  function verb(n) {
-    i[n] = o[n] && function(v) {
+  function verb(n7) {
+    i[n7] = o[n7] && function(v2) {
       return new Promise(function(resolve, reject) {
-        v = o[n](v), settle(resolve, reject, v.done, v.value);
+        v2 = o[n7](v2), settle(resolve, reject, v2.done, v2.value);
       });
     };
   }
-  function settle(resolve, reject, d, v) {
-    Promise.resolve(v).then(function(v2) {
-      resolve({ value: v2, done: d });
+  function settle(resolve, reject, d, v2) {
+    Promise.resolve(v2).then(function(v3) {
+      resolve({ value: v3, done: d });
     }, reject);
   }
 };
-var __await = function(v) {
-  return this instanceof __await ? (this.v = v, this) : new __await(v);
+var __await = function(v2) {
+  return this instanceof __await ? (this.v = v2, this) : new __await(v2);
 };
 var __asyncGenerator = function(thisArg, _arguments, generator) {
   if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var g = generator.apply(thisArg, _arguments || []), i, q = [];
+  var g = generator.apply(thisArg, _arguments || []), i, q2 = [];
   return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i;
-  function verb(n) {
-    if (g[n]) i[n] = function(v) {
+  function verb(n7) {
+    if (g[n7]) i[n7] = function(v2) {
       return new Promise(function(a, b) {
-        q.push([n, v, a, b]) > 1 || resume(n, v);
+        q2.push([n7, v2, a, b]) > 1 || resume(n7, v2);
       });
     };
   }
-  function resume(n, v) {
+  function resume(n7, v2) {
     try {
-      step(g[n](v));
+      step(g[n7](v2));
     } catch (e) {
-      settle(q[0][3], e);
+      settle(q2[0][3], e);
     }
   }
   function step(r) {
-    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
+    r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q2[0][2], r);
   }
   function fulfill(value) {
     resume("next", value);
@@ -2601,8 +2901,8 @@ var __asyncGenerator = function(thisArg, _arguments, generator) {
   function reject(value) {
     resume("throw", value);
   }
-  function settle(f, v) {
-    if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]);
+  function settle(f, v2) {
+    if (f(v2), q2.shift(), q2.length) resume(q2[0][0], q2[0][1]);
   }
 };
 var __asyncDelegator = function(o) {
@@ -2612,9 +2912,9 @@ var __asyncDelegator = function(o) {
   }), verb("return"), i[Symbol.iterator] = function() {
     return this;
   }, i;
-  function verb(n, f) {
-    i[n] = o[n] ? function(v) {
-      return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v;
+  function verb(n7, f) {
+    i[n7] = o[n7] ? function(v2) {
+      return (p = !p) ? { value: __await(o[n7](v2)), done: false } : f ? f(v2) : v2;
     } : f;
   }
 };
@@ -2631,21 +2931,21 @@ var __asyncValues2 = function(o) {
   return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i);
-  function verb(n) {
-    i[n] = o[n] && function(v) {
+  function verb(n7) {
+    i[n7] = o[n7] && function(v2) {
       return new Promise(function(resolve, reject) {
-        v = o[n](v), settle(resolve, reject, v.done, v.value);
+        v2 = o[n7](v2), settle(resolve, reject, v2.done, v2.value);
       });
     };
   }
-  function settle(resolve, reject, d, v) {
-    Promise.resolve(v).then(function(v2) {
-      resolve({ value: v2, done: d });
+  function settle(resolve, reject, d, v2) {
+    Promise.resolve(v2).then(function(v3) {
+      resolve({ value: v3, done: d });
     }, reject);
   }
 };
-var __await2 = function(v) {
-  return this instanceof __await2 ? (this.v = v, this) : new __await2(v);
+var __await2 = function(v2) {
+  return this instanceof __await2 ? (this.v = v2, this) : new __await2(v2);
 };
 var __asyncDelegator2 = function(o) {
   var i, p;
@@ -2654,34 +2954,34 @@ var __asyncDelegator2 = function(o) {
   }), verb("return"), i[Symbol.iterator] = function() {
     return this;
   }, i;
-  function verb(n, f) {
-    i[n] = o[n] ? function(v) {
-      return (p = !p) ? { value: __await2(o[n](v)), done: false } : f ? f(v) : v;
+  function verb(n7, f) {
+    i[n7] = o[n7] ? function(v2) {
+      return (p = !p) ? { value: __await2(o[n7](v2)), done: false } : f ? f(v2) : v2;
     } : f;
   }
 };
 var __asyncGenerator2 = function(thisArg, _arguments, generator) {
   if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var g = generator.apply(thisArg, _arguments || []), i, q = [];
+  var g = generator.apply(thisArg, _arguments || []), i, q2 = [];
   return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i;
-  function verb(n) {
-    if (g[n]) i[n] = function(v) {
+  function verb(n7) {
+    if (g[n7]) i[n7] = function(v2) {
       return new Promise(function(a, b) {
-        q.push([n, v, a, b]) > 1 || resume(n, v);
+        q2.push([n7, v2, a, b]) > 1 || resume(n7, v2);
       });
     };
   }
-  function resume(n, v) {
+  function resume(n7, v2) {
     try {
-      step(g[n](v));
+      step(g[n7](v2));
     } catch (e) {
-      settle(q[0][3], e);
+      settle(q2[0][3], e);
     }
   }
   function step(r) {
-    r.value instanceof __await2 ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
+    r.value instanceof __await2 ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q2[0][2], r);
   }
   function fulfill(value) {
     resume("next", value);
@@ -2689,8 +2989,8 @@ var __asyncGenerator2 = function(thisArg, _arguments, generator) {
   function reject(value) {
     resume("throw", value);
   }
-  function settle(f, v) {
-    if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]);
+  function settle(f, v2) {
+    if (f(v2), q2.shift(), q2.length) resume(q2[0][0], q2[0][1]);
   }
 };
 function createPromiseClient(service, transport) {
@@ -2726,7 +3026,7 @@ function createServerStreamingFn(transport, service, method) {
 function createClientStreamingFn(transport, service, method) {
   return async function(request, options) {
     var _a, e_1, _b, _c;
-    var _d, _e;
+    var _d, _e2;
     const response = await transport.stream(service, method, options === null || options === void 0 ? void 0 : options.signal, options === null || options === void 0 ? void 0 : options.timeoutMs, options === null || options === void 0 ? void 0 : options.headers, request);
     (_d = options === null || options === void 0 ? void 0 : options.onHeader) === null || _d === void 0 ? void 0 : _d.call(options, response.header);
     let singleMessage;
@@ -2749,7 +3049,7 @@ function createClientStreamingFn(transport, service, method) {
     if (!singleMessage) {
       throw new ConnectError("protocol error: missing response message", Code.Internal);
     }
-    (_e = options === null || options === void 0 ? void 0 : options.onTrailer) === null || _e === void 0 ? void 0 : _e.call(options, response.trailer);
+    (_e2 = options === null || options === void 0 ? void 0 : options.onTrailer) === null || _e2 === void 0 ? void 0 : _e2.call(options, response.trailer);
     return singleMessage;
   };
 }
@@ -2758,11 +3058,11 @@ function createBiDiStreamingFn(transport, service, method) {
     return handleStreamResponse(transport.stream(service, method, options === null || options === void 0 ? void 0 : options.signal, options === null || options === void 0 ? void 0 : options.timeoutMs, options === null || options === void 0 ? void 0 : options.headers, request), options);
   };
 }
-function handleStreamResponse(stream2, options) {
-  const it = (function() {
+function handleStreamResponse(stream, options) {
+  const it2 = (function() {
     var _a, _b;
     return __asyncGenerator2(this, arguments, function* () {
-      const response = yield __await2(stream2);
+      const response = yield __await2(stream);
       (_a = options === null || options === void 0 ? void 0 : options.onHeader) === null || _a === void 0 ? void 0 : _a.call(options, response.header);
       yield __await2(yield* __asyncDelegator2(__asyncValues2(response.message)));
       (_b = options === null || options === void 0 ? void 0 : options.onTrailer) === null || _b === void 0 ? void 0 : _b.call(options, response.trailer);
@@ -2770,7 +3070,7 @@ function handleStreamResponse(stream2, options) {
   })()[Symbol.asyncIterator]();
   return {
     [Symbol.asyncIterator]: () => ({
-      next: () => it.next()
+      next: () => it2.next()
     })
   };
 }
@@ -2896,13 +3196,13 @@ var contentTypeUnaryJson = "application/json";
 var contentTypeStreamProto = "application/connect+proto";
 var contentTypeStreamJson = "application/connect+json";
 function parseContentType(contentType) {
-  const match2 = contentType === null || contentType === void 0 ? void 0 : contentType.match(contentTypeRegExp);
-  if (!match2) {
+  const match = contentType === null || contentType === void 0 ? void 0 : contentType.match(contentTypeRegExp);
+  if (!match) {
     return void 0;
   }
-  const stream2 = !!match2[1];
-  const binary = !!match2[3];
-  return { stream: stream2, binary };
+  const stream = !!match[1];
+  const binary = !!match[3];
+  return { stream, binary };
 }
 
 // ../../node_modules/@bufbuild/connect/dist/esm/protocol-connect/error-json.js
@@ -3112,21 +3412,21 @@ function runStreamingCall(opt) {
   let doneCalled = false;
   signal.addEventListener("abort", function() {
     var _a, _b;
-    const it = opt.req.message[Symbol.asyncIterator]();
+    const it2 = opt.req.message[Symbol.asyncIterator]();
     if (!doneCalled) {
-      (_a = it.throw) === null || _a === void 0 ? void 0 : _a.call(it, this.reason).catch(() => {
+      (_a = it2.throw) === null || _a === void 0 ? void 0 : _a.call(it2, this.reason).catch(() => {
       });
     }
-    (_b = it.return) === null || _b === void 0 ? void 0 : _b.call(it).catch(() => {
+    (_b = it2.return) === null || _b === void 0 ? void 0 : _b.call(it2).catch(() => {
     });
   });
   return next(req).then((res) => {
     return Object.assign(Object.assign({}, res), { message: {
       [Symbol.asyncIterator]() {
-        const it = res.message[Symbol.asyncIterator]();
+        const it2 = res.message[Symbol.asyncIterator]();
         return {
           next() {
-            return it.next().then((r) => {
+            return it2.next().then((r) => {
               if (r.done == true) {
                 doneCalled = true;
                 done();
@@ -3161,7 +3461,7 @@ function applyInterceptors(next, interceptors) {
   var _a;
   return (_a = interceptors === null || interceptors === void 0 ? void 0 : interceptors.concat().reverse().reduce(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    (n, i) => i(n),
+    (n7, i) => i(n7),
     next
   )) !== null && _a !== void 0 ? _a : next;
 }
@@ -3180,15 +3480,15 @@ function normalizeIterable(messageType, input) {
   }
   return {
     [Symbol.asyncIterator]() {
-      const it = input[Symbol.asyncIterator]();
+      const it2 = input[Symbol.asyncIterator]();
       const res = {
-        next: () => it.next().then(transform)
+        next: () => it2.next().then(transform)
       };
-      if (it.throw !== void 0) {
-        res.throw = (e) => it.throw(e).then(transform);
+      if (it2.throw !== void 0) {
+        res.throw = (e) => it2.throw(e).then(transform);
       }
-      if (it.return !== void 0) {
-        res.return = (v) => it.return(v).then(transform);
+      if (it2.return !== void 0) {
+        res.return = (v2) => it2.return(v2).then(transform);
       }
       return res;
     }
@@ -3199,37 +3499,37 @@ function normalizeIterable(messageType, input) {
 function assertFetchApi() {
   try {
     new Headers();
-  } catch (_) {
+  } catch (_2) {
     throw new Error("connect-web requires the fetch API. Are you running on an old version of Node.js? Node.js is not supported in Connect for Web - please stay tuned for Connect for Node.");
   }
 }
 
 // ../../node_modules/@bufbuild/connect-web/dist/esm/connect-transport.js
-var __await3 = function(v) {
-  return this instanceof __await3 ? (this.v = v, this) : new __await3(v);
+var __await3 = function(v2) {
+  return this instanceof __await3 ? (this.v = v2, this) : new __await3(v2);
 };
 var __asyncGenerator3 = function(thisArg, _arguments, generator) {
   if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var g = generator.apply(thisArg, _arguments || []), i, q = [];
+  var g = generator.apply(thisArg, _arguments || []), i, q2 = [];
   return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i;
-  function verb(n) {
-    if (g[n]) i[n] = function(v) {
+  function verb(n7) {
+    if (g[n7]) i[n7] = function(v2) {
       return new Promise(function(a, b) {
-        q.push([n, v, a, b]) > 1 || resume(n, v);
+        q2.push([n7, v2, a, b]) > 1 || resume(n7, v2);
       });
     };
   }
-  function resume(n, v) {
+  function resume(n7, v2) {
     try {
-      step(g[n](v));
+      step(g[n7](v2));
     } catch (e) {
-      settle(q[0][3], e);
+      settle(q2[0][3], e);
     }
   }
   function step(r) {
-    r.value instanceof __await3 ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
+    r.value instanceof __await3 ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q2[0][2], r);
   }
   function fulfill(value) {
     resume("next", value);
@@ -3237,8 +3537,8 @@ var __asyncGenerator3 = function(thisArg, _arguments, generator) {
   function reject(value) {
     resume("throw", value);
   }
-  function settle(f, v) {
-    if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]);
+  function settle(f, v2) {
+    if (f(v2), q2.shift(), q2.length) resume(q2[0][0], q2[0][1]);
   }
 };
 function createConnectTransport(options) {
@@ -3510,6 +3810,10 @@ var StoreResponse = class _StoreResponse extends Message {
    * @generated from field: bool skipped = 2;
    */
   skipped = false;
+  /**
+   * @generated from field: string skipped_reason = 3;
+   */
+  skippedReason = "";
   constructor(data) {
     super();
     proto3.util.initPartial(data, this);
@@ -3530,6 +3834,12 @@ var StoreResponse = class _StoreResponse extends Message {
       kind: "scalar",
       T: 8
       /* ScalarType.BOOL */
+    },
+    {
+      no: 3,
+      name: "skipped_reason",
+      kind: "scalar",
+      T: 9
     }
   ]);
   static fromBinary(bytes, options) {
@@ -3580,959 +3890,504 @@ var CacheService = {
   }
 };
 
-// ../../node_modules/@isaacs/balanced-match/dist/esm/index.js
-var balanced = (a, b, str) => {
-  const ma = a instanceof RegExp ? maybeMatch(a, str) : a;
-  const mb = b instanceof RegExp ? maybeMatch(b, str) : b;
-  const r = ma !== null && mb != null && range(ma, mb, str);
-  return r && {
-    start: r[0],
-    end: r[1],
-    pre: str.slice(0, r[0]),
-    body: str.slice(r[0] + ma.length, r[1]),
-    post: str.slice(r[1] + mb.length)
-  };
+// ../../node_modules/glob/dist/esm/index.min.js
+var import_node_url = require("node:url");
+var import_node_path = require("node:path");
+var import_node_url2 = require("node:url");
+var import_fs = require("fs");
+var xi = __toESM(require("node:fs"), 1);
+var import_promises = require("node:fs/promises");
+var import_node_events = require("node:events");
+var import_node_stream = __toESM(require("node:stream"), 1);
+var import_node_string_decoder = require("node:string_decoder");
+var Gt = (n7, t, e) => {
+  let s = n7 instanceof RegExp ? ce(n7, e) : n7, i = t instanceof RegExp ? ce(t, e) : t, r = s !== null && i != null && ss(s, i, e);
+  return r && { start: r[0], end: r[1], pre: e.slice(0, r[0]), body: e.slice(r[0] + s.length, r[1]), post: e.slice(r[1] + i.length) };
 };
-var maybeMatch = (reg, str) => {
-  const m = str.match(reg);
-  return m ? m[0] : null;
+var ce = (n7, t) => {
+  let e = t.match(n7);
+  return e ? e[0] : null;
 };
-var range = (a, b, str) => {
-  let begs, beg, left, right = void 0, result;
-  let ai = str.indexOf(a);
-  let bi = str.indexOf(b, ai + 1);
-  let i = ai;
-  if (ai >= 0 && bi > 0) {
-    if (a === b) {
-      return [ai, bi];
+var ss = (n7, t, e) => {
+  let s, i, r, o, h, a = e.indexOf(n7), l = e.indexOf(t, a + 1), u = a;
+  if (a >= 0 && l > 0) {
+    if (n7 === t) return [a, l];
+    for (s = [], r = e.length; u >= 0 && !h; ) {
+      if (u === a) s.push(u), a = e.indexOf(n7, u + 1);
+      else if (s.length === 1) {
+        let c = s.pop();
+        c !== void 0 && (h = [c, l]);
+      } else i = s.pop(), i !== void 0 && i < r && (r = i, o = l), l = e.indexOf(t, u + 1);
+      u = a < l && a >= 0 ? a : l;
     }
-    begs = [];
-    left = str.length;
-    while (i >= 0 && !result) {
-      if (i === ai) {
-        begs.push(i);
-        ai = str.indexOf(a, i + 1);
-      } else if (begs.length === 1) {
-        const r = begs.pop();
-        if (r !== void 0)
-          result = [r, bi];
-      } else {
-        beg = begs.pop();
-        if (beg !== void 0 && beg < left) {
-          left = beg;
-          right = bi;
-        }
-        bi = str.indexOf(b, i + 1);
-      }
-      i = ai < bi && ai >= 0 ? ai : bi;
-    }
-    if (begs.length && right !== void 0) {
-      result = [left, right];
-    }
+    s.length && o !== void 0 && (h = [r, o]);
   }
-  return result;
+  return h;
 };
-
-// ../../node_modules/@isaacs/brace-expansion/dist/esm/index.js
-var escSlash = "\0SLASH" + Math.random() + "\0";
-var escOpen = "\0OPEN" + Math.random() + "\0";
-var escClose = "\0CLOSE" + Math.random() + "\0";
-var escComma = "\0COMMA" + Math.random() + "\0";
-var escPeriod = "\0PERIOD" + Math.random() + "\0";
-var escSlashPattern = new RegExp(escSlash, "g");
-var escOpenPattern = new RegExp(escOpen, "g");
-var escClosePattern = new RegExp(escClose, "g");
-var escCommaPattern = new RegExp(escComma, "g");
-var escPeriodPattern = new RegExp(escPeriod, "g");
-var slashPattern = /\\\\/g;
-var openPattern = /\\{/g;
-var closePattern = /\\}/g;
-var commaPattern = /\\,/g;
-var periodPattern = /\\./g;
-function numeric(str) {
-  return !isNaN(str) ? parseInt(str, 10) : str.charCodeAt(0);
+var fe = "\0SLASH" + Math.random() + "\0";
+var ue = "\0OPEN" + Math.random() + "\0";
+var qt = "\0CLOSE" + Math.random() + "\0";
+var de = "\0COMMA" + Math.random() + "\0";
+var pe = "\0PERIOD" + Math.random() + "\0";
+var is = new RegExp(fe, "g");
+var rs = new RegExp(ue, "g");
+var ns = new RegExp(qt, "g");
+var os = new RegExp(de, "g");
+var hs = new RegExp(pe, "g");
+var as = /\\\\/g;
+var ls = /\\{/g;
+var cs = /\\}/g;
+var fs = /\\,/g;
+var us = /\\./g;
+var ds = 1e5;
+function Ht(n7) {
+  return isNaN(n7) ? n7.charCodeAt(0) : parseInt(n7, 10);
 }
-function escapeBraces(str) {
-  return str.replace(slashPattern, escSlash).replace(openPattern, escOpen).replace(closePattern, escClose).replace(commaPattern, escComma).replace(periodPattern, escPeriod);
+function ps(n7) {
+  return n7.replace(as, fe).replace(ls, ue).replace(cs, qt).replace(fs, de).replace(us, pe);
 }
-function unescapeBraces(str) {
-  return str.replace(escSlashPattern, "\\").replace(escOpenPattern, "{").replace(escClosePattern, "}").replace(escCommaPattern, ",").replace(escPeriodPattern, ".");
+function ms(n7) {
+  return n7.replace(is, "\\").replace(rs, "{").replace(ns, "}").replace(os, ",").replace(hs, ".");
 }
-function parseCommaParts(str) {
-  if (!str) {
-    return [""];
+function me(n7) {
+  if (!n7) return [""];
+  let t = [], e = Gt("{", "}", n7);
+  if (!e) return n7.split(",");
+  let { pre: s, body: i, post: r } = e, o = s.split(",");
+  o[o.length - 1] += "{" + i + "}";
+  let h = me(r);
+  return r.length && (o[o.length - 1] += h.shift(), o.push.apply(o, h)), t.push.apply(t, o), t;
+}
+function ge(n7, t = {}) {
+  if (!n7) return [];
+  let { max: e = ds } = t;
+  return n7.slice(0, 2) === "{}" && (n7 = "\\{\\}" + n7.slice(2)), ht(ps(n7), e, true).map(ms);
+}
+function gs(n7) {
+  return "{" + n7 + "}";
+}
+function ws(n7) {
+  return /^-?0\d/.test(n7);
+}
+function ys(n7, t) {
+  return n7 <= t;
+}
+function bs(n7, t) {
+  return n7 >= t;
+}
+function ht(n7, t, e) {
+  let s = [], i = Gt("{", "}", n7);
+  if (!i) return [n7];
+  let r = i.pre, o = i.post.length ? ht(i.post, t, false) : [""];
+  if (/\$$/.test(i.pre)) for (let h = 0; h < o.length && h < t; h++) {
+    let a = r + "{" + i.body + "}" + o[h];
+    s.push(a);
   }
-  const parts = [];
-  const m = balanced("{", "}", str);
-  if (!m) {
-    return str.split(",");
-  }
-  const { pre, body, post } = m;
-  const p = pre.split(",");
-  p[p.length - 1] += "{" + body + "}";
-  const postParts = parseCommaParts(post);
-  if (post.length) {
-    ;
-    p[p.length - 1] += postParts.shift();
-    p.push.apply(p, postParts);
-  }
-  parts.push.apply(parts, p);
-  return parts;
-}
-function expand(str) {
-  if (!str) {
-    return [];
-  }
-  if (str.slice(0, 2) === "{}") {
-    str = "\\{\\}" + str.slice(2);
-  }
-  return expand_(escapeBraces(str), true).map(unescapeBraces);
-}
-function embrace(str) {
-  return "{" + str + "}";
-}
-function isPadded(el) {
-  return /^-?0\d/.test(el);
-}
-function lte(i, y) {
-  return i <= y;
-}
-function gte(i, y) {
-  return i >= y;
-}
-function expand_(str, isTop) {
-  const expansions = [];
-  const m = balanced("{", "}", str);
-  if (!m)
-    return [str];
-  const pre = m.pre;
-  const post = m.post.length ? expand_(m.post, false) : [""];
-  if (/\$$/.test(m.pre)) {
-    for (let k = 0; k < post.length; k++) {
-      const expansion = pre + "{" + m.body + "}" + post[k];
-      expansions.push(expansion);
-    }
-  } else {
-    const isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
-    const isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
-    const isSequence = isNumericSequence || isAlphaSequence;
-    const isOptions = m.body.indexOf(",") >= 0;
-    if (!isSequence && !isOptions) {
-      if (m.post.match(/,(?!,).*\}/)) {
-        str = m.pre + "{" + m.body + escClose + m.post;
-        return expand_(str);
-      }
-      return [str];
-    }
-    let n;
-    if (isSequence) {
-      n = m.body.split(/\.\./);
-    } else {
-      n = parseCommaParts(m.body);
-      if (n.length === 1 && n[0] !== void 0) {
-        n = expand_(n[0], false).map(embrace);
-        if (n.length === 1) {
-          return post.map((p) => m.pre + n[0] + p);
-        }
-      }
-    }
-    let N;
-    if (isSequence && n[0] !== void 0 && n[1] !== void 0) {
-      const x = numeric(n[0]);
-      const y = numeric(n[1]);
-      const width = Math.max(n[0].length, n[1].length);
-      let incr = n.length === 3 && n[2] !== void 0 ? Math.abs(numeric(n[2])) : 1;
-      let test = lte;
-      const reverse = y < x;
-      if (reverse) {
-        incr *= -1;
-        test = gte;
-      }
-      const pad = n.some(isPadded);
-      N = [];
-      for (let i = x; test(i, y); i += incr) {
-        let c;
-        if (isAlphaSequence) {
-          c = String.fromCharCode(i);
-          if (c === "\\") {
-            c = "";
-          }
-        } else {
-          c = String(i);
-          if (pad) {
-            const need = width - c.length;
-            if (need > 0) {
-              const z = new Array(need + 1).join("0");
-              if (i < 0) {
-                c = "-" + z + c.slice(1);
-              } else {
-                c = z + c;
-              }
-            }
+  else {
+    let h = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(i.body), a = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(i.body), l = h || a, u = i.body.indexOf(",") >= 0;
+    if (!l && !u) return i.post.match(/,(?!,).*\}/) ? (n7 = i.pre + "{" + i.body + qt + i.post, ht(n7, t, true)) : [n7];
+    let c;
+    if (l) c = i.body.split(/\.\./);
+    else if (c = me(i.body), c.length === 1 && c[0] !== void 0 && (c = ht(c[0], t, false).map(gs), c.length === 1)) return o.map((f) => i.pre + c[0] + f);
+    let d;
+    if (l && c[0] !== void 0 && c[1] !== void 0) {
+      let f = Ht(c[0]), m = Ht(c[1]), p = Math.max(c[0].length, c[1].length), w = c.length === 3 && c[2] !== void 0 ? Math.abs(Ht(c[2])) : 1, g = ys;
+      m < f && (w *= -1, g = bs);
+      let E = c.some(ws);
+      d = [];
+      for (let y = f; g(y, m); y += w) {
+        let b;
+        if (a) b = String.fromCharCode(y), b === "\\" && (b = "");
+        else if (b = String(y), E) {
+          let z = p - b.length;
+          if (z > 0) {
+            let $ = new Array(z + 1).join("0");
+            y < 0 ? b = "-" + $ + b.slice(1) : b = $ + b;
           }
         }
-        N.push(c);
+        d.push(b);
       }
     } else {
-      N = [];
-      for (let j = 0; j < n.length; j++) {
-        N.push.apply(N, expand_(n[j], false));
-      }
+      d = [];
+      for (let f = 0; f < c.length; f++) d.push.apply(d, ht(c[f], t, false));
     }
-    for (let j = 0; j < N.length; j++) {
-      for (let k = 0; k < post.length; k++) {
-        const expansion = pre + N[j] + post[k];
-        if (!isTop || isSequence || expansion) {
-          expansions.push(expansion);
-        }
-      }
+    for (let f = 0; f < d.length; f++) for (let m = 0; m < o.length && s.length < t; m++) {
+      let p = r + d[f] + o[m];
+      (!e || l || p) && s.push(p);
     }
   }
-  return expansions;
+  return s;
 }
-
-// ../../node_modules/glob/node_modules/minimatch/dist/esm/assert-valid-pattern.js
-var MAX_PATTERN_LENGTH = 1024 * 64;
-var assertValidPattern = (pattern) => {
-  if (typeof pattern !== "string") {
-    throw new TypeError("invalid pattern");
-  }
-  if (pattern.length > MAX_PATTERN_LENGTH) {
-    throw new TypeError("pattern is too long");
-  }
+var at = (n7) => {
+  if (typeof n7 != "string") throw new TypeError("invalid pattern");
+  if (n7.length > 65536) throw new TypeError("pattern is too long");
 };
-
-// ../../node_modules/glob/node_modules/minimatch/dist/esm/brace-expressions.js
-var posixClasses = {
-  "[:alnum:]": ["\\p{L}\\p{Nl}\\p{Nd}", true],
-  "[:alpha:]": ["\\p{L}\\p{Nl}", true],
-  "[:ascii:]": ["\\x00-\\x7f", false],
-  "[:blank:]": ["\\p{Zs}\\t", true],
-  "[:cntrl:]": ["\\p{Cc}", true],
-  "[:digit:]": ["\\p{Nd}", true],
-  "[:graph:]": ["\\p{Z}\\p{C}", true, true],
-  "[:lower:]": ["\\p{Ll}", true],
-  "[:print:]": ["\\p{C}", true],
-  "[:punct:]": ["\\p{P}", true],
-  "[:space:]": ["\\p{Z}\\t\\r\\n\\v\\f", true],
-  "[:upper:]": ["\\p{Lu}", true],
-  "[:word:]": ["\\p{L}\\p{Nl}\\p{Nd}\\p{Pc}", true],
-  "[:xdigit:]": ["A-Fa-f0-9", false]
-};
-var braceEscape = (s) => s.replace(/[[\]\\-]/g, "\\$&");
-var regexpEscape = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-var rangesToString = (ranges) => ranges.join("");
-var parseClass = (glob2, position) => {
-  const pos = position;
-  if (glob2.charAt(pos) !== "[") {
-    throw new Error("not in a brace expression");
-  }
-  const ranges = [];
-  const negs = [];
-  let i = pos + 1;
-  let sawStart = false;
-  let uflag = false;
-  let escaping = false;
-  let negate2 = false;
-  let endPos = pos;
-  let rangeStart = "";
-  WHILE: while (i < glob2.length) {
-    const c = glob2.charAt(i);
-    if ((c === "!" || c === "^") && i === pos + 1) {
-      negate2 = true;
-      i++;
+var Ss = { "[:alnum:]": ["\\p{L}\\p{Nl}\\p{Nd}", true], "[:alpha:]": ["\\p{L}\\p{Nl}", true], "[:ascii:]": ["\\x00-\\x7f", false], "[:blank:]": ["\\p{Zs}\\t", true], "[:cntrl:]": ["\\p{Cc}", true], "[:digit:]": ["\\p{Nd}", true], "[:graph:]": ["\\p{Z}\\p{C}", true, true], "[:lower:]": ["\\p{Ll}", true], "[:print:]": ["\\p{C}", true], "[:punct:]": ["\\p{P}", true], "[:space:]": ["\\p{Z}\\t\\r\\n\\v\\f", true], "[:upper:]": ["\\p{Lu}", true], "[:word:]": ["\\p{L}\\p{Nl}\\p{Nd}\\p{Pc}", true], "[:xdigit:]": ["A-Fa-f0-9", false] };
+var lt = (n7) => n7.replace(/[[\]\\-]/g, "\\$&");
+var Es = (n7) => n7.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+var we = (n7) => n7.join("");
+var ye = (n7, t) => {
+  let e = t;
+  if (n7.charAt(e) !== "[") throw new Error("not in a brace expression");
+  let s = [], i = [], r = e + 1, o = false, h = false, a = false, l = false, u = e, c = "";
+  t: for (; r < n7.length; ) {
+    let p = n7.charAt(r);
+    if ((p === "!" || p === "^") && r === e + 1) {
+      l = true, r++;
       continue;
     }
-    if (c === "]" && sawStart && !escaping) {
-      endPos = i + 1;
+    if (p === "]" && o && !a) {
+      u = r + 1;
       break;
     }
-    sawStart = true;
-    if (c === "\\") {
-      if (!escaping) {
-        escaping = true;
-        i++;
-        continue;
-      }
-    }
-    if (c === "[" && !escaping) {
-      for (const [cls, [unip, u, neg]] of Object.entries(posixClasses)) {
-        if (glob2.startsWith(cls, i)) {
-          if (rangeStart) {
-            return ["$.", false, glob2.length - pos, true];
-          }
-          i += cls.length;
-          if (neg)
-            negs.push(unip);
-          else
-            ranges.push(unip);
-          uflag = uflag || u;
-          continue WHILE;
-        }
-      }
-    }
-    escaping = false;
-    if (rangeStart) {
-      if (c > rangeStart) {
-        ranges.push(braceEscape(rangeStart) + "-" + braceEscape(c));
-      } else if (c === rangeStart) {
-        ranges.push(braceEscape(c));
-      }
-      rangeStart = "";
-      i++;
+    if (o = true, p === "\\" && !a) {
+      a = true, r++;
       continue;
     }
-    if (glob2.startsWith("-]", i + 1)) {
-      ranges.push(braceEscape(c + "-"));
-      i += 2;
+    if (p === "[" && !a) {
+      for (let [w, [g, S, E]] of Object.entries(Ss)) if (n7.startsWith(w, r)) {
+        if (c) return ["$.", false, n7.length - e, true];
+        r += w.length, E ? i.push(g) : s.push(g), h = h || S;
+        continue t;
+      }
+    }
+    if (a = false, c) {
+      p > c ? s.push(lt(c) + "-" + lt(p)) : p === c && s.push(lt(p)), c = "", r++;
       continue;
     }
-    if (glob2.startsWith("-", i + 1)) {
-      rangeStart = c;
-      i += 2;
+    if (n7.startsWith("-]", r + 1)) {
+      s.push(lt(p + "-")), r += 2;
       continue;
     }
-    ranges.push(braceEscape(c));
-    i++;
+    if (n7.startsWith("-", r + 1)) {
+      c = p, r += 2;
+      continue;
+    }
+    s.push(lt(p)), r++;
   }
-  if (endPos < i) {
-    return ["", false, 0, false];
+  if (u < r) return ["", false, 0, false];
+  if (!s.length && !i.length) return ["$.", false, n7.length - e, true];
+  if (i.length === 0 && s.length === 1 && /^\\?.$/.test(s[0]) && !l) {
+    let p = s[0].length === 2 ? s[0].slice(-1) : s[0];
+    return [Es(p), false, u - e, false];
   }
-  if (!ranges.length && !negs.length) {
-    return ["$.", false, glob2.length - pos, true];
-  }
-  if (negs.length === 0 && ranges.length === 1 && /^\\?.$/.test(ranges[0]) && !negate2) {
-    const r = ranges[0].length === 2 ? ranges[0].slice(-1) : ranges[0];
-    return [regexpEscape(r), false, endPos - pos, false];
-  }
-  const sranges = "[" + (negate2 ? "^" : "") + rangesToString(ranges) + "]";
-  const snegs = "[" + (negate2 ? "" : "^") + rangesToString(negs) + "]";
-  const comb = ranges.length && negs.length ? "(" + sranges + "|" + snegs + ")" : ranges.length ? sranges : snegs;
-  return [comb, uflag, endPos - pos, true];
+  let d = "[" + (l ? "^" : "") + we(s) + "]", f = "[" + (l ? "" : "^") + we(i) + "]";
+  return [s.length && i.length ? "(" + d + "|" + f + ")" : s.length ? d : f, h, u - e, true];
 };
-
-// ../../node_modules/glob/node_modules/minimatch/dist/esm/unescape.js
-var unescape = (s, { windowsPathsNoEscape = false } = {}) => {
-  return windowsPathsNoEscape ? s.replace(/\[([^\/\\])\]/g, "$1") : s.replace(/((?!\\).|^)\[([^\/\\])\]/g, "$1$2").replace(/\\([^\/])/g, "$1");
-};
-
-// ../../node_modules/glob/node_modules/minimatch/dist/esm/ast.js
-var types = /* @__PURE__ */ new Set(["!", "?", "+", "*", "@"]);
-var isExtglobType = (c) => types.has(c);
-var startNoTraversal = "(?!(?:^|/)\\.\\.?(?:$|/))";
-var startNoDot = "(?!\\.)";
-var addPatternStart = /* @__PURE__ */ new Set(["[", "."]);
-var justDots = /* @__PURE__ */ new Set(["..", "."]);
-var reSpecials = new Set("().*{}+?[]^$\\!");
-var regExpEscape = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-var qmark = "[^/]";
-var star = qmark + "*?";
-var starNoEmpty = qmark + "+?";
-var AST = class _AST {
+var W = (n7, { windowsPathsNoEscape: t = false, magicalBraces: e = true } = {}) => e ? t ? n7.replace(/\[([^\/\\])\]/g, "$1") : n7.replace(/((?!\\).|^)\[([^\/\\])\]/g, "$1$2").replace(/\\([^\/])/g, "$1") : t ? n7.replace(/\[([^\/\\{}])\]/g, "$1") : n7.replace(/((?!\\).|^)\[([^\/\\{}])\]/g, "$1$2").replace(/\\([^\/{}])/g, "$1");
+var xs = /* @__PURE__ */ new Set(["!", "?", "+", "*", "@"]);
+var be = (n7) => xs.has(n7);
+var vs = "(?!(?:^|/)\\.\\.?(?:$|/))";
+var Ct = "(?!\\.)";
+var Cs = /* @__PURE__ */ new Set(["[", "."]);
+var Ts = /* @__PURE__ */ new Set(["..", "."]);
+var As = new Set("().*{}+?[]^$\\!");
+var ks = (n7) => n7.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+var Kt = "[^/]";
+var Se = Kt + "*?";
+var Ee = Kt + "+?";
+var Q = class n {
   type;
-  #root;
-  #hasMagic;
-  #uflag = false;
-  #parts = [];
-  #parent;
-  #parentIndex;
-  #negs;
-  #filledNegs = false;
-  #options;
-  #toString;
-  // set to true if it's an extglob with no children
-  // (which really means one child of '')
-  #emptyExt = false;
-  constructor(type, parent, options = {}) {
-    this.type = type;
-    if (type)
-      this.#hasMagic = true;
-    this.#parent = parent;
-    this.#root = this.#parent ? this.#parent.#root : this;
-    this.#options = this.#root === this ? options : this.#root.#options;
-    this.#negs = this.#root === this ? [] : this.#root.#negs;
-    if (type === "!" && !this.#root.#filledNegs)
-      this.#negs.push(this);
-    this.#parentIndex = this.#parent ? this.#parent.#parts.length : 0;
+  #t;
+  #s;
+  #n = false;
+  #r = [];
+  #o;
+  #S;
+  #w;
+  #c = false;
+  #h;
+  #u;
+  #f = false;
+  constructor(t, e, s = {}) {
+    this.type = t, t && (this.#s = true), this.#o = e, this.#t = this.#o ? this.#o.#t : this, this.#h = this.#t === this ? s : this.#t.#h, this.#w = this.#t === this ? [] : this.#t.#w, t === "!" && !this.#t.#c && this.#w.push(this), this.#S = this.#o ? this.#o.#r.length : 0;
   }
   get hasMagic() {
-    if (this.#hasMagic !== void 0)
-      return this.#hasMagic;
-    for (const p of this.#parts) {
-      if (typeof p === "string")
-        continue;
-      if (p.type || p.hasMagic)
-        return this.#hasMagic = true;
-    }
-    return this.#hasMagic;
+    if (this.#s !== void 0) return this.#s;
+    for (let t of this.#r) if (typeof t != "string" && (t.type || t.hasMagic)) return this.#s = true;
+    return this.#s;
   }
-  // reconstructs the pattern
   toString() {
-    if (this.#toString !== void 0)
-      return this.#toString;
-    if (!this.type) {
-      return this.#toString = this.#parts.map((p) => String(p)).join("");
-    } else {
-      return this.#toString = this.type + "(" + this.#parts.map((p) => String(p)).join("|") + ")";
-    }
+    return this.#u !== void 0 ? this.#u : this.type ? this.#u = this.type + "(" + this.#r.map((t) => String(t)).join("|") + ")" : this.#u = this.#r.map((t) => String(t)).join("");
   }
-  #fillNegs() {
-    if (this !== this.#root)
-      throw new Error("should only call on root");
-    if (this.#filledNegs)
-      return this;
-    this.toString();
-    this.#filledNegs = true;
-    let n;
-    while (n = this.#negs.pop()) {
-      if (n.type !== "!")
-        continue;
-      let p = n;
-      let pp = p.#parent;
-      while (pp) {
-        for (let i = p.#parentIndex + 1; !pp.type && i < pp.#parts.length; i++) {
-          for (const part of n.#parts) {
-            if (typeof part === "string") {
-              throw new Error("string part in extglob AST??");
-            }
-            part.copyIn(pp.#parts[i]);
-          }
+  #a() {
+    if (this !== this.#t) throw new Error("should only call on root");
+    if (this.#c) return this;
+    this.toString(), this.#c = true;
+    let t;
+    for (; t = this.#w.pop(); ) {
+      if (t.type !== "!") continue;
+      let e = t, s = e.#o;
+      for (; s; ) {
+        for (let i = e.#S + 1; !s.type && i < s.#r.length; i++) for (let r of t.#r) {
+          if (typeof r == "string") throw new Error("string part in extglob AST??");
+          r.copyIn(s.#r[i]);
         }
-        p = pp;
-        pp = p.#parent;
+        e = s, s = e.#o;
       }
     }
     return this;
   }
-  push(...parts) {
-    for (const p of parts) {
-      if (p === "")
-        continue;
-      if (typeof p !== "string" && !(p instanceof _AST && p.#parent === this)) {
-        throw new Error("invalid part: " + p);
-      }
-      this.#parts.push(p);
+  push(...t) {
+    for (let e of t) if (e !== "") {
+      if (typeof e != "string" && !(e instanceof n && e.#o === this)) throw new Error("invalid part: " + e);
+      this.#r.push(e);
     }
   }
   toJSON() {
-    const ret = this.type === null ? this.#parts.slice().map((p) => typeof p === "string" ? p : p.toJSON()) : [this.type, ...this.#parts.map((p) => p.toJSON())];
-    if (this.isStart() && !this.type)
-      ret.unshift([]);
-    if (this.isEnd() && (this === this.#root || this.#root.#filledNegs && this.#parent?.type === "!")) {
-      ret.push({});
-    }
-    return ret;
+    let t = this.type === null ? this.#r.slice().map((e) => typeof e == "string" ? e : e.toJSON()) : [this.type, ...this.#r.map((e) => e.toJSON())];
+    return this.isStart() && !this.type && t.unshift([]), this.isEnd() && (this === this.#t || this.#t.#c && this.#o?.type === "!") && t.push({}), t;
   }
   isStart() {
-    if (this.#root === this)
-      return true;
-    if (!this.#parent?.isStart())
-      return false;
-    if (this.#parentIndex === 0)
-      return true;
-    const p = this.#parent;
-    for (let i = 0; i < this.#parentIndex; i++) {
-      const pp = p.#parts[i];
-      if (!(pp instanceof _AST && pp.type === "!")) {
-        return false;
-      }
+    if (this.#t === this) return true;
+    if (!this.#o?.isStart()) return false;
+    if (this.#S === 0) return true;
+    let t = this.#o;
+    for (let e = 0; e < this.#S; e++) {
+      let s = t.#r[e];
+      if (!(s instanceof n && s.type === "!")) return false;
     }
     return true;
   }
   isEnd() {
-    if (this.#root === this)
-      return true;
-    if (this.#parent?.type === "!")
-      return true;
-    if (!this.#parent?.isEnd())
-      return false;
-    if (!this.type)
-      return this.#parent?.isEnd();
-    const pl = this.#parent ? this.#parent.#parts.length : 0;
-    return this.#parentIndex === pl - 1;
+    if (this.#t === this || this.#o?.type === "!") return true;
+    if (!this.#o?.isEnd()) return false;
+    if (!this.type) return this.#o?.isEnd();
+    let t = this.#o ? this.#o.#r.length : 0;
+    return this.#S === t - 1;
   }
-  copyIn(part) {
-    if (typeof part === "string")
-      this.push(part);
-    else
-      this.push(part.clone(this));
+  copyIn(t) {
+    typeof t == "string" ? this.push(t) : this.push(t.clone(this));
   }
-  clone(parent) {
-    const c = new _AST(this.type, parent);
-    for (const p of this.#parts) {
-      c.copyIn(p);
+  clone(t) {
+    let e = new n(this.type, t);
+    for (let s of this.#r) e.copyIn(s);
+    return e;
+  }
+  static #i(t, e, s, i) {
+    let r = false, o = false, h = -1, a = false;
+    if (e.type === null) {
+      let f = s, m = "";
+      for (; f < t.length; ) {
+        let p = t.charAt(f++);
+        if (r || p === "\\") {
+          r = !r, m += p;
+          continue;
+        }
+        if (o) {
+          f === h + 1 ? (p === "^" || p === "!") && (a = true) : p === "]" && !(f === h + 2 && a) && (o = false), m += p;
+          continue;
+        } else if (p === "[") {
+          o = true, h = f, a = false, m += p;
+          continue;
+        }
+        if (!i.noext && be(p) && t.charAt(f) === "(") {
+          e.push(m), m = "";
+          let w = new n(p, e);
+          f = n.#i(t, w, f, i), e.push(w);
+          continue;
+        }
+        m += p;
+      }
+      return e.push(m), f;
     }
-    return c;
-  }
-  static #parseAST(str, ast, pos, opt) {
-    let escaping = false;
-    let inBrace = false;
-    let braceStart = -1;
-    let braceNeg = false;
-    if (ast.type === null) {
-      let i2 = pos;
-      let acc2 = "";
-      while (i2 < str.length) {
-        const c = str.charAt(i2++);
-        if (escaping || c === "\\") {
-          escaping = !escaping;
-          acc2 += c;
-          continue;
-        }
-        if (inBrace) {
-          if (i2 === braceStart + 1) {
-            if (c === "^" || c === "!") {
-              braceNeg = true;
-            }
-          } else if (c === "]" && !(i2 === braceStart + 2 && braceNeg)) {
-            inBrace = false;
-          }
-          acc2 += c;
-          continue;
-        } else if (c === "[") {
-          inBrace = true;
-          braceStart = i2;
-          braceNeg = false;
-          acc2 += c;
-          continue;
-        }
-        if (!opt.noext && isExtglobType(c) && str.charAt(i2) === "(") {
-          ast.push(acc2);
-          acc2 = "";
-          const ext2 = new _AST(c, ast);
-          i2 = _AST.#parseAST(str, ext2, i2, opt);
-          ast.push(ext2);
-          continue;
-        }
-        acc2 += c;
+    let l = s + 1, u = new n(null, e), c = [], d = "";
+    for (; l < t.length; ) {
+      let f = t.charAt(l++);
+      if (r || f === "\\") {
+        r = !r, d += f;
+        continue;
       }
-      ast.push(acc2);
-      return i2;
+      if (o) {
+        l === h + 1 ? (f === "^" || f === "!") && (a = true) : f === "]" && !(l === h + 2 && a) && (o = false), d += f;
+        continue;
+      } else if (f === "[") {
+        o = true, h = l, a = false, d += f;
+        continue;
+      }
+      if (be(f) && t.charAt(l) === "(") {
+        u.push(d), d = "";
+        let m = new n(f, u);
+        u.push(m), l = n.#i(t, m, l, i);
+        continue;
+      }
+      if (f === "|") {
+        u.push(d), d = "", c.push(u), u = new n(null, e);
+        continue;
+      }
+      if (f === ")") return d === "" && e.#r.length === 0 && (e.#f = true), u.push(d), d = "", e.push(...c, u), l;
+      d += f;
     }
-    let i = pos + 1;
-    let part = new _AST(null, ast);
-    const parts = [];
-    let acc = "";
-    while (i < str.length) {
-      const c = str.charAt(i++);
-      if (escaping || c === "\\") {
-        escaping = !escaping;
-        acc += c;
-        continue;
-      }
-      if (inBrace) {
-        if (i === braceStart + 1) {
-          if (c === "^" || c === "!") {
-            braceNeg = true;
-          }
-        } else if (c === "]" && !(i === braceStart + 2 && braceNeg)) {
-          inBrace = false;
-        }
-        acc += c;
-        continue;
-      } else if (c === "[") {
-        inBrace = true;
-        braceStart = i;
-        braceNeg = false;
-        acc += c;
-        continue;
-      }
-      if (isExtglobType(c) && str.charAt(i) === "(") {
-        part.push(acc);
-        acc = "";
-        const ext2 = new _AST(c, part);
-        part.push(ext2);
-        i = _AST.#parseAST(str, ext2, i, opt);
-        continue;
-      }
-      if (c === "|") {
-        part.push(acc);
-        acc = "";
-        parts.push(part);
-        part = new _AST(null, ast);
-        continue;
-      }
-      if (c === ")") {
-        if (acc === "" && ast.#parts.length === 0) {
-          ast.#emptyExt = true;
-        }
-        part.push(acc);
-        acc = "";
-        ast.push(...parts, part);
-        return i;
-      }
-      acc += c;
-    }
-    ast.type = null;
-    ast.#hasMagic = void 0;
-    ast.#parts = [str.substring(pos - 1)];
-    return i;
+    return e.type = null, e.#s = void 0, e.#r = [t.substring(s - 1)], l;
   }
-  static fromGlob(pattern, options = {}) {
-    const ast = new _AST(null, void 0, options);
-    _AST.#parseAST(pattern, ast, 0, options);
-    return ast;
+  static fromGlob(t, e = {}) {
+    let s = new n(null, void 0, e);
+    return n.#i(t, s, 0, e), s;
   }
-  // returns the regular expression if there's magic, or the unescaped
-  // string if not.
   toMMPattern() {
-    if (this !== this.#root)
-      return this.#root.toMMPattern();
-    const glob2 = this.toString();
-    const [re, body, hasMagic2, uflag] = this.toRegExpSource();
-    const anyMagic = hasMagic2 || this.#hasMagic || this.#options.nocase && !this.#options.nocaseMagicOnly && glob2.toUpperCase() !== glob2.toLowerCase();
-    if (!anyMagic) {
-      return body;
-    }
-    const flags = (this.#options.nocase ? "i" : "") + (uflag ? "u" : "");
-    return Object.assign(new RegExp(`^${re}$`, flags), {
-      _src: re,
-      _glob: glob2
-    });
+    if (this !== this.#t) return this.#t.toMMPattern();
+    let t = this.toString(), [e, s, i, r] = this.toRegExpSource();
+    if (!(i || this.#s || this.#h.nocase && !this.#h.nocaseMagicOnly && t.toUpperCase() !== t.toLowerCase())) return s;
+    let h = (this.#h.nocase ? "i" : "") + (r ? "u" : "");
+    return Object.assign(new RegExp(`^${e}$`, h), { _src: e, _glob: t });
   }
   get options() {
-    return this.#options;
+    return this.#h;
   }
-  // returns the string match, the regexp source, whether there's magic
-  // in the regexp (so a regular expression is required) and whether or
-  // not the uflag is needed for the regular expression (for posix classes)
-  // TODO: instead of injecting the start/end at this point, just return
-  // the BODY of the regexp, along with the start/end portions suitable
-  // for binding the start/end in either a joined full-path makeRe context
-  // (where we bind to (^|/), or a standalone matchPart context (where
-  // we bind to ^, and not /).  Otherwise slashes get duped!
-  //
-  // In part-matching mode, the start is:
-  // - if not isStart: nothing
-  // - if traversal possible, but not allowed: ^(?!\.\.?$)
-  // - if dots allowed or not possible: ^
-  // - if dots possible and not allowed: ^(?!\.)
-  // end is:
-  // - if not isEnd(): nothing
-  // - else: $
-  //
-  // In full-path matching mode, we put the slash at the START of the
-  // pattern, so start is:
-  // - if first pattern: same as part-matching mode
-  // - if not isStart(): nothing
-  // - if traversal possible, but not allowed: /(?!\.\.?(?:$|/))
-  // - if dots allowed or not possible: /
-  // - if dots possible and not allowed: /(?!\.)
-  // end is:
-  // - if last pattern, same as part-matching mode
-  // - else nothing
-  //
-  // Always put the (?:$|/) on negated tails, though, because that has to be
-  // there to bind the end of the negated pattern portion, and it's easier to
-  // just stick it in now rather than try to inject it later in the middle of
-  // the pattern.
-  //
-  // We can just always return the same end, and leave it up to the caller
-  // to know whether it's going to be used joined or in parts.
-  // And, if the start is adjusted slightly, can do the same there:
-  // - if not isStart: nothing
-  // - if traversal possible, but not allowed: (?:/|^)(?!\.\.?$)
-  // - if dots allowed or not possible: (?:/|^)
-  // - if dots possible and not allowed: (?:/|^)(?!\.)
-  //
-  // But it's better to have a simpler binding without a conditional, for
-  // performance, so probably better to return both start options.
-  //
-  // Then the caller just ignores the end if it's not the first pattern,
-  // and the start always gets applied.
-  //
-  // But that's always going to be $ if it's the ending pattern, or nothing,
-  // so the caller can just attach $ at the end of the pattern when building.
-  //
-  // So the todo is:
-  // - better detect what kind of start is needed
-  // - return both flavors of starting pattern
-  // - attach $ at the end of the pattern when creating the actual RegExp
-  //
-  // Ah, but wait, no, that all only applies to the root when the first pattern
-  // is not an extglob. If the first pattern IS an extglob, then we need all
-  // that dot prevention biz to live in the extglob portions, because eg
-  // +(*|.x*) can match .xy but not .yx.
-  //
-  // So, return the two flavors if it's #root and the first child is not an
-  // AST, otherwise leave it to the child AST to handle it, and there,
-  // use the (?:^|/) style of start binding.
-  //
-  // Even simplified further:
-  // - Since the start for a join is eg /(?!\.) and the start for a part
-  // is ^(?!\.), we can just prepend (?!\.) to the pattern (either root
-  // or start or whatever) and prepend ^ or / at the Regexp construction.
-  toRegExpSource(allowDot) {
-    const dot = allowDot ?? !!this.#options.dot;
-    if (this.#root === this)
-      this.#fillNegs();
-    if (!this.type) {
-      const noEmpty = this.isStart() && this.isEnd();
-      const src = this.#parts.map((p) => {
-        const [re, _, hasMagic2, uflag] = typeof p === "string" ? _AST.#parseGlob(p, this.#hasMagic, noEmpty) : p.toRegExpSource(allowDot);
-        this.#hasMagic = this.#hasMagic || hasMagic2;
-        this.#uflag = this.#uflag || uflag;
-        return re;
-      }).join("");
-      let start2 = "";
-      if (this.isStart()) {
-        if (typeof this.#parts[0] === "string") {
-          const dotTravAllowed = this.#parts.length === 1 && justDots.has(this.#parts[0]);
-          if (!dotTravAllowed) {
-            const aps = addPatternStart;
-            const needNoTrav = (
-              // dots are allowed, and the pattern starts with [ or .
-              dot && aps.has(src.charAt(0)) || // the pattern starts with \., and then [ or .
-              src.startsWith("\\.") && aps.has(src.charAt(2)) || // the pattern starts with \.\., and then [ or .
-              src.startsWith("\\.\\.") && aps.has(src.charAt(4))
-            );
-            const needNoDot = !dot && !allowDot && aps.has(src.charAt(0));
-            start2 = needNoTrav ? startNoTraversal : needNoDot ? startNoDot : "";
-          }
-        }
+  toRegExpSource(t) {
+    let e = t ?? !!this.#h.dot;
+    if (this.#t === this && this.#a(), !this.type) {
+      let a = this.isStart() && this.isEnd() && !this.#r.some((f) => typeof f != "string"), l = this.#r.map((f) => {
+        let [m, p, w, g] = typeof f == "string" ? n.#E(f, this.#s, a) : f.toRegExpSource(t);
+        return this.#s = this.#s || w, this.#n = this.#n || g, m;
+      }).join(""), u = "";
+      if (this.isStart() && typeof this.#r[0] == "string" && !(this.#r.length === 1 && Ts.has(this.#r[0]))) {
+        let m = Cs, p = e && m.has(l.charAt(0)) || l.startsWith("\\.") && m.has(l.charAt(2)) || l.startsWith("\\.\\.") && m.has(l.charAt(4)), w = !e && !t && m.has(l.charAt(0));
+        u = p ? vs : w ? Ct : "";
       }
-      let end = "";
-      if (this.isEnd() && this.#root.#filledNegs && this.#parent?.type === "!") {
-        end = "(?:$|\\/)";
-      }
-      const final2 = start2 + src + end;
-      return [
-        final2,
-        unescape(src),
-        this.#hasMagic = !!this.#hasMagic,
-        this.#uflag
-      ];
+      let c = "";
+      return this.isEnd() && this.#t.#c && this.#o?.type === "!" && (c = "(?:$|\\/)"), [u + l + c, W(l), this.#s = !!this.#s, this.#n];
     }
-    const repeated = this.type === "*" || this.type === "+";
-    const start = this.type === "!" ? "(?:(?!(?:" : "(?:";
-    let body = this.#partsToRegExp(dot);
-    if (this.isStart() && this.isEnd() && !body && this.type !== "!") {
-      const s = this.toString();
-      this.#parts = [s];
-      this.type = null;
-      this.#hasMagic = void 0;
-      return [s, unescape(this.toString()), false, false];
+    let s = this.type === "*" || this.type === "+", i = this.type === "!" ? "(?:(?!(?:" : "(?:", r = this.#d(e);
+    if (this.isStart() && this.isEnd() && !r && this.type !== "!") {
+      let a = this.toString();
+      return this.#r = [a], this.type = null, this.#s = void 0, [a, W(this.toString()), false, false];
     }
-    let bodyDotAllowed = !repeated || allowDot || dot || !startNoDot ? "" : this.#partsToRegExp(true);
-    if (bodyDotAllowed === body) {
-      bodyDotAllowed = "";
+    let o = !s || t || e || !Ct ? "" : this.#d(true);
+    o === r && (o = ""), o && (r = `(?:${r})(?:${o})*?`);
+    let h = "";
+    if (this.type === "!" && this.#f) h = (this.isStart() && !e ? Ct : "") + Ee;
+    else {
+      let a = this.type === "!" ? "))" + (this.isStart() && !e && !t ? Ct : "") + Se + ")" : this.type === "@" ? ")" : this.type === "?" ? ")?" : this.type === "+" && o ? ")" : this.type === "*" && o ? ")?" : `)${this.type}`;
+      h = i + r + a;
     }
-    if (bodyDotAllowed) {
-      body = `(?:${body})(?:${bodyDotAllowed})*?`;
-    }
-    let final = "";
-    if (this.type === "!" && this.#emptyExt) {
-      final = (this.isStart() && !dot ? startNoDot : "") + starNoEmpty;
-    } else {
-      const close = this.type === "!" ? (
-        // !() must match something,but !(x) can match ''
-        "))" + (this.isStart() && !dot && !allowDot ? startNoDot : "") + star + ")"
-      ) : this.type === "@" ? ")" : this.type === "?" ? ")?" : this.type === "+" && bodyDotAllowed ? ")" : this.type === "*" && bodyDotAllowed ? `)?` : `)${this.type}`;
-      final = start + body + close;
-    }
-    return [
-      final,
-      unescape(body),
-      this.#hasMagic = !!this.#hasMagic,
-      this.#uflag
-    ];
+    return [h, W(r), this.#s = !!this.#s, this.#n];
   }
-  #partsToRegExp(dot) {
-    return this.#parts.map((p) => {
-      if (typeof p === "string") {
-        throw new Error("string type in extglob ast??");
-      }
-      const [re, _, _hasMagic, uflag] = p.toRegExpSource(dot);
-      this.#uflag = this.#uflag || uflag;
-      return re;
-    }).filter((p) => !(this.isStart() && this.isEnd()) || !!p).join("|");
+  #d(t) {
+    return this.#r.map((e) => {
+      if (typeof e == "string") throw new Error("string type in extglob ast??");
+      let [s, i, r, o] = e.toRegExpSource(t);
+      return this.#n = this.#n || o, s;
+    }).filter((e) => !(this.isStart() && this.isEnd()) || !!e).join("|");
   }
-  static #parseGlob(glob2, hasMagic2, noEmpty = false) {
-    let escaping = false;
-    let re = "";
-    let uflag = false;
-    for (let i = 0; i < glob2.length; i++) {
-      const c = glob2.charAt(i);
-      if (escaping) {
-        escaping = false;
-        re += (reSpecials.has(c) ? "\\" : "") + c;
+  static #E(t, e, s = false) {
+    let i = false, r = "", o = false, h = false;
+    for (let a = 0; a < t.length; a++) {
+      let l = t.charAt(a);
+      if (i) {
+        i = false, r += (As.has(l) ? "\\" : "") + l;
         continue;
       }
-      if (c === "\\") {
-        if (i === glob2.length - 1) {
-          re += "\\\\";
-        } else {
-          escaping = true;
-        }
+      if (l === "*") {
+        if (h) continue;
+        h = true, r += s && /^[*]+$/.test(t) ? Ee : Se, e = true;
+        continue;
+      } else h = false;
+      if (l === "\\") {
+        a === t.length - 1 ? r += "\\\\" : i = true;
         continue;
       }
-      if (c === "[") {
-        const [src, needUflag, consumed, magic] = parseClass(glob2, i);
-        if (consumed) {
-          re += src;
-          uflag = uflag || needUflag;
-          i += consumed - 1;
-          hasMagic2 = hasMagic2 || magic;
+      if (l === "[") {
+        let [u, c, d, f] = ye(t, a);
+        if (d) {
+          r += u, o = o || c, a += d - 1, e = e || f;
           continue;
         }
       }
-      if (c === "*") {
-        if (noEmpty && glob2 === "*")
-          re += starNoEmpty;
-        else
-          re += star;
-        hasMagic2 = true;
+      if (l === "?") {
+        r += Kt, e = true;
         continue;
       }
-      if (c === "?") {
-        re += qmark;
-        hasMagic2 = true;
-        continue;
-      }
-      re += regExpEscape(c);
+      r += ks(l);
     }
-    return [re, unescape(glob2), !!hasMagic2, uflag];
+    return [r, W(t), !!e, o];
   }
 };
-
-// ../../node_modules/glob/node_modules/minimatch/dist/esm/escape.js
-var escape = (s, { windowsPathsNoEscape = false } = {}) => {
-  return windowsPathsNoEscape ? s.replace(/[?*()[\]]/g, "[$&]") : s.replace(/[?*()[\]\\]/g, "\\$&");
+var tt = (n7, { windowsPathsNoEscape: t = false, magicalBraces: e = false } = {}) => e ? t ? n7.replace(/[?*()[\]{}]/g, "[$&]") : n7.replace(/[?*()[\]\\{}]/g, "\\$&") : t ? n7.replace(/[?*()[\]]/g, "[$&]") : n7.replace(/[?*()[\]\\]/g, "\\$&");
+var O = (n7, t, e = {}) => (at(t), !e.nocomment && t.charAt(0) === "#" ? false : new D(t, e).match(n7));
+var Rs = /^\*+([^+@!?\*\[\(]*)$/;
+var Os = (n7) => (t) => !t.startsWith(".") && t.endsWith(n7);
+var Fs = (n7) => (t) => t.endsWith(n7);
+var Ds = (n7) => (n7 = n7.toLowerCase(), (t) => !t.startsWith(".") && t.toLowerCase().endsWith(n7));
+var Ms = (n7) => (n7 = n7.toLowerCase(), (t) => t.toLowerCase().endsWith(n7));
+var Ns = /^\*+\.\*+$/;
+var _s = (n7) => !n7.startsWith(".") && n7.includes(".");
+var Ls = (n7) => n7 !== "." && n7 !== ".." && n7.includes(".");
+var Ws = /^\.\*+$/;
+var Ps = (n7) => n7 !== "." && n7 !== ".." && n7.startsWith(".");
+var js = /^\*+$/;
+var Is = (n7) => n7.length !== 0 && !n7.startsWith(".");
+var zs = (n7) => n7.length !== 0 && n7 !== "." && n7 !== "..";
+var Bs = /^\?+([^+@!?\*\[\(]*)?$/;
+var Us = ([n7, t = ""]) => {
+  let e = Ce([n7]);
+  return t ? (t = t.toLowerCase(), (s) => e(s) && s.toLowerCase().endsWith(t)) : e;
 };
-
-// ../../node_modules/glob/node_modules/minimatch/dist/esm/index.js
-var minimatch = (p, pattern, options = {}) => {
-  assertValidPattern(pattern);
-  if (!options.nocomment && pattern.charAt(0) === "#") {
-    return false;
-  }
-  return new Minimatch(pattern, options).match(p);
+var $s = ([n7, t = ""]) => {
+  let e = Te([n7]);
+  return t ? (t = t.toLowerCase(), (s) => e(s) && s.toLowerCase().endsWith(t)) : e;
 };
-var starDotExtRE = /^\*+([^+@!?\*\[\(]*)$/;
-var starDotExtTest = (ext2) => (f) => !f.startsWith(".") && f.endsWith(ext2);
-var starDotExtTestDot = (ext2) => (f) => f.endsWith(ext2);
-var starDotExtTestNocase = (ext2) => {
-  ext2 = ext2.toLowerCase();
-  return (f) => !f.startsWith(".") && f.toLowerCase().endsWith(ext2);
+var Gs = ([n7, t = ""]) => {
+  let e = Te([n7]);
+  return t ? (s) => e(s) && s.endsWith(t) : e;
 };
-var starDotExtTestNocaseDot = (ext2) => {
-  ext2 = ext2.toLowerCase();
-  return (f) => f.toLowerCase().endsWith(ext2);
+var Hs = ([n7, t = ""]) => {
+  let e = Ce([n7]);
+  return t ? (s) => e(s) && s.endsWith(t) : e;
 };
-var starDotStarRE = /^\*+\.\*+$/;
-var starDotStarTest = (f) => !f.startsWith(".") && f.includes(".");
-var starDotStarTestDot = (f) => f !== "." && f !== ".." && f.includes(".");
-var dotStarRE = /^\.\*+$/;
-var dotStarTest = (f) => f !== "." && f !== ".." && f.startsWith(".");
-var starRE = /^\*+$/;
-var starTest = (f) => f.length !== 0 && !f.startsWith(".");
-var starTestDot = (f) => f.length !== 0 && f !== "." && f !== "..";
-var qmarksRE = /^\?+([^+@!?\*\[\(]*)?$/;
-var qmarksTestNocase = ([$0, ext2 = ""]) => {
-  const noext = qmarksTestNoExt([$0]);
-  if (!ext2)
-    return noext;
-  ext2 = ext2.toLowerCase();
-  return (f) => noext(f) && f.toLowerCase().endsWith(ext2);
+var Ce = ([n7]) => {
+  let t = n7.length;
+  return (e) => e.length === t && !e.startsWith(".");
 };
-var qmarksTestNocaseDot = ([$0, ext2 = ""]) => {
-  const noext = qmarksTestNoExtDot([$0]);
-  if (!ext2)
-    return noext;
-  ext2 = ext2.toLowerCase();
-  return (f) => noext(f) && f.toLowerCase().endsWith(ext2);
+var Te = ([n7]) => {
+  let t = n7.length;
+  return (e) => e.length === t && e !== "." && e !== "..";
 };
-var qmarksTestDot = ([$0, ext2 = ""]) => {
-  const noext = qmarksTestNoExtDot([$0]);
-  return !ext2 ? noext : (f) => noext(f) && f.endsWith(ext2);
+var Ae = typeof process == "object" && process ? typeof process.env == "object" && process.env && process.env.__MINIMATCH_TESTING_PLATFORM__ || process.platform : "posix";
+var xe = { win32: { sep: "\\" }, posix: { sep: "/" } };
+var qs = Ae === "win32" ? xe.win32.sep : xe.posix.sep;
+O.sep = qs;
+var A = Symbol("globstar **");
+O.GLOBSTAR = A;
+var Ks = "[^/]";
+var Vs = Ks + "*?";
+var Ys = "(?:(?!(?:\\/|^)(?:\\.{1,2})($|\\/)).)*?";
+var Xs = "(?:(?!(?:\\/|^)\\.).)*?";
+var Js = (n7, t = {}) => (e) => O(e, n7, t);
+O.filter = Js;
+var N = (n7, t = {}) => Object.assign({}, n7, t);
+var Zs = (n7) => {
+  if (!n7 || typeof n7 != "object" || !Object.keys(n7).length) return O;
+  let t = O;
+  return Object.assign((s, i, r = {}) => t(s, i, N(n7, r)), { Minimatch: class extends t.Minimatch {
+    constructor(i, r = {}) {
+      super(i, N(n7, r));
+    }
+    static defaults(i) {
+      return t.defaults(N(n7, i)).Minimatch;
+    }
+  }, AST: class extends t.AST {
+    constructor(i, r, o = {}) {
+      super(i, r, N(n7, o));
+    }
+    static fromGlob(i, r = {}) {
+      return t.AST.fromGlob(i, N(n7, r));
+    }
+  }, unescape: (s, i = {}) => t.unescape(s, N(n7, i)), escape: (s, i = {}) => t.escape(s, N(n7, i)), filter: (s, i = {}) => t.filter(s, N(n7, i)), defaults: (s) => t.defaults(N(n7, s)), makeRe: (s, i = {}) => t.makeRe(s, N(n7, i)), braceExpand: (s, i = {}) => t.braceExpand(s, N(n7, i)), match: (s, i, r = {}) => t.match(s, i, N(n7, r)), sep: t.sep, GLOBSTAR: A });
 };
-var qmarksTest = ([$0, ext2 = ""]) => {
-  const noext = qmarksTestNoExt([$0]);
-  return !ext2 ? noext : (f) => noext(f) && f.endsWith(ext2);
+O.defaults = Zs;
+var ke = (n7, t = {}) => (at(n7), t.nobrace || !/\{(?:(?!\{).)*\}/.test(n7) ? [n7] : ge(n7, { max: t.braceExpandMax }));
+O.braceExpand = ke;
+var Qs = (n7, t = {}) => new D(n7, t).makeRe();
+O.makeRe = Qs;
+var ti = (n7, t, e = {}) => {
+  let s = new D(t, e);
+  return n7 = n7.filter((i) => s.match(i)), s.options.nonull && !n7.length && n7.push(t), n7;
 };
-var qmarksTestNoExt = ([$0]) => {
-  const len = $0.length;
-  return (f) => f.length === len && !f.startsWith(".");
-};
-var qmarksTestNoExtDot = ([$0]) => {
-  const len = $0.length;
-  return (f) => f.length === len && f !== "." && f !== "..";
-};
-var defaultPlatform = typeof process === "object" && process ? typeof process.env === "object" && process.env && process.env.__MINIMATCH_TESTING_PLATFORM__ || process.platform : "posix";
-var path = {
-  win32: { sep: "\\" },
-  posix: { sep: "/" }
-};
-var sep = defaultPlatform === "win32" ? path.win32.sep : path.posix.sep;
-minimatch.sep = sep;
-var GLOBSTAR = Symbol("globstar **");
-minimatch.GLOBSTAR = GLOBSTAR;
-var qmark2 = "[^/]";
-var star2 = qmark2 + "*?";
-var twoStarDot = "(?:(?!(?:\\/|^)(?:\\.{1,2})($|\\/)).)*?";
-var twoStarNoDot = "(?:(?!(?:\\/|^)\\.).)*?";
-var filter = (pattern, options = {}) => (p) => minimatch(p, pattern, options);
-minimatch.filter = filter;
-var ext = (a, b = {}) => Object.assign({}, a, b);
-var defaults = (def) => {
-  if (!def || typeof def !== "object" || !Object.keys(def).length) {
-    return minimatch;
-  }
-  const orig = minimatch;
-  const m = (p, pattern, options = {}) => orig(p, pattern, ext(def, options));
-  return Object.assign(m, {
-    Minimatch: class Minimatch extends orig.Minimatch {
-      constructor(pattern, options = {}) {
-        super(pattern, ext(def, options));
-      }
-      static defaults(options) {
-        return orig.defaults(ext(def, options)).Minimatch;
-      }
-    },
-    AST: class AST extends orig.AST {
-      /* c8 ignore start */
-      constructor(type, parent, options = {}) {
-        super(type, parent, ext(def, options));
-      }
-      /* c8 ignore stop */
-      static fromGlob(pattern, options = {}) {
-        return orig.AST.fromGlob(pattern, ext(def, options));
-      }
-    },
-    unescape: (s, options = {}) => orig.unescape(s, ext(def, options)),
-    escape: (s, options = {}) => orig.escape(s, ext(def, options)),
-    filter: (pattern, options = {}) => orig.filter(pattern, ext(def, options)),
-    defaults: (options) => orig.defaults(ext(def, options)),
-    makeRe: (pattern, options = {}) => orig.makeRe(pattern, ext(def, options)),
-    braceExpand: (pattern, options = {}) => orig.braceExpand(pattern, ext(def, options)),
-    match: (list, pattern, options = {}) => orig.match(list, pattern, ext(def, options)),
-    sep: orig.sep,
-    GLOBSTAR
-  });
-};
-minimatch.defaults = defaults;
-var braceExpand = (pattern, options = {}) => {
-  assertValidPattern(pattern);
-  if (options.nobrace || !/\{(?:(?!\{).)*\}/.test(pattern)) {
-    return [pattern];
-  }
-  return expand(pattern);
-};
-minimatch.braceExpand = braceExpand;
-var makeRe = (pattern, options = {}) => new Minimatch(pattern, options).makeRe();
-minimatch.makeRe = makeRe;
-var match = (list, pattern, options = {}) => {
-  const mm = new Minimatch(pattern, options);
-  list = list.filter((f) => mm.match(f));
-  if (mm.options.nonull && !list.length) {
-    list.push(pattern);
-  }
-  return list;
-};
-minimatch.match = match;
-var globMagic = /[?*]|[+@!]\(.*?\)|\[|\]/;
-var regExpEscape2 = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-var Minimatch = class {
+O.match = ti;
+var ve = /[?*]|[+@!]\(.*?\)|\[|\]/;
+var ei = (n7) => n7.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+var D = class {
   options;
   set;
   pattern;
@@ -4550,4980 +4405,2133 @@ var Minimatch = class {
   platform;
   windowsNoMagicRoot;
   regexp;
-  constructor(pattern, options = {}) {
-    assertValidPattern(pattern);
-    options = options || {};
-    this.options = options;
-    this.pattern = pattern;
-    this.platform = options.platform || defaultPlatform;
-    this.isWindows = this.platform === "win32";
-    this.windowsPathsNoEscape = !!options.windowsPathsNoEscape || options.allowWindowsEscape === false;
-    if (this.windowsPathsNoEscape) {
-      this.pattern = this.pattern.replace(/\\/g, "/");
-    }
-    this.preserveMultipleSlashes = !!options.preserveMultipleSlashes;
-    this.regexp = null;
-    this.negate = false;
-    this.nonegate = !!options.nonegate;
-    this.comment = false;
-    this.empty = false;
-    this.partial = !!options.partial;
-    this.nocase = !!this.options.nocase;
-    this.windowsNoMagicRoot = options.windowsNoMagicRoot !== void 0 ? options.windowsNoMagicRoot : !!(this.isWindows && this.nocase);
-    this.globSet = [];
-    this.globParts = [];
-    this.set = [];
-    this.make();
+  constructor(t, e = {}) {
+    at(t), e = e || {}, this.options = e, this.pattern = t, this.platform = e.platform || Ae, this.isWindows = this.platform === "win32";
+    let s = "allowWindowsEscape";
+    this.windowsPathsNoEscape = !!e.windowsPathsNoEscape || e[s] === false, this.windowsPathsNoEscape && (this.pattern = this.pattern.replace(/\\/g, "/")), this.preserveMultipleSlashes = !!e.preserveMultipleSlashes, this.regexp = null, this.negate = false, this.nonegate = !!e.nonegate, this.comment = false, this.empty = false, this.partial = !!e.partial, this.nocase = !!this.options.nocase, this.windowsNoMagicRoot = e.windowsNoMagicRoot !== void 0 ? e.windowsNoMagicRoot : !!(this.isWindows && this.nocase), this.globSet = [], this.globParts = [], this.set = [], this.make();
   }
   hasMagic() {
-    if (this.options.magicalBraces && this.set.length > 1) {
-      return true;
-    }
-    for (const pattern of this.set) {
-      for (const part of pattern) {
-        if (typeof part !== "string")
-          return true;
-      }
-    }
+    if (this.options.magicalBraces && this.set.length > 1) return true;
+    for (let t of this.set) for (let e of t) if (typeof e != "string") return true;
     return false;
   }
-  debug(..._) {
+  debug(...t) {
   }
   make() {
-    const pattern = this.pattern;
-    const options = this.options;
-    if (!options.nocomment && pattern.charAt(0) === "#") {
+    let t = this.pattern, e = this.options;
+    if (!e.nocomment && t.charAt(0) === "#") {
       this.comment = true;
       return;
     }
-    if (!pattern) {
+    if (!t) {
       this.empty = true;
       return;
     }
-    this.parseNegate();
-    this.globSet = [...new Set(this.braceExpand())];
-    if (options.debug) {
-      this.debug = (...args) => console.error(...args);
-    }
-    this.debug(this.pattern, this.globSet);
-    const rawGlobParts = this.globSet.map((s) => this.slashSplit(s));
-    this.globParts = this.preprocess(rawGlobParts);
-    this.debug(this.pattern, this.globParts);
-    let set = this.globParts.map((s, _, __) => {
+    this.parseNegate(), this.globSet = [...new Set(this.braceExpand())], e.debug && (this.debug = (...r) => console.error(...r)), this.debug(this.pattern, this.globSet);
+    let s = this.globSet.map((r) => this.slashSplit(r));
+    this.globParts = this.preprocess(s), this.debug(this.pattern, this.globParts);
+    let i = this.globParts.map((r, o, h) => {
       if (this.isWindows && this.windowsNoMagicRoot) {
-        const isUNC = s[0] === "" && s[1] === "" && (s[2] === "?" || !globMagic.test(s[2])) && !globMagic.test(s[3]);
-        const isDrive = /^[a-z]:/i.test(s[0]);
-        if (isUNC) {
-          return [...s.slice(0, 4), ...s.slice(4).map((ss) => this.parse(ss))];
-        } else if (isDrive) {
-          return [s[0], ...s.slice(1).map((ss) => this.parse(ss))];
-        }
+        let a = r[0] === "" && r[1] === "" && (r[2] === "?" || !ve.test(r[2])) && !ve.test(r[3]), l = /^[a-z]:/i.test(r[0]);
+        if (a) return [...r.slice(0, 4), ...r.slice(4).map((u) => this.parse(u))];
+        if (l) return [r[0], ...r.slice(1).map((u) => this.parse(u))];
       }
-      return s.map((ss) => this.parse(ss));
+      return r.map((a) => this.parse(a));
     });
-    this.debug(this.pattern, set);
-    this.set = set.filter((s) => s.indexOf(false) === -1);
-    if (this.isWindows) {
-      for (let i = 0; i < this.set.length; i++) {
-        const p = this.set[i];
-        if (p[0] === "" && p[1] === "" && this.globParts[i][2] === "?" && typeof p[3] === "string" && /^[a-z]:$/i.test(p[3])) {
-          p[2] = "?";
-        }
-      }
+    if (this.debug(this.pattern, i), this.set = i.filter((r) => r.indexOf(false) === -1), this.isWindows) for (let r = 0; r < this.set.length; r++) {
+      let o = this.set[r];
+      o[0] === "" && o[1] === "" && this.globParts[r][2] === "?" && typeof o[3] == "string" && /^[a-z]:$/i.test(o[3]) && (o[2] = "?");
     }
     this.debug(this.pattern, this.set);
   }
-  // various transforms to equivalent pattern sets that are
-  // faster to process in a filesystem walk.  The goal is to
-  // eliminate what we can, and push all ** patterns as far
-  // to the right as possible, even if it increases the number
-  // of patterns that we have to process.
-  preprocess(globParts) {
-    if (this.options.noglobstar) {
-      for (let i = 0; i < globParts.length; i++) {
-        for (let j = 0; j < globParts[i].length; j++) {
-          if (globParts[i][j] === "**") {
-            globParts[i][j] = "*";
-          }
-        }
-      }
-    }
-    const { optimizationLevel = 1 } = this.options;
-    if (optimizationLevel >= 2) {
-      globParts = this.firstPhasePreProcess(globParts);
-      globParts = this.secondPhasePreProcess(globParts);
-    } else if (optimizationLevel >= 1) {
-      globParts = this.levelOneOptimize(globParts);
-    } else {
-      globParts = this.adjascentGlobstarOptimize(globParts);
-    }
-    return globParts;
+  preprocess(t) {
+    if (this.options.noglobstar) for (let s = 0; s < t.length; s++) for (let i = 0; i < t[s].length; i++) t[s][i] === "**" && (t[s][i] = "*");
+    let { optimizationLevel: e = 1 } = this.options;
+    return e >= 2 ? (t = this.firstPhasePreProcess(t), t = this.secondPhasePreProcess(t)) : e >= 1 ? t = this.levelOneOptimize(t) : t = this.adjascentGlobstarOptimize(t), t;
   }
-  // just get rid of adjascent ** portions
-  adjascentGlobstarOptimize(globParts) {
-    return globParts.map((parts) => {
-      let gs = -1;
-      while (-1 !== (gs = parts.indexOf("**", gs + 1))) {
-        let i = gs;
-        while (parts[i + 1] === "**") {
-          i++;
-        }
-        if (i !== gs) {
-          parts.splice(gs, i - gs);
-        }
+  adjascentGlobstarOptimize(t) {
+    return t.map((e) => {
+      let s = -1;
+      for (; (s = e.indexOf("**", s + 1)) !== -1; ) {
+        let i = s;
+        for (; e[i + 1] === "**"; ) i++;
+        i !== s && e.splice(s, i - s);
       }
-      return parts;
+      return e;
     });
   }
-  // get rid of adjascent ** and resolve .. portions
-  levelOneOptimize(globParts) {
-    return globParts.map((parts) => {
-      parts = parts.reduce((set, part) => {
-        const prev = set[set.length - 1];
-        if (part === "**" && prev === "**") {
-          return set;
-        }
-        if (part === "..") {
-          if (prev && prev !== ".." && prev !== "." && prev !== "**") {
-            set.pop();
-            return set;
-          }
-        }
-        set.push(part);
-        return set;
-      }, []);
-      return parts.length === 0 ? [""] : parts;
-    });
+  levelOneOptimize(t) {
+    return t.map((e) => (e = e.reduce((s, i) => {
+      let r = s[s.length - 1];
+      return i === "**" && r === "**" ? s : i === ".." && r && r !== ".." && r !== "." && r !== "**" ? (s.pop(), s) : (s.push(i), s);
+    }, []), e.length === 0 ? [""] : e));
   }
-  levelTwoFileOptimize(parts) {
-    if (!Array.isArray(parts)) {
-      parts = this.slashSplit(parts);
-    }
-    let didSomething = false;
+  levelTwoFileOptimize(t) {
+    Array.isArray(t) || (t = this.slashSplit(t));
+    let e = false;
     do {
-      didSomething = false;
-      if (!this.preserveMultipleSlashes) {
-        for (let i = 1; i < parts.length - 1; i++) {
-          const p = parts[i];
-          if (i === 1 && p === "" && parts[0] === "")
-            continue;
-          if (p === "." || p === "") {
-            didSomething = true;
-            parts.splice(i, 1);
-            i--;
-          }
+      if (e = false, !this.preserveMultipleSlashes) {
+        for (let i = 1; i < t.length - 1; i++) {
+          let r = t[i];
+          i === 1 && r === "" && t[0] === "" || (r === "." || r === "") && (e = true, t.splice(i, 1), i--);
         }
-        if (parts[0] === "." && parts.length === 2 && (parts[1] === "." || parts[1] === "")) {
-          didSomething = true;
-          parts.pop();
-        }
+        t[0] === "." && t.length === 2 && (t[1] === "." || t[1] === "") && (e = true, t.pop());
       }
-      let dd = 0;
-      while (-1 !== (dd = parts.indexOf("..", dd + 1))) {
-        const p = parts[dd - 1];
-        if (p && p !== "." && p !== ".." && p !== "**") {
-          didSomething = true;
-          parts.splice(dd - 1, 2);
-          dd -= 2;
-        }
+      let s = 0;
+      for (; (s = t.indexOf("..", s + 1)) !== -1; ) {
+        let i = t[s - 1];
+        i && i !== "." && i !== ".." && i !== "**" && (e = true, t.splice(s - 1, 2), s -= 2);
       }
-    } while (didSomething);
-    return parts.length === 0 ? [""] : parts;
+    } while (e);
+    return t.length === 0 ? [""] : t;
   }
-  // First phase: single-pattern processing
-  // <pre> is 1 or more portions
-  // <rest> is 1 or more portions
-  // <p> is any portion other than ., .., '', or **
-  // <e> is . or ''
-  //
-  // **/.. is *brutal* for filesystem walking performance, because
-  // it effectively resets the recursive walk each time it occurs,
-  // and ** cannot be reduced out by a .. pattern part like a regexp
-  // or most strings (other than .., ., and '') can be.
-  //
-  // <pre>/**/../<p>/<p>/<rest> -> {<pre>/../<p>/<p>/<rest>,<pre>/**/<p>/<p>/<rest>}
-  // <pre>/<e>/<rest> -> <pre>/<rest>
-  // <pre>/<p>/../<rest> -> <pre>/<rest>
-  // **/**/<rest> -> **/<rest>
-  //
-  // **/*/<rest> -> */**/<rest> <== not valid because ** doesn't follow
-  // this WOULD be allowed if ** did follow symlinks, or * didn't
-  firstPhasePreProcess(globParts) {
-    let didSomething = false;
+  firstPhasePreProcess(t) {
+    let e = false;
     do {
-      didSomething = false;
-      for (let parts of globParts) {
-        let gs = -1;
-        while (-1 !== (gs = parts.indexOf("**", gs + 1))) {
-          let gss = gs;
-          while (parts[gss + 1] === "**") {
-            gss++;
-          }
-          if (gss > gs) {
-            parts.splice(gs + 1, gss - gs);
-          }
-          let next = parts[gs + 1];
-          const p = parts[gs + 2];
-          const p2 = parts[gs + 3];
-          if (next !== "..")
-            continue;
-          if (!p || p === "." || p === ".." || !p2 || p2 === "." || p2 === "..") {
-            continue;
-          }
-          didSomething = true;
-          parts.splice(gs, 1);
-          const other = parts.slice(0);
-          other[gs] = "**";
-          globParts.push(other);
-          gs--;
+      e = false;
+      for (let s of t) {
+        let i = -1;
+        for (; (i = s.indexOf("**", i + 1)) !== -1; ) {
+          let o = i;
+          for (; s[o + 1] === "**"; ) o++;
+          o > i && s.splice(i + 1, o - i);
+          let h = s[i + 1], a = s[i + 2], l = s[i + 3];
+          if (h !== ".." || !a || a === "." || a === ".." || !l || l === "." || l === "..") continue;
+          e = true, s.splice(i, 1);
+          let u = s.slice(0);
+          u[i] = "**", t.push(u), i--;
         }
         if (!this.preserveMultipleSlashes) {
-          for (let i = 1; i < parts.length - 1; i++) {
-            const p = parts[i];
-            if (i === 1 && p === "" && parts[0] === "")
-              continue;
-            if (p === "." || p === "") {
-              didSomething = true;
-              parts.splice(i, 1);
-              i--;
-            }
+          for (let o = 1; o < s.length - 1; o++) {
+            let h = s[o];
+            o === 1 && h === "" && s[0] === "" || (h === "." || h === "") && (e = true, s.splice(o, 1), o--);
           }
-          if (parts[0] === "." && parts.length === 2 && (parts[1] === "." || parts[1] === "")) {
-            didSomething = true;
-            parts.pop();
-          }
+          s[0] === "." && s.length === 2 && (s[1] === "." || s[1] === "") && (e = true, s.pop());
         }
-        let dd = 0;
-        while (-1 !== (dd = parts.indexOf("..", dd + 1))) {
-          const p = parts[dd - 1];
-          if (p && p !== "." && p !== ".." && p !== "**") {
-            didSomething = true;
-            const needDot = dd === 1 && parts[dd + 1] === "**";
-            const splin = needDot ? ["."] : [];
-            parts.splice(dd - 1, 2, ...splin);
-            if (parts.length === 0)
-              parts.push("");
-            dd -= 2;
+        let r = 0;
+        for (; (r = s.indexOf("..", r + 1)) !== -1; ) {
+          let o = s[r - 1];
+          if (o && o !== "." && o !== ".." && o !== "**") {
+            e = true;
+            let a = r === 1 && s[r + 1] === "**" ? ["."] : [];
+            s.splice(r - 1, 2, ...a), s.length === 0 && s.push(""), r -= 2;
           }
         }
       }
-    } while (didSomething);
-    return globParts;
+    } while (e);
+    return t;
   }
-  // second phase: multi-pattern dedupes
-  // {<pre>/*/<rest>,<pre>/<p>/<rest>} -> <pre>/*/<rest>
-  // {<pre>/<rest>,<pre>/<rest>} -> <pre>/<rest>
-  // {<pre>/**/<rest>,<pre>/<rest>} -> <pre>/**/<rest>
-  //
-  // {<pre>/**/<rest>,<pre>/**/<p>/<rest>} -> <pre>/**/<rest>
-  // ^-- not valid because ** doens't follow symlinks
-  secondPhasePreProcess(globParts) {
-    for (let i = 0; i < globParts.length - 1; i++) {
-      for (let j = i + 1; j < globParts.length; j++) {
-        const matched = this.partsMatch(globParts[i], globParts[j], !this.preserveMultipleSlashes);
-        if (matched) {
-          globParts[i] = [];
-          globParts[j] = matched;
-          break;
-        }
+  secondPhasePreProcess(t) {
+    for (let e = 0; e < t.length - 1; e++) for (let s = e + 1; s < t.length; s++) {
+      let i = this.partsMatch(t[e], t[s], !this.preserveMultipleSlashes);
+      if (i) {
+        t[e] = [], t[s] = i;
+        break;
       }
     }
-    return globParts.filter((gs) => gs.length);
+    return t.filter((e) => e.length);
   }
-  partsMatch(a, b, emptyGSMatch = false) {
-    let ai = 0;
-    let bi = 0;
-    let result = [];
-    let which = "";
-    while (ai < a.length && bi < b.length) {
-      if (a[ai] === b[bi]) {
-        result.push(which === "b" ? b[bi] : a[ai]);
-        ai++;
-        bi++;
-      } else if (emptyGSMatch && a[ai] === "**" && b[bi] === a[ai + 1]) {
-        result.push(a[ai]);
-        ai++;
-      } else if (emptyGSMatch && b[bi] === "**" && a[ai] === b[bi + 1]) {
-        result.push(b[bi]);
-        bi++;
-      } else if (a[ai] === "*" && b[bi] && (this.options.dot || !b[bi].startsWith(".")) && b[bi] !== "**") {
-        if (which === "b")
-          return false;
-        which = "a";
-        result.push(a[ai]);
-        ai++;
-        bi++;
-      } else if (b[bi] === "*" && a[ai] && (this.options.dot || !a[ai].startsWith(".")) && a[ai] !== "**") {
-        if (which === "a")
-          return false;
-        which = "b";
-        result.push(b[bi]);
-        ai++;
-        bi++;
-      } else {
-        return false;
-      }
-    }
-    return a.length === b.length && result;
+  partsMatch(t, e, s = false) {
+    let i = 0, r = 0, o = [], h = "";
+    for (; i < t.length && r < e.length; ) if (t[i] === e[r]) o.push(h === "b" ? e[r] : t[i]), i++, r++;
+    else if (s && t[i] === "**" && e[r] === t[i + 1]) o.push(t[i]), i++;
+    else if (s && e[r] === "**" && t[i] === e[r + 1]) o.push(e[r]), r++;
+    else if (t[i] === "*" && e[r] && (this.options.dot || !e[r].startsWith(".")) && e[r] !== "**") {
+      if (h === "b") return false;
+      h = "a", o.push(t[i]), i++, r++;
+    } else if (e[r] === "*" && t[i] && (this.options.dot || !t[i].startsWith(".")) && t[i] !== "**") {
+      if (h === "a") return false;
+      h = "b", o.push(e[r]), i++, r++;
+    } else return false;
+    return t.length === e.length && o;
   }
   parseNegate() {
-    if (this.nonegate)
-      return;
-    const pattern = this.pattern;
-    let negate2 = false;
-    let negateOffset = 0;
-    for (let i = 0; i < pattern.length && pattern.charAt(i) === "!"; i++) {
-      negate2 = !negate2;
-      negateOffset++;
-    }
-    if (negateOffset)
-      this.pattern = pattern.slice(negateOffset);
-    this.negate = negate2;
+    if (this.nonegate) return;
+    let t = this.pattern, e = false, s = 0;
+    for (let i = 0; i < t.length && t.charAt(i) === "!"; i++) e = !e, s++;
+    s && (this.pattern = t.slice(s)), this.negate = e;
   }
-  // set partial to true to test if, for example,
-  // "/a/b" matches the start of "/*/b/*/d"
-  // Partial means, if you run out of file before you run
-  // out of pattern, then that's fine, as long as all
-  // the parts match.
-  matchOne(file, pattern, partial = false) {
-    const options = this.options;
+  matchOne(t, e, s = false) {
+    let i = this.options;
     if (this.isWindows) {
-      const fileDrive = typeof file[0] === "string" && /^[a-z]:$/i.test(file[0]);
-      const fileUNC = !fileDrive && file[0] === "" && file[1] === "" && file[2] === "?" && /^[a-z]:$/i.test(file[3]);
-      const patternDrive = typeof pattern[0] === "string" && /^[a-z]:$/i.test(pattern[0]);
-      const patternUNC = !patternDrive && pattern[0] === "" && pattern[1] === "" && pattern[2] === "?" && typeof pattern[3] === "string" && /^[a-z]:$/i.test(pattern[3]);
-      const fdi = fileUNC ? 3 : fileDrive ? 0 : void 0;
-      const pdi = patternUNC ? 3 : patternDrive ? 0 : void 0;
-      if (typeof fdi === "number" && typeof pdi === "number") {
-        const [fd, pd] = [file[fdi], pattern[pdi]];
-        if (fd.toLowerCase() === pd.toLowerCase()) {
-          pattern[pdi] = fd;
-          if (pdi > fdi) {
-            pattern = pattern.slice(pdi);
-          } else if (fdi > pdi) {
-            file = file.slice(fdi);
-          }
-        }
+      let p = typeof t[0] == "string" && /^[a-z]:$/i.test(t[0]), w = !p && t[0] === "" && t[1] === "" && t[2] === "?" && /^[a-z]:$/i.test(t[3]), g = typeof e[0] == "string" && /^[a-z]:$/i.test(e[0]), S = !g && e[0] === "" && e[1] === "" && e[2] === "?" && typeof e[3] == "string" && /^[a-z]:$/i.test(e[3]), E = w ? 3 : p ? 0 : void 0, y = S ? 3 : g ? 0 : void 0;
+      if (typeof E == "number" && typeof y == "number") {
+        let [b, z] = [t[E], e[y]];
+        b.toLowerCase() === z.toLowerCase() && (e[y] = b, y > E ? e = e.slice(y) : E > y && (t = t.slice(E)));
       }
     }
-    const { optimizationLevel = 1 } = this.options;
-    if (optimizationLevel >= 2) {
-      file = this.levelTwoFileOptimize(file);
-    }
-    this.debug("matchOne", this, { file, pattern });
-    this.debug("matchOne", file.length, pattern.length);
-    for (var fi = 0, pi = 0, fl = file.length, pl = pattern.length; fi < fl && pi < pl; fi++, pi++) {
+    let { optimizationLevel: r = 1 } = this.options;
+    r >= 2 && (t = this.levelTwoFileOptimize(t)), this.debug("matchOne", this, { file: t, pattern: e }), this.debug("matchOne", t.length, e.length);
+    for (var o = 0, h = 0, a = t.length, l = e.length; o < a && h < l; o++, h++) {
       this.debug("matchOne loop");
-      var p = pattern[pi];
-      var f = file[fi];
-      this.debug(pattern, p, f);
-      if (p === false) {
-        return false;
-      }
-      if (p === GLOBSTAR) {
-        this.debug("GLOBSTAR", [pattern, p, f]);
-        var fr = fi;
-        var pr = pi + 1;
-        if (pr === pl) {
-          this.debug("** at the end");
-          for (; fi < fl; fi++) {
-            if (file[fi] === "." || file[fi] === ".." || !options.dot && file[fi].charAt(0) === ".")
-              return false;
-          }
+      var u = e[h], c = t[o];
+      if (this.debug(e, u, c), u === false) return false;
+      if (u === A) {
+        this.debug("GLOBSTAR", [e, u, c]);
+        var d = o, f = h + 1;
+        if (f === l) {
+          for (this.debug("** at the end"); o < a; o++) if (t[o] === "." || t[o] === ".." || !i.dot && t[o].charAt(0) === ".") return false;
           return true;
         }
-        while (fr < fl) {
-          var swallowee = file[fr];
-          this.debug("\nglobstar while", file, fr, pattern, pr, swallowee);
-          if (this.matchOne(file.slice(fr), pattern.slice(pr), partial)) {
-            this.debug("globstar found match!", fr, fl, swallowee);
-            return true;
-          } else {
-            if (swallowee === "." || swallowee === ".." || !options.dot && swallowee.charAt(0) === ".") {
-              this.debug("dot detected!", file, fr, pattern, pr);
-              break;
-            }
-            this.debug("globstar swallow a segment, and continue");
-            fr++;
+        for (; d < a; ) {
+          var m = t[d];
+          if (this.debug(`
+globstar while`, t, d, e, f, m), this.matchOne(t.slice(d), e.slice(f), s)) return this.debug("globstar found match!", d, a, m), true;
+          if (m === "." || m === ".." || !i.dot && m.charAt(0) === ".") {
+            this.debug("dot detected!", t, d, e, f);
+            break;
           }
+          this.debug("globstar swallow a segment, and continue"), d++;
         }
-        if (partial) {
-          this.debug("\n>>> no match, partial?", file, fr, pattern, pr);
-          if (fr === fl) {
-            return true;
-          }
-        }
-        return false;
+        return !!(s && (this.debug(`
+>>> no match, partial?`, t, d, e, f), d === a));
       }
-      let hit;
-      if (typeof p === "string") {
-        hit = f === p;
-        this.debug("string match", p, f, hit);
-      } else {
-        hit = p.test(f);
-        this.debug("pattern match", p, f, hit);
-      }
-      if (!hit)
-        return false;
+      let p;
+      if (typeof u == "string" ? (p = c === u, this.debug("string match", u, c, p)) : (p = u.test(c), this.debug("pattern match", u, c, p)), !p) return false;
     }
-    if (fi === fl && pi === pl) {
-      return true;
-    } else if (fi === fl) {
-      return partial;
-    } else if (pi === pl) {
-      return fi === fl - 1 && file[fi] === "";
-    } else {
-      throw new Error("wtf?");
-    }
+    if (o === a && h === l) return true;
+    if (o === a) return s;
+    if (h === l) return o === a - 1 && t[o] === "";
+    throw new Error("wtf?");
   }
   braceExpand() {
-    return braceExpand(this.pattern, this.options);
+    return ke(this.pattern, this.options);
   }
-  parse(pattern) {
-    assertValidPattern(pattern);
-    const options = this.options;
-    if (pattern === "**")
-      return GLOBSTAR;
-    if (pattern === "")
-      return "";
-    let m;
-    let fastTest = null;
-    if (m = pattern.match(starRE)) {
-      fastTest = options.dot ? starTestDot : starTest;
-    } else if (m = pattern.match(starDotExtRE)) {
-      fastTest = (options.nocase ? options.dot ? starDotExtTestNocaseDot : starDotExtTestNocase : options.dot ? starDotExtTestDot : starDotExtTest)(m[1]);
-    } else if (m = pattern.match(qmarksRE)) {
-      fastTest = (options.nocase ? options.dot ? qmarksTestNocaseDot : qmarksTestNocase : options.dot ? qmarksTestDot : qmarksTest)(m);
-    } else if (m = pattern.match(starDotStarRE)) {
-      fastTest = options.dot ? starDotStarTestDot : starDotStarTest;
-    } else if (m = pattern.match(dotStarRE)) {
-      fastTest = dotStarTest;
-    }
-    const re = AST.fromGlob(pattern, this.options).toMMPattern();
-    if (fastTest && typeof re === "object") {
-      Reflect.defineProperty(re, "test", { value: fastTest });
-    }
-    return re;
+  parse(t) {
+    at(t);
+    let e = this.options;
+    if (t === "**") return A;
+    if (t === "") return "";
+    let s, i = null;
+    (s = t.match(js)) ? i = e.dot ? zs : Is : (s = t.match(Rs)) ? i = (e.nocase ? e.dot ? Ms : Ds : e.dot ? Fs : Os)(s[1]) : (s = t.match(Bs)) ? i = (e.nocase ? e.dot ? $s : Us : e.dot ? Gs : Hs)(s) : (s = t.match(Ns)) ? i = e.dot ? Ls : _s : (s = t.match(Ws)) && (i = Ps);
+    let r = Q.fromGlob(t, this.options).toMMPattern();
+    return i && typeof r == "object" && Reflect.defineProperty(r, "test", { value: i }), r;
   }
   makeRe() {
-    if (this.regexp || this.regexp === false)
-      return this.regexp;
-    const set = this.set;
-    if (!set.length) {
-      this.regexp = false;
-      return this.regexp;
-    }
-    const options = this.options;
-    const twoStar = options.noglobstar ? star2 : options.dot ? twoStarDot : twoStarNoDot;
-    const flags = new Set(options.nocase ? ["i"] : []);
-    let re = set.map((pattern) => {
-      const pp = pattern.map((p) => {
-        if (p instanceof RegExp) {
-          for (const f of p.flags.split(""))
-            flags.add(f);
-        }
-        return typeof p === "string" ? regExpEscape2(p) : p === GLOBSTAR ? GLOBSTAR : p._src;
+    if (this.regexp || this.regexp === false) return this.regexp;
+    let t = this.set;
+    if (!t.length) return this.regexp = false, this.regexp;
+    let e = this.options, s = e.noglobstar ? Vs : e.dot ? Ys : Xs, i = new Set(e.nocase ? ["i"] : []), r = t.map((a) => {
+      let l = a.map((c) => {
+        if (c instanceof RegExp) for (let d of c.flags.split("")) i.add(d);
+        return typeof c == "string" ? ei(c) : c === A ? A : c._src;
       });
-      pp.forEach((p, i) => {
-        const next = pp[i + 1];
-        const prev = pp[i - 1];
-        if (p !== GLOBSTAR || prev === GLOBSTAR) {
-          return;
-        }
-        if (prev === void 0) {
-          if (next !== void 0 && next !== GLOBSTAR) {
-            pp[i + 1] = "(?:\\/|" + twoStar + "\\/)?" + next;
-          } else {
-            pp[i] = twoStar;
-          }
-        } else if (next === void 0) {
-          pp[i - 1] = prev + "(?:\\/|" + twoStar + ")?";
-        } else if (next !== GLOBSTAR) {
-          pp[i - 1] = prev + "(?:\\/|\\/" + twoStar + "\\/)" + next;
-          pp[i + 1] = GLOBSTAR;
-        }
+      l.forEach((c, d) => {
+        let f = l[d + 1], m = l[d - 1];
+        c !== A || m === A || (m === void 0 ? f !== void 0 && f !== A ? l[d + 1] = "(?:\\/|" + s + "\\/)?" + f : l[d] = s : f === void 0 ? l[d - 1] = m + "(?:\\/|\\/" + s + ")?" : f !== A && (l[d - 1] = m + "(?:\\/|\\/" + s + "\\/)" + f, l[d + 1] = A));
       });
-      return pp.filter((p) => p !== GLOBSTAR).join("/");
-    }).join("|");
-    const [open, close] = set.length > 1 ? ["(?:", ")"] : ["", ""];
-    re = "^" + open + re + close + "$";
-    if (this.negate)
-      re = "^(?!" + re + ").+$";
+      let u = l.filter((c) => c !== A);
+      if (this.partial && u.length >= 1) {
+        let c = [];
+        for (let d = 1; d <= u.length; d++) c.push(u.slice(0, d).join("/"));
+        return "(?:" + c.join("|") + ")";
+      }
+      return u.join("/");
+    }).join("|"), [o, h] = t.length > 1 ? ["(?:", ")"] : ["", ""];
+    r = "^" + o + r + h + "$", this.partial && (r = "^(?:\\/|" + o + r.slice(1, -1) + h + ")$"), this.negate && (r = "^(?!" + r + ").+$");
     try {
-      this.regexp = new RegExp(re, [...flags].join(""));
-    } catch (ex) {
+      this.regexp = new RegExp(r, [...i].join(""));
+    } catch {
       this.regexp = false;
     }
     return this.regexp;
   }
-  slashSplit(p) {
-    if (this.preserveMultipleSlashes) {
-      return p.split("/");
-    } else if (this.isWindows && /^\/\/[^\/]+/.test(p)) {
-      return ["", ...p.split(/\/+/)];
-    } else {
-      return p.split(/\/+/);
-    }
+  slashSplit(t) {
+    return this.preserveMultipleSlashes ? t.split("/") : this.isWindows && /^\/\/[^\/]+/.test(t) ? ["", ...t.split(/\/+/)] : t.split(/\/+/);
   }
-  match(f, partial = this.partial) {
-    this.debug("match", f, this.pattern);
-    if (this.comment) {
-      return false;
+  match(t, e = this.partial) {
+    if (this.debug("match", t, this.pattern), this.comment) return false;
+    if (this.empty) return t === "";
+    if (t === "/" && e) return true;
+    let s = this.options;
+    this.isWindows && (t = t.split("\\").join("/"));
+    let i = this.slashSplit(t);
+    this.debug(this.pattern, "split", i);
+    let r = this.set;
+    this.debug(this.pattern, "set", r);
+    let o = i[i.length - 1];
+    if (!o) for (let h = i.length - 2; !o && h >= 0; h--) o = i[h];
+    for (let h = 0; h < r.length; h++) {
+      let a = r[h], l = i;
+      if (s.matchBase && a.length === 1 && (l = [o]), this.matchOne(l, a, e)) return s.flipNegate ? true : !this.negate;
     }
-    if (this.empty) {
-      return f === "";
-    }
-    if (f === "/" && partial) {
-      return true;
-    }
-    const options = this.options;
-    if (this.isWindows) {
-      f = f.split("\\").join("/");
-    }
-    const ff = this.slashSplit(f);
-    this.debug(this.pattern, "split", ff);
-    const set = this.set;
-    this.debug(this.pattern, "set", set);
-    let filename = ff[ff.length - 1];
-    if (!filename) {
-      for (let i = ff.length - 2; !filename && i >= 0; i--) {
-        filename = ff[i];
-      }
-    }
-    for (let i = 0; i < set.length; i++) {
-      const pattern = set[i];
-      let file = ff;
-      if (options.matchBase && pattern.length === 1) {
-        file = [filename];
-      }
-      const hit = this.matchOne(file, pattern, partial);
-      if (hit) {
-        if (options.flipNegate) {
-          return true;
-        }
-        return !this.negate;
-      }
-    }
-    if (options.flipNegate) {
-      return false;
-    }
-    return this.negate;
+    return s.flipNegate ? false : this.negate;
   }
-  static defaults(def) {
-    return minimatch.defaults(def).Minimatch;
+  static defaults(t) {
+    return O.defaults(t).Minimatch;
   }
 };
-minimatch.AST = AST;
-minimatch.Minimatch = Minimatch;
-minimatch.escape = escape;
-minimatch.unescape = unescape;
-
-// ../../node_modules/glob/dist/esm/glob.js
-var import_node_url2 = require("node:url");
-
-// ../../node_modules/path-scurry/node_modules/lru-cache/dist/esm/index.js
-var defaultPerf = typeof performance === "object" && performance && typeof performance.now === "function" ? performance : Date;
-var warned = /* @__PURE__ */ new Set();
-var PROCESS = typeof process === "object" && !!process ? process : {};
-var emitWarning = (msg, type, code, fn) => {
-  typeof PROCESS.emitWarning === "function" ? PROCESS.emitWarning(msg, type, code, fn) : console.error(`[${code}] ${type}: ${msg}`);
+O.AST = Q;
+O.Minimatch = D;
+O.escape = tt;
+O.unescape = W;
+var si = typeof performance == "object" && performance && typeof performance.now == "function" ? performance : Date;
+var Oe = /* @__PURE__ */ new Set();
+var Vt = typeof process == "object" && process ? process : {};
+var Fe = (n7, t, e, s) => {
+  typeof Vt.emitWarning == "function" ? Vt.emitWarning(n7, t, e, s) : console.error(`[${e}] ${t}: ${n7}`);
 };
-var AC = globalThis.AbortController;
-var AS = globalThis.AbortSignal;
-if (typeof AC === "undefined") {
-  AS = class AbortSignal {
+var At = globalThis.AbortController;
+var Re = globalThis.AbortSignal;
+if (typeof At > "u") {
+  Re = class {
     onabort;
     _onabort = [];
     reason;
     aborted = false;
-    addEventListener(_, fn) {
-      this._onabort.push(fn);
+    addEventListener(e, s) {
+      this._onabort.push(s);
     }
-  };
-  AC = class AbortController {
+  }, At = class {
     constructor() {
-      warnACPolyfill();
+      t();
     }
-    signal = new AS();
-    abort(reason) {
-      if (this.signal.aborted)
-        return;
-      this.signal.reason = reason;
-      this.signal.aborted = true;
-      for (const fn of this.signal._onabort) {
-        fn(reason);
+    signal = new Re();
+    abort(e) {
+      if (!this.signal.aborted) {
+        this.signal.reason = e, this.signal.aborted = true;
+        for (let s of this.signal._onabort) s(e);
+        this.signal.onabort?.(e);
       }
-      this.signal.onabort?.(reason);
     }
   };
-  let printACPolyfillWarning = PROCESS.env?.LRU_CACHE_IGNORE_AC_WARNING !== "1";
-  const warnACPolyfill = () => {
-    if (!printACPolyfillWarning)
-      return;
-    printACPolyfillWarning = false;
-    emitWarning("AbortController is not defined. If using lru-cache in node 14, load an AbortController polyfill from the `node-abort-controller` package. A minimal polyfill is provided for use by LRUCache.fetch(), but it should not be relied upon in other contexts (eg, passing it to other APIs that use AbortController/AbortSignal might have undesirable effects). You may disable this with LRU_CACHE_IGNORE_AC_WARNING=1 in the env.", "NO_ABORT_CONTROLLER", "ENOTSUP", warnACPolyfill);
+  let n7 = Vt.env?.LRU_CACHE_IGNORE_AC_WARNING !== "1", t = () => {
+    n7 && (n7 = false, Fe("AbortController is not defined. If using lru-cache in node 14, load an AbortController polyfill from the `node-abort-controller` package. A minimal polyfill is provided for use by LRUCache.fetch(), but it should not be relied upon in other contexts (eg, passing it to other APIs that use AbortController/AbortSignal might have undesirable effects). You may disable this with LRU_CACHE_IGNORE_AC_WARNING=1 in the env.", "NO_ABORT_CONTROLLER", "ENOTSUP", t));
   };
 }
-var shouldWarn = (code) => !warned.has(code);
-var TYPE = Symbol("type");
-var isPosInt = (n) => n && n === Math.floor(n) && n > 0 && isFinite(n);
-var getUintArray = (max) => !isPosInt(max) ? null : max <= Math.pow(2, 8) ? Uint8Array : max <= Math.pow(2, 16) ? Uint16Array : max <= Math.pow(2, 32) ? Uint32Array : max <= Number.MAX_SAFE_INTEGER ? ZeroArray : null;
-var ZeroArray = class extends Array {
-  constructor(size) {
-    super(size);
-    this.fill(0);
+var ii = (n7) => !Oe.has(n7);
+var q = (n7) => n7 && n7 === Math.floor(n7) && n7 > 0 && isFinite(n7);
+var De = (n7) => q(n7) ? n7 <= Math.pow(2, 8) ? Uint8Array : n7 <= Math.pow(2, 16) ? Uint16Array : n7 <= Math.pow(2, 32) ? Uint32Array : n7 <= Number.MAX_SAFE_INTEGER ? Tt : null : null;
+var Tt = class extends Array {
+  constructor(n7) {
+    super(n7), this.fill(0);
   }
 };
-var Stack = class _Stack {
+var ri = class ct {
   heap;
   length;
-  // private constructor
-  static #constructing = false;
-  static create(max) {
-    const HeapCls = getUintArray(max);
-    if (!HeapCls)
-      return [];
-    _Stack.#constructing = true;
-    const s = new _Stack(max, HeapCls);
-    _Stack.#constructing = false;
-    return s;
+  static #t = false;
+  static create(t) {
+    let e = De(t);
+    if (!e) return [];
+    ct.#t = true;
+    let s = new ct(t, e);
+    return ct.#t = false, s;
   }
-  constructor(max, HeapCls) {
-    if (!_Stack.#constructing) {
-      throw new TypeError("instantiate Stack using Stack.create(n)");
-    }
-    this.heap = new HeapCls(max);
-    this.length = 0;
+  constructor(t, e) {
+    if (!ct.#t) throw new TypeError("instantiate Stack using Stack.create(n)");
+    this.heap = new e(t), this.length = 0;
   }
-  push(n) {
-    this.heap[this.length++] = n;
+  push(t) {
+    this.heap[this.length++] = t;
   }
   pop() {
     return this.heap[--this.length];
   }
 };
-var LRUCache = class _LRUCache {
-  // options that cannot be changed without disaster
-  #max;
-  #maxSize;
-  #dispose;
-  #onInsert;
-  #disposeAfter;
-  #fetchMethod;
-  #memoMethod;
-  #perf;
-  /**
-   * {@link LRUCache.OptionsBase.perf}
-   */
+var ft = class Me {
+  #t;
+  #s;
+  #n;
+  #r;
+  #o;
+  #S;
+  #w;
+  #c;
   get perf() {
-    return this.#perf;
+    return this.#c;
   }
-  /**
-   * {@link LRUCache.OptionsBase.ttl}
-   */
   ttl;
-  /**
-   * {@link LRUCache.OptionsBase.ttlResolution}
-   */
   ttlResolution;
-  /**
-   * {@link LRUCache.OptionsBase.ttlAutopurge}
-   */
   ttlAutopurge;
-  /**
-   * {@link LRUCache.OptionsBase.updateAgeOnGet}
-   */
   updateAgeOnGet;
-  /**
-   * {@link LRUCache.OptionsBase.updateAgeOnHas}
-   */
   updateAgeOnHas;
-  /**
-   * {@link LRUCache.OptionsBase.allowStale}
-   */
   allowStale;
-  /**
-   * {@link LRUCache.OptionsBase.noDisposeOnSet}
-   */
   noDisposeOnSet;
-  /**
-   * {@link LRUCache.OptionsBase.noUpdateTTL}
-   */
   noUpdateTTL;
-  /**
-   * {@link LRUCache.OptionsBase.maxEntrySize}
-   */
   maxEntrySize;
-  /**
-   * {@link LRUCache.OptionsBase.sizeCalculation}
-   */
   sizeCalculation;
-  /**
-   * {@link LRUCache.OptionsBase.noDeleteOnFetchRejection}
-   */
   noDeleteOnFetchRejection;
-  /**
-   * {@link LRUCache.OptionsBase.noDeleteOnStaleGet}
-   */
   noDeleteOnStaleGet;
-  /**
-   * {@link LRUCache.OptionsBase.allowStaleOnFetchAbort}
-   */
   allowStaleOnFetchAbort;
-  /**
-   * {@link LRUCache.OptionsBase.allowStaleOnFetchRejection}
-   */
   allowStaleOnFetchRejection;
-  /**
-   * {@link LRUCache.OptionsBase.ignoreFetchAbort}
-   */
   ignoreFetchAbort;
-  // computed properties
-  #size;
-  #calculatedSize;
-  #keyMap;
-  #keyList;
-  #valList;
-  #next;
-  #prev;
-  #head;
-  #tail;
-  #free;
-  #disposed;
-  #sizes;
-  #starts;
-  #ttls;
-  #hasDispose;
-  #hasFetchMethod;
-  #hasDisposeAfter;
-  #hasOnInsert;
-  /**
-   * Do not call this method unless you need to inspect the
-   * inner workings of the cache.  If anything returned by this
-   * object is modified in any way, strange breakage may occur.
-   *
-   * These fields are private for a reason!
-   *
-   * @internal
-   */
-  static unsafeExposeInternals(c) {
-    return {
-      // properties
-      starts: c.#starts,
-      ttls: c.#ttls,
-      sizes: c.#sizes,
-      keyMap: c.#keyMap,
-      keyList: c.#keyList,
-      valList: c.#valList,
-      next: c.#next,
-      prev: c.#prev,
-      get head() {
-        return c.#head;
-      },
-      get tail() {
-        return c.#tail;
-      },
-      free: c.#free,
-      // methods
-      isBackgroundFetch: (p) => c.#isBackgroundFetch(p),
-      backgroundFetch: (k, index, options, context) => c.#backgroundFetch(k, index, options, context),
-      moveToTail: (index) => c.#moveToTail(index),
-      indexes: (options) => c.#indexes(options),
-      rindexes: (options) => c.#rindexes(options),
-      isStale: (index) => c.#isStale(index)
-    };
+  #h;
+  #u;
+  #f;
+  #a;
+  #i;
+  #d;
+  #E;
+  #b;
+  #p;
+  #R;
+  #m;
+  #C;
+  #T;
+  #g;
+  #y;
+  #x;
+  #A;
+  #e;
+  #_;
+  static unsafeExposeInternals(t) {
+    return { starts: t.#T, ttls: t.#g, autopurgeTimers: t.#y, sizes: t.#C, keyMap: t.#f, keyList: t.#a, valList: t.#i, next: t.#d, prev: t.#E, get head() {
+      return t.#b;
+    }, get tail() {
+      return t.#p;
+    }, free: t.#R, isBackgroundFetch: (e) => t.#l(e), backgroundFetch: (e, s, i, r) => t.#U(e, s, i, r), moveToTail: (e) => t.#W(e), indexes: (e) => t.#F(e), rindexes: (e) => t.#D(e), isStale: (e) => t.#v(e) };
   }
-  // Protected read-only members
-  /**
-   * {@link LRUCache.OptionsBase.max} (read-only)
-   */
   get max() {
-    return this.#max;
+    return this.#t;
   }
-  /**
-   * {@link LRUCache.OptionsBase.maxSize} (read-only)
-   */
   get maxSize() {
-    return this.#maxSize;
+    return this.#s;
   }
-  /**
-   * The total computed size of items in the cache (read-only)
-   */
   get calculatedSize() {
-    return this.#calculatedSize;
+    return this.#u;
   }
-  /**
-   * The number of items stored in the cache (read-only)
-   */
   get size() {
-    return this.#size;
+    return this.#h;
   }
-  /**
-   * {@link LRUCache.OptionsBase.fetchMethod} (read-only)
-   */
   get fetchMethod() {
-    return this.#fetchMethod;
+    return this.#S;
   }
   get memoMethod() {
-    return this.#memoMethod;
+    return this.#w;
   }
-  /**
-   * {@link LRUCache.OptionsBase.dispose} (read-only)
-   */
   get dispose() {
-    return this.#dispose;
+    return this.#n;
   }
-  /**
-   * {@link LRUCache.OptionsBase.onInsert} (read-only)
-   */
   get onInsert() {
-    return this.#onInsert;
+    return this.#r;
   }
-  /**
-   * {@link LRUCache.OptionsBase.disposeAfter} (read-only)
-   */
   get disposeAfter() {
-    return this.#disposeAfter;
+    return this.#o;
   }
-  constructor(options) {
-    const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, onInsert, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, memoMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort, perf } = options;
-    if (perf !== void 0) {
-      if (typeof perf?.now !== "function") {
-        throw new TypeError("perf option must have a now() method if specified");
-      }
+  constructor(t) {
+    let { max: e = 0, ttl: s, ttlResolution: i = 1, ttlAutopurge: r, updateAgeOnGet: o, updateAgeOnHas: h, allowStale: a, dispose: l, onInsert: u, disposeAfter: c, noDisposeOnSet: d, noUpdateTTL: f, maxSize: m = 0, maxEntrySize: p = 0, sizeCalculation: w, fetchMethod: g, memoMethod: S, noDeleteOnFetchRejection: E, noDeleteOnStaleGet: y, allowStaleOnFetchRejection: b, allowStaleOnFetchAbort: z, ignoreFetchAbort: $, perf: J } = t;
+    if (J !== void 0 && typeof J?.now != "function") throw new TypeError("perf option must have a now() method if specified");
+    if (this.#c = J ?? si, e !== 0 && !q(e)) throw new TypeError("max option must be a nonnegative integer");
+    let Z = e ? De(e) : Array;
+    if (!Z) throw new Error("invalid max value: " + e);
+    if (this.#t = e, this.#s = m, this.maxEntrySize = p || this.#s, this.sizeCalculation = w, this.sizeCalculation) {
+      if (!this.#s && !this.maxEntrySize) throw new TypeError("cannot set sizeCalculation without setting maxSize or maxEntrySize");
+      if (typeof this.sizeCalculation != "function") throw new TypeError("sizeCalculation set to non-function");
     }
-    this.#perf = perf ?? defaultPerf;
-    if (max !== 0 && !isPosInt(max)) {
-      throw new TypeError("max option must be a nonnegative integer");
+    if (S !== void 0 && typeof S != "function") throw new TypeError("memoMethod must be a function if defined");
+    if (this.#w = S, g !== void 0 && typeof g != "function") throw new TypeError("fetchMethod must be a function if specified");
+    if (this.#S = g, this.#A = !!g, this.#f = /* @__PURE__ */ new Map(), this.#a = new Array(e).fill(void 0), this.#i = new Array(e).fill(void 0), this.#d = new Z(e), this.#E = new Z(e), this.#b = 0, this.#p = 0, this.#R = ri.create(e), this.#h = 0, this.#u = 0, typeof l == "function" && (this.#n = l), typeof u == "function" && (this.#r = u), typeof c == "function" ? (this.#o = c, this.#m = []) : (this.#o = void 0, this.#m = void 0), this.#x = !!this.#n, this.#_ = !!this.#r, this.#e = !!this.#o, this.noDisposeOnSet = !!d, this.noUpdateTTL = !!f, this.noDeleteOnFetchRejection = !!E, this.allowStaleOnFetchRejection = !!b, this.allowStaleOnFetchAbort = !!z, this.ignoreFetchAbort = !!$, this.maxEntrySize !== 0) {
+      if (this.#s !== 0 && !q(this.#s)) throw new TypeError("maxSize must be a positive integer if specified");
+      if (!q(this.maxEntrySize)) throw new TypeError("maxEntrySize must be a positive integer if specified");
+      this.#G();
     }
-    const UintArray = max ? getUintArray(max) : Array;
-    if (!UintArray) {
-      throw new Error("invalid max value: " + max);
+    if (this.allowStale = !!a, this.noDeleteOnStaleGet = !!y, this.updateAgeOnGet = !!o, this.updateAgeOnHas = !!h, this.ttlResolution = q(i) || i === 0 ? i : 1, this.ttlAutopurge = !!r, this.ttl = s || 0, this.ttl) {
+      if (!q(this.ttl)) throw new TypeError("ttl must be a positive integer if specified");
+      this.#M();
     }
-    this.#max = max;
-    this.#maxSize = maxSize;
-    this.maxEntrySize = maxEntrySize || this.#maxSize;
-    this.sizeCalculation = sizeCalculation;
-    if (this.sizeCalculation) {
-      if (!this.#maxSize && !this.maxEntrySize) {
-        throw new TypeError("cannot set sizeCalculation without setting maxSize or maxEntrySize");
-      }
-      if (typeof this.sizeCalculation !== "function") {
-        throw new TypeError("sizeCalculation set to non-function");
-      }
-    }
-    if (memoMethod !== void 0 && typeof memoMethod !== "function") {
-      throw new TypeError("memoMethod must be a function if defined");
-    }
-    this.#memoMethod = memoMethod;
-    if (fetchMethod !== void 0 && typeof fetchMethod !== "function") {
-      throw new TypeError("fetchMethod must be a function if specified");
-    }
-    this.#fetchMethod = fetchMethod;
-    this.#hasFetchMethod = !!fetchMethod;
-    this.#keyMap = /* @__PURE__ */ new Map();
-    this.#keyList = new Array(max).fill(void 0);
-    this.#valList = new Array(max).fill(void 0);
-    this.#next = new UintArray(max);
-    this.#prev = new UintArray(max);
-    this.#head = 0;
-    this.#tail = 0;
-    this.#free = Stack.create(max);
-    this.#size = 0;
-    this.#calculatedSize = 0;
-    if (typeof dispose === "function") {
-      this.#dispose = dispose;
-    }
-    if (typeof onInsert === "function") {
-      this.#onInsert = onInsert;
-    }
-    if (typeof disposeAfter === "function") {
-      this.#disposeAfter = disposeAfter;
-      this.#disposed = [];
-    } else {
-      this.#disposeAfter = void 0;
-      this.#disposed = void 0;
-    }
-    this.#hasDispose = !!this.#dispose;
-    this.#hasOnInsert = !!this.#onInsert;
-    this.#hasDisposeAfter = !!this.#disposeAfter;
-    this.noDisposeOnSet = !!noDisposeOnSet;
-    this.noUpdateTTL = !!noUpdateTTL;
-    this.noDeleteOnFetchRejection = !!noDeleteOnFetchRejection;
-    this.allowStaleOnFetchRejection = !!allowStaleOnFetchRejection;
-    this.allowStaleOnFetchAbort = !!allowStaleOnFetchAbort;
-    this.ignoreFetchAbort = !!ignoreFetchAbort;
-    if (this.maxEntrySize !== 0) {
-      if (this.#maxSize !== 0) {
-        if (!isPosInt(this.#maxSize)) {
-          throw new TypeError("maxSize must be a positive integer if specified");
-        }
-      }
-      if (!isPosInt(this.maxEntrySize)) {
-        throw new TypeError("maxEntrySize must be a positive integer if specified");
-      }
-      this.#initializeSizeTracking();
-    }
-    this.allowStale = !!allowStale;
-    this.noDeleteOnStaleGet = !!noDeleteOnStaleGet;
-    this.updateAgeOnGet = !!updateAgeOnGet;
-    this.updateAgeOnHas = !!updateAgeOnHas;
-    this.ttlResolution = isPosInt(ttlResolution) || ttlResolution === 0 ? ttlResolution : 1;
-    this.ttlAutopurge = !!ttlAutopurge;
-    this.ttl = ttl || 0;
-    if (this.ttl) {
-      if (!isPosInt(this.ttl)) {
-        throw new TypeError("ttl must be a positive integer if specified");
-      }
-      this.#initializeTTLTracking();
-    }
-    if (this.#max === 0 && this.ttl === 0 && this.#maxSize === 0) {
-      throw new TypeError("At least one of max, maxSize, or ttl is required");
-    }
-    if (!this.ttlAutopurge && !this.#max && !this.#maxSize) {
-      const code = "LRU_CACHE_UNBOUNDED";
-      if (shouldWarn(code)) {
-        warned.add(code);
-        const msg = "TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.";
-        emitWarning(msg, "UnboundedCacheWarning", code, _LRUCache);
-      }
+    if (this.#t === 0 && this.ttl === 0 && this.#s === 0) throw new TypeError("At least one of max, maxSize, or ttl is required");
+    if (!this.ttlAutopurge && !this.#t && !this.#s) {
+      let $t = "LRU_CACHE_UNBOUNDED";
+      ii($t) && (Oe.add($t), Fe("TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.", "UnboundedCacheWarning", $t, Me));
     }
   }
-  /**
-   * Return the number of ms left in the item's TTL. If item is not in cache,
-   * returns `0`. Returns `Infinity` if item is in cache without a defined TTL.
-   */
-  getRemainingTTL(key2) {
-    return this.#keyMap.has(key2) ? Infinity : 0;
+  getRemainingTTL(t) {
+    return this.#f.has(t) ? 1 / 0 : 0;
   }
-  #initializeTTLTracking() {
-    const ttls = new ZeroArray(this.#max);
-    const starts = new ZeroArray(this.#max);
-    this.#ttls = ttls;
-    this.#starts = starts;
-    this.#setItemTTL = (index, ttl, start = this.#perf.now()) => {
-      starts[index] = ttl !== 0 ? start : 0;
-      ttls[index] = ttl;
-      if (ttl !== 0 && this.ttlAutopurge) {
-        const t = setTimeout(() => {
-          if (this.#isStale(index)) {
-            this.#delete(this.#keyList[index], "expire");
-          }
-        }, ttl + 1);
-        if (t.unref) {
-          t.unref();
-        }
+  #M() {
+    let t = new Tt(this.#t), e = new Tt(this.#t);
+    this.#g = t, this.#T = e;
+    let s = this.ttlAutopurge ? new Array(this.#t) : void 0;
+    this.#y = s, this.#j = (o, h, a = this.#c.now()) => {
+      if (e[o] = h !== 0 ? a : 0, t[o] = h, s?.[o] && (clearTimeout(s[o]), s[o] = void 0), h !== 0 && s) {
+        let l = setTimeout(() => {
+          this.#v(o) && this.#O(this.#a[o], "expire");
+        }, h + 1);
+        l.unref && l.unref(), s[o] = l;
+      }
+    }, this.#k = (o) => {
+      e[o] = t[o] !== 0 ? this.#c.now() : 0;
+    }, this.#N = (o, h) => {
+      if (t[h]) {
+        let a = t[h], l = e[h];
+        if (!a || !l) return;
+        o.ttl = a, o.start = l, o.now = i || r();
+        let u = o.now - l;
+        o.remainingTTL = a - u;
       }
     };
-    this.#updateItemAge = (index) => {
-      starts[index] = ttls[index] !== 0 ? this.#perf.now() : 0;
-    };
-    this.#statusTTL = (status, index) => {
-      if (ttls[index]) {
-        const ttl = ttls[index];
-        const start = starts[index];
-        if (!ttl || !start)
-          return;
-        status.ttl = ttl;
-        status.start = start;
-        status.now = cachedNow || getNow();
-        const age = status.now - start;
-        status.remainingTTL = ttl - age;
-      }
-    };
-    let cachedNow = 0;
-    const getNow = () => {
-      const n = this.#perf.now();
+    let i = 0, r = () => {
+      let o = this.#c.now();
       if (this.ttlResolution > 0) {
-        cachedNow = n;
-        const t = setTimeout(() => cachedNow = 0, this.ttlResolution);
-        if (t.unref) {
-          t.unref();
-        }
+        i = o;
+        let h = setTimeout(() => i = 0, this.ttlResolution);
+        h.unref && h.unref();
       }
-      return n;
+      return o;
     };
-    this.getRemainingTTL = (key2) => {
-      const index = this.#keyMap.get(key2);
-      if (index === void 0) {
-        return 0;
-      }
-      const ttl = ttls[index];
-      const start = starts[index];
-      if (!ttl || !start) {
-        return Infinity;
-      }
-      const age = (cachedNow || getNow()) - start;
-      return ttl - age;
-    };
-    this.#isStale = (index) => {
-      const s = starts[index];
-      const t = ttls[index];
-      return !!t && !!s && (cachedNow || getNow()) - s > t;
+    this.getRemainingTTL = (o) => {
+      let h = this.#f.get(o);
+      if (h === void 0) return 0;
+      let a = t[h], l = e[h];
+      if (!a || !l) return 1 / 0;
+      let u = (i || r()) - l;
+      return a - u;
+    }, this.#v = (o) => {
+      let h = e[o], a = t[o];
+      return !!a && !!h && (i || r()) - h > a;
     };
   }
-  // conditionally set private methods related to TTL
-  #updateItemAge = () => {
+  #k = () => {
   };
-  #statusTTL = () => {
+  #N = () => {
   };
-  #setItemTTL = () => {
+  #j = () => {
   };
-  /* c8 ignore stop */
-  #isStale = () => false;
-  #initializeSizeTracking() {
-    const sizes = new ZeroArray(this.#max);
-    this.#calculatedSize = 0;
-    this.#sizes = sizes;
-    this.#removeItemSize = (index) => {
-      this.#calculatedSize -= sizes[index];
-      sizes[index] = 0;
-    };
-    this.#requireSize = (k, v, size, sizeCalculation) => {
-      if (this.#isBackgroundFetch(v)) {
-        return 0;
+  #v = () => false;
+  #G() {
+    let t = new Tt(this.#t);
+    this.#u = 0, this.#C = t, this.#P = (e) => {
+      this.#u -= t[e], t[e] = 0;
+    }, this.#I = (e, s, i, r) => {
+      if (this.#l(s)) return 0;
+      if (!q(i)) if (r) {
+        if (typeof r != "function") throw new TypeError("sizeCalculation must be a function");
+        if (i = r(s, e), !q(i)) throw new TypeError("sizeCalculation return invalid (expect positive integer)");
+      } else throw new TypeError("invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.");
+      return i;
+    }, this.#L = (e, s, i) => {
+      if (t[e] = s, this.#s) {
+        let r = this.#s - t[e];
+        for (; this.#u > r; ) this.#B(true);
       }
-      if (!isPosInt(size)) {
-        if (sizeCalculation) {
-          if (typeof sizeCalculation !== "function") {
-            throw new TypeError("sizeCalculation must be a function");
-          }
-          size = sizeCalculation(v, k);
-          if (!isPosInt(size)) {
-            throw new TypeError("sizeCalculation return invalid (expect positive integer)");
-          }
-        } else {
-          throw new TypeError("invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.");
-        }
-      }
-      return size;
-    };
-    this.#addItemSize = (index, size, status) => {
-      sizes[index] = size;
-      if (this.#maxSize) {
-        const maxSize = this.#maxSize - sizes[index];
-        while (this.#calculatedSize > maxSize) {
-          this.#evict(true);
-        }
-      }
-      this.#calculatedSize += sizes[index];
-      if (status) {
-        status.entrySize = size;
-        status.totalCalculatedSize = this.#calculatedSize;
-      }
+      this.#u += t[e], i && (i.entrySize = s, i.totalCalculatedSize = this.#u);
     };
   }
-  #removeItemSize = (_i) => {
+  #P = (t) => {
   };
-  #addItemSize = (_i, _s, _st) => {
+  #L = (t, e, s) => {
   };
-  #requireSize = (_k, _v, size, sizeCalculation) => {
-    if (size || sizeCalculation) {
-      throw new TypeError("cannot set size without setting maxSize or maxEntrySize on cache");
-    }
+  #I = (t, e, s, i) => {
+    if (s || i) throw new TypeError("cannot set size without setting maxSize or maxEntrySize on cache");
     return 0;
   };
-  *#indexes({ allowStale = this.allowStale } = {}) {
-    if (this.#size) {
-      for (let i = this.#tail; true; ) {
-        if (!this.#isValidIndex(i)) {
-          break;
-        }
-        if (allowStale || !this.#isStale(i)) {
-          yield i;
-        }
-        if (i === this.#head) {
-          break;
-        } else {
-          i = this.#prev[i];
-        }
-      }
-    }
+  *#F({ allowStale: t = this.allowStale } = {}) {
+    if (this.#h) for (let e = this.#p; !(!this.#z(e) || ((t || !this.#v(e)) && (yield e), e === this.#b)); ) e = this.#E[e];
   }
-  *#rindexes({ allowStale = this.allowStale } = {}) {
-    if (this.#size) {
-      for (let i = this.#head; true; ) {
-        if (!this.#isValidIndex(i)) {
-          break;
-        }
-        if (allowStale || !this.#isStale(i)) {
-          yield i;
-        }
-        if (i === this.#tail) {
-          break;
-        } else {
-          i = this.#next[i];
-        }
-      }
-    }
+  *#D({ allowStale: t = this.allowStale } = {}) {
+    if (this.#h) for (let e = this.#b; !(!this.#z(e) || ((t || !this.#v(e)) && (yield e), e === this.#p)); ) e = this.#d[e];
   }
-  #isValidIndex(index) {
-    return index !== void 0 && this.#keyMap.get(this.#keyList[index]) === index;
+  #z(t) {
+    return t !== void 0 && this.#f.get(this.#a[t]) === t;
   }
-  /**
-   * Return a generator yielding `[key, value]` pairs,
-   * in order from most recently used to least recently used.
-   */
   *entries() {
-    for (const i of this.#indexes()) {
-      if (this.#valList[i] !== void 0 && this.#keyList[i] !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
-        yield [this.#keyList[i], this.#valList[i]];
-      }
-    }
+    for (let t of this.#F()) this.#i[t] !== void 0 && this.#a[t] !== void 0 && !this.#l(this.#i[t]) && (yield [this.#a[t], this.#i[t]]);
   }
-  /**
-   * Inverse order version of {@link LRUCache.entries}
-   *
-   * Return a generator yielding `[key, value]` pairs,
-   * in order from least recently used to most recently used.
-   */
   *rentries() {
-    for (const i of this.#rindexes()) {
-      if (this.#valList[i] !== void 0 && this.#keyList[i] !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
-        yield [this.#keyList[i], this.#valList[i]];
-      }
-    }
+    for (let t of this.#D()) this.#i[t] !== void 0 && this.#a[t] !== void 0 && !this.#l(this.#i[t]) && (yield [this.#a[t], this.#i[t]]);
   }
-  /**
-   * Return a generator yielding the keys in the cache,
-   * in order from most recently used to least recently used.
-   */
   *keys() {
-    for (const i of this.#indexes()) {
-      const k = this.#keyList[i];
-      if (k !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
-        yield k;
-      }
+    for (let t of this.#F()) {
+      let e = this.#a[t];
+      e !== void 0 && !this.#l(this.#i[t]) && (yield e);
     }
   }
-  /**
-   * Inverse order version of {@link LRUCache.keys}
-   *
-   * Return a generator yielding the keys in the cache,
-   * in order from least recently used to most recently used.
-   */
   *rkeys() {
-    for (const i of this.#rindexes()) {
-      const k = this.#keyList[i];
-      if (k !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
-        yield k;
-      }
+    for (let t of this.#D()) {
+      let e = this.#a[t];
+      e !== void 0 && !this.#l(this.#i[t]) && (yield e);
     }
   }
-  /**
-   * Return a generator yielding the values in the cache,
-   * in order from most recently used to least recently used.
-   */
   *values() {
-    for (const i of this.#indexes()) {
-      const v = this.#valList[i];
-      if (v !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
-        yield this.#valList[i];
-      }
-    }
+    for (let t of this.#F()) this.#i[t] !== void 0 && !this.#l(this.#i[t]) && (yield this.#i[t]);
   }
-  /**
-   * Inverse order version of {@link LRUCache.values}
-   *
-   * Return a generator yielding the values in the cache,
-   * in order from least recently used to most recently used.
-   */
   *rvalues() {
-    for (const i of this.#rindexes()) {
-      const v = this.#valList[i];
-      if (v !== void 0 && !this.#isBackgroundFetch(this.#valList[i])) {
-        yield this.#valList[i];
-      }
-    }
+    for (let t of this.#D()) this.#i[t] !== void 0 && !this.#l(this.#i[t]) && (yield this.#i[t]);
   }
-  /**
-   * Iterating over the cache itself yields the same results as
-   * {@link LRUCache.entries}
-   */
   [Symbol.iterator]() {
     return this.entries();
   }
-  /**
-   * A String value that is used in the creation of the default string
-   * description of an object. Called by the built-in method
-   * `Object.prototype.toString`.
-   */
   [Symbol.toStringTag] = "LRUCache";
-  /**
-   * Find a value for which the supplied fn method returns a truthy value,
-   * similar to `Array.find()`. fn is called as `fn(value, key, cache)`.
-   */
-  find(fn, getOptions = {}) {
-    for (const i of this.#indexes()) {
-      const v = this.#valList[i];
-      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
-      if (value === void 0)
-        continue;
-      if (fn(value, this.#keyList[i], this)) {
-        return this.get(this.#keyList[i], getOptions);
-      }
+  find(t, e = {}) {
+    for (let s of this.#F()) {
+      let i = this.#i[s], r = this.#l(i) ? i.__staleWhileFetching : i;
+      if (r !== void 0 && t(r, this.#a[s], this)) return this.get(this.#a[s], e);
     }
   }
-  /**
-   * Call the supplied function on each item in the cache, in order from most
-   * recently used to least recently used.
-   *
-   * `fn` is called as `fn(value, key, cache)`.
-   *
-   * If `thisp` is provided, function will be called in the `this`-context of
-   * the provided object, or the cache if no `thisp` object is provided.
-   *
-   * Does not update age or recenty of use, or iterate over stale values.
-   */
-  forEach(fn, thisp = this) {
-    for (const i of this.#indexes()) {
-      const v = this.#valList[i];
-      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
-      if (value === void 0)
-        continue;
-      fn.call(thisp, value, this.#keyList[i], this);
+  forEach(t, e = this) {
+    for (let s of this.#F()) {
+      let i = this.#i[s], r = this.#l(i) ? i.__staleWhileFetching : i;
+      r !== void 0 && t.call(e, r, this.#a[s], this);
     }
   }
-  /**
-   * The same as {@link LRUCache.forEach} but items are iterated over in
-   * reverse order.  (ie, less recently used items are iterated over first.)
-   */
-  rforEach(fn, thisp = this) {
-    for (const i of this.#rindexes()) {
-      const v = this.#valList[i];
-      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
-      if (value === void 0)
-        continue;
-      fn.call(thisp, value, this.#keyList[i], this);
+  rforEach(t, e = this) {
+    for (let s of this.#D()) {
+      let i = this.#i[s], r = this.#l(i) ? i.__staleWhileFetching : i;
+      r !== void 0 && t.call(e, r, this.#a[s], this);
     }
   }
-  /**
-   * Delete any stale entries. Returns true if anything was removed,
-   * false otherwise.
-   */
   purgeStale() {
-    let deleted = false;
-    for (const i of this.#rindexes({ allowStale: true })) {
-      if (this.#isStale(i)) {
-        this.#delete(this.#keyList[i], "expire");
-        deleted = true;
+    let t = false;
+    for (let e of this.#D({ allowStale: true })) this.#v(e) && (this.#O(this.#a[e], "expire"), t = true);
+    return t;
+  }
+  info(t) {
+    let e = this.#f.get(t);
+    if (e === void 0) return;
+    let s = this.#i[e], i = this.#l(s) ? s.__staleWhileFetching : s;
+    if (i === void 0) return;
+    let r = { value: i };
+    if (this.#g && this.#T) {
+      let o = this.#g[e], h = this.#T[e];
+      if (o && h) {
+        let a = o - (this.#c.now() - h);
+        r.ttl = a, r.start = Date.now();
       }
     }
-    return deleted;
+    return this.#C && (r.size = this.#C[e]), r;
   }
-  /**
-   * Get the extended info about a given entry, to get its value, size, and
-   * TTL info simultaneously. Returns `undefined` if the key is not present.
-   *
-   * Unlike {@link LRUCache#dump}, which is designed to be portable and survive
-   * serialization, the `start` value is always the current timestamp, and the
-   * `ttl` is a calculated remaining time to live (negative if expired).
-   *
-   * Always returns stale values, if their info is found in the cache, so be
-   * sure to check for expirations (ie, a negative {@link LRUCache.Entry#ttl})
-   * if relevant.
-   */
-  info(key2) {
-    const i = this.#keyMap.get(key2);
-    if (i === void 0)
-      return void 0;
-    const v = this.#valList[i];
-    const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
-    if (value === void 0)
-      return void 0;
-    const entry = { value };
-    if (this.#ttls && this.#starts) {
-      const ttl = this.#ttls[i];
-      const start = this.#starts[i];
-      if (ttl && start) {
-        const remain = ttl - (this.#perf.now() - start);
-        entry.ttl = remain;
-        entry.start = Date.now();
-      }
-    }
-    if (this.#sizes) {
-      entry.size = this.#sizes[i];
-    }
-    return entry;
-  }
-  /**
-   * Return an array of [key, {@link LRUCache.Entry}] tuples which can be
-   * passed to {@link LRUCache#load}.
-   *
-   * The `start` fields are calculated relative to a portable `Date.now()`
-   * timestamp, even if `performance.now()` is available.
-   *
-   * Stale entries are always included in the `dump`, even if
-   * {@link LRUCache.OptionsBase.allowStale} is false.
-   *
-   * Note: this returns an actual array, not a generator, so it can be more
-   * easily passed around.
-   */
   dump() {
-    const arr = [];
-    for (const i of this.#indexes({ allowStale: true })) {
-      const key2 = this.#keyList[i];
-      const v = this.#valList[i];
-      const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
-      if (value === void 0 || key2 === void 0)
-        continue;
-      const entry = { value };
-      if (this.#ttls && this.#starts) {
-        entry.ttl = this.#ttls[i];
-        const age = this.#perf.now() - this.#starts[i];
-        entry.start = Math.floor(Date.now() - age);
+    let t = [];
+    for (let e of this.#F({ allowStale: true })) {
+      let s = this.#a[e], i = this.#i[e], r = this.#l(i) ? i.__staleWhileFetching : i;
+      if (r === void 0 || s === void 0) continue;
+      let o = { value: r };
+      if (this.#g && this.#T) {
+        o.ttl = this.#g[e];
+        let h = this.#c.now() - this.#T[e];
+        o.start = Math.floor(Date.now() - h);
       }
-      if (this.#sizes) {
-        entry.size = this.#sizes[i];
-      }
-      arr.unshift([key2, entry]);
+      this.#C && (o.size = this.#C[e]), t.unshift([s, o]);
     }
-    return arr;
+    return t;
   }
-  /**
-   * Reset the cache and load in the items in entries in the order listed.
-   *
-   * The shape of the resulting cache may be different if the same options are
-   * not used in both caches.
-   *
-   * The `start` fields are assumed to be calculated relative to a portable
-   * `Date.now()` timestamp, even if `performance.now()` is available.
-   */
-  load(arr) {
+  load(t) {
     this.clear();
-    for (const [key2, entry] of arr) {
-      if (entry.start) {
-        const age = Date.now() - entry.start;
-        entry.start = this.#perf.now() - age;
+    for (let [e, s] of t) {
+      if (s.start) {
+        let i = Date.now() - s.start;
+        s.start = this.#c.now() - i;
       }
-      this.set(key2, entry.value, entry);
+      this.set(e, s.value, s);
     }
   }
-  /**
-   * Add a value to the cache.
-   *
-   * Note: if `undefined` is specified as a value, this is an alias for
-   * {@link LRUCache#delete}
-   *
-   * Fields on the {@link LRUCache.SetOptions} options param will override
-   * their corresponding values in the constructor options for the scope
-   * of this single `set()` operation.
-   *
-   * If `start` is provided, then that will set the effective start
-   * time for the TTL calculation. Note that this must be a previous
-   * value of `performance.now()` if supported, or a previous value of
-   * `Date.now()` if not.
-   *
-   * Options object may also include `size`, which will prevent
-   * calling the `sizeCalculation` function and just use the specified
-   * number if it is a positive integer, and `noDisposeOnSet` which
-   * will prevent calling a `dispose` function in the case of
-   * overwrites.
-   *
-   * If the `size` (or return value of `sizeCalculation`) for a given
-   * entry is greater than `maxEntrySize`, then the item will not be
-   * added to the cache.
-   *
-   * Will update the recency of the entry.
-   *
-   * If the value is `undefined`, then this is an alias for
-   * `cache.delete(key)`. `undefined` is never stored in the cache.
-   */
-  set(k, v, setOptions = {}) {
-    if (v === void 0) {
-      this.delete(k);
-      return this;
-    }
-    const { ttl = this.ttl, start, noDisposeOnSet = this.noDisposeOnSet, sizeCalculation = this.sizeCalculation, status } = setOptions;
-    let { noUpdateTTL = this.noUpdateTTL } = setOptions;
-    const size = this.#requireSize(k, v, setOptions.size || 0, sizeCalculation);
-    if (this.maxEntrySize && size > this.maxEntrySize) {
-      if (status) {
-        status.set = "miss";
-        status.maxEntrySizeExceeded = true;
-      }
-      this.#delete(k, "set");
-      return this;
-    }
-    let index = this.#size === 0 ? void 0 : this.#keyMap.get(k);
-    if (index === void 0) {
-      index = this.#size === 0 ? this.#tail : this.#free.length !== 0 ? this.#free.pop() : this.#size === this.#max ? this.#evict(false) : this.#size;
-      this.#keyList[index] = k;
-      this.#valList[index] = v;
-      this.#keyMap.set(k, index);
-      this.#next[this.#tail] = index;
-      this.#prev[index] = this.#tail;
-      this.#tail = index;
-      this.#size++;
-      this.#addItemSize(index, size, status);
-      if (status)
-        status.set = "add";
-      noUpdateTTL = false;
-      if (this.#hasOnInsert) {
-        this.#onInsert?.(v, k, "add");
-      }
-    } else {
-      this.#moveToTail(index);
-      const oldVal = this.#valList[index];
-      if (v !== oldVal) {
-        if (this.#hasFetchMethod && this.#isBackgroundFetch(oldVal)) {
-          oldVal.__abortController.abort(new Error("replaced"));
-          const { __staleWhileFetching: s } = oldVal;
-          if (s !== void 0 && !noDisposeOnSet) {
-            if (this.#hasDispose) {
-              this.#dispose?.(s, k, "set");
-            }
-            if (this.#hasDisposeAfter) {
-              this.#disposed?.push([s, k, "set"]);
-            }
-          }
-        } else if (!noDisposeOnSet) {
-          if (this.#hasDispose) {
-            this.#dispose?.(oldVal, k, "set");
-          }
-          if (this.#hasDisposeAfter) {
-            this.#disposed?.push([oldVal, k, "set"]);
-          }
+  set(t, e, s = {}) {
+    if (e === void 0) return this.delete(t), this;
+    let { ttl: i = this.ttl, start: r, noDisposeOnSet: o = this.noDisposeOnSet, sizeCalculation: h = this.sizeCalculation, status: a } = s, { noUpdateTTL: l = this.noUpdateTTL } = s, u = this.#I(t, e, s.size || 0, h);
+    if (this.maxEntrySize && u > this.maxEntrySize) return a && (a.set = "miss", a.maxEntrySizeExceeded = true), this.#O(t, "set"), this;
+    let c = this.#h === 0 ? void 0 : this.#f.get(t);
+    if (c === void 0) c = this.#h === 0 ? this.#p : this.#R.length !== 0 ? this.#R.pop() : this.#h === this.#t ? this.#B(false) : this.#h, this.#a[c] = t, this.#i[c] = e, this.#f.set(t, c), this.#d[this.#p] = c, this.#E[c] = this.#p, this.#p = c, this.#h++, this.#L(c, u, a), a && (a.set = "add"), l = false, this.#_ && this.#r?.(e, t, "add");
+    else {
+      this.#W(c);
+      let d = this.#i[c];
+      if (e !== d) {
+        if (this.#A && this.#l(d)) {
+          d.__abortController.abort(new Error("replaced"));
+          let { __staleWhileFetching: f } = d;
+          f !== void 0 && !o && (this.#x && this.#n?.(f, t, "set"), this.#e && this.#m?.push([f, t, "set"]));
+        } else o || (this.#x && this.#n?.(d, t, "set"), this.#e && this.#m?.push([d, t, "set"]));
+        if (this.#P(c), this.#L(c, u, a), this.#i[c] = e, a) {
+          a.set = "replace";
+          let f = d && this.#l(d) ? d.__staleWhileFetching : d;
+          f !== void 0 && (a.oldValue = f);
         }
-        this.#removeItemSize(index);
-        this.#addItemSize(index, size, status);
-        this.#valList[index] = v;
-        if (status) {
-          status.set = "replace";
-          const oldValue = oldVal && this.#isBackgroundFetch(oldVal) ? oldVal.__staleWhileFetching : oldVal;
-          if (oldValue !== void 0)
-            status.oldValue = oldValue;
-        }
-      } else if (status) {
-        status.set = "update";
-      }
-      if (this.#hasOnInsert) {
-        this.onInsert?.(v, k, v === oldVal ? "update" : "replace");
-      }
+      } else a && (a.set = "update");
+      this.#_ && this.onInsert?.(e, t, e === d ? "update" : "replace");
     }
-    if (ttl !== 0 && !this.#ttls) {
-      this.#initializeTTLTracking();
-    }
-    if (this.#ttls) {
-      if (!noUpdateTTL) {
-        this.#setItemTTL(index, ttl, start);
-      }
-      if (status)
-        this.#statusTTL(status, index);
-    }
-    if (!noDisposeOnSet && this.#hasDisposeAfter && this.#disposed) {
-      const dt = this.#disposed;
-      let task;
-      while (task = dt?.shift()) {
-        this.#disposeAfter?.(...task);
-      }
+    if (i !== 0 && !this.#g && this.#M(), this.#g && (l || this.#j(c, i, r), a && this.#N(a, c)), !o && this.#e && this.#m) {
+      let d = this.#m, f;
+      for (; f = d?.shift(); ) this.#o?.(...f);
     }
     return this;
   }
-  /**
-   * Evict the least recently used item, returning its value or
-   * `undefined` if cache is empty.
-   */
   pop() {
     try {
-      while (this.#size) {
-        const val = this.#valList[this.#head];
-        this.#evict(true);
-        if (this.#isBackgroundFetch(val)) {
-          if (val.__staleWhileFetching) {
-            return val.__staleWhileFetching;
-          }
-        } else if (val !== void 0) {
-          return val;
-        }
+      for (; this.#h; ) {
+        let t = this.#i[this.#b];
+        if (this.#B(true), this.#l(t)) {
+          if (t.__staleWhileFetching) return t.__staleWhileFetching;
+        } else if (t !== void 0) return t;
       }
     } finally {
-      if (this.#hasDisposeAfter && this.#disposed) {
-        const dt = this.#disposed;
-        let task;
-        while (task = dt?.shift()) {
-          this.#disposeAfter?.(...task);
-        }
+      if (this.#e && this.#m) {
+        let t = this.#m, e;
+        for (; e = t?.shift(); ) this.#o?.(...e);
       }
     }
   }
-  #evict(free) {
-    const head = this.#head;
-    const k = this.#keyList[head];
-    const v = this.#valList[head];
-    if (this.#hasFetchMethod && this.#isBackgroundFetch(v)) {
-      v.__abortController.abort(new Error("evicted"));
-    } else if (this.#hasDispose || this.#hasDisposeAfter) {
-      if (this.#hasDispose) {
-        this.#dispose?.(v, k, "evict");
-      }
-      if (this.#hasDisposeAfter) {
-        this.#disposed?.push([v, k, "evict"]);
-      }
-    }
-    this.#removeItemSize(head);
-    if (free) {
-      this.#keyList[head] = void 0;
-      this.#valList[head] = void 0;
-      this.#free.push(head);
-    }
-    if (this.#size === 1) {
-      this.#head = this.#tail = 0;
-      this.#free.length = 0;
-    } else {
-      this.#head = this.#next[head];
-    }
-    this.#keyMap.delete(k);
-    this.#size--;
-    return head;
+  #B(t) {
+    let e = this.#b, s = this.#a[e], i = this.#i[e];
+    return this.#A && this.#l(i) ? i.__abortController.abort(new Error("evicted")) : (this.#x || this.#e) && (this.#x && this.#n?.(i, s, "evict"), this.#e && this.#m?.push([i, s, "evict"])), this.#P(e), this.#y?.[e] && (clearTimeout(this.#y[e]), this.#y[e] = void 0), t && (this.#a[e] = void 0, this.#i[e] = void 0, this.#R.push(e)), this.#h === 1 ? (this.#b = this.#p = 0, this.#R.length = 0) : this.#b = this.#d[e], this.#f.delete(s), this.#h--, e;
   }
-  /**
-   * Check if a key is in the cache, without updating the recency of use.
-   * Will return false if the item is stale, even though it is technically
-   * in the cache.
-   *
-   * Check if a key is in the cache, without updating the recency of
-   * use. Age is updated if {@link LRUCache.OptionsBase.updateAgeOnHas} is set
-   * to `true` in either the options or the constructor.
-   *
-   * Will return `false` if the item is stale, even though it is technically in
-   * the cache. The difference can be determined (if it matters) by using a
-   * `status` argument, and inspecting the `has` field.
-   *
-   * Will not update item age unless
-   * {@link LRUCache.OptionsBase.updateAgeOnHas} is set.
-   */
-  has(k, hasOptions = {}) {
-    const { updateAgeOnHas = this.updateAgeOnHas, status } = hasOptions;
-    const index = this.#keyMap.get(k);
-    if (index !== void 0) {
-      const v = this.#valList[index];
-      if (this.#isBackgroundFetch(v) && v.__staleWhileFetching === void 0) {
-        return false;
-      }
-      if (!this.#isStale(index)) {
-        if (updateAgeOnHas) {
-          this.#updateItemAge(index);
-        }
-        if (status) {
-          status.has = "hit";
-          this.#statusTTL(status, index);
-        }
-        return true;
-      } else if (status) {
-        status.has = "stale";
-        this.#statusTTL(status, index);
-      }
-    } else if (status) {
-      status.has = "miss";
-    }
+  has(t, e = {}) {
+    let { updateAgeOnHas: s = this.updateAgeOnHas, status: i } = e, r = this.#f.get(t);
+    if (r !== void 0) {
+      let o = this.#i[r];
+      if (this.#l(o) && o.__staleWhileFetching === void 0) return false;
+      if (this.#v(r)) i && (i.has = "stale", this.#N(i, r));
+      else return s && this.#k(r), i && (i.has = "hit", this.#N(i, r)), true;
+    } else i && (i.has = "miss");
     return false;
   }
-  /**
-   * Like {@link LRUCache#get} but doesn't update recency or delete stale
-   * items.
-   *
-   * Returns `undefined` if the item is stale, unless
-   * {@link LRUCache.OptionsBase.allowStale} is set.
-   */
-  peek(k, peekOptions = {}) {
-    const { allowStale = this.allowStale } = peekOptions;
-    const index = this.#keyMap.get(k);
-    if (index === void 0 || !allowStale && this.#isStale(index)) {
-      return;
-    }
-    const v = this.#valList[index];
-    return this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+  peek(t, e = {}) {
+    let { allowStale: s = this.allowStale } = e, i = this.#f.get(t);
+    if (i === void 0 || !s && this.#v(i)) return;
+    let r = this.#i[i];
+    return this.#l(r) ? r.__staleWhileFetching : r;
   }
-  #backgroundFetch(k, index, options, context) {
-    const v = index === void 0 ? void 0 : this.#valList[index];
-    if (this.#isBackgroundFetch(v)) {
-      return v;
-    }
-    const ac = new AC();
-    const { signal } = options;
-    signal?.addEventListener("abort", () => ac.abort(signal.reason), {
-      signal: ac.signal
-    });
-    const fetchOpts = {
-      signal: ac.signal,
-      options,
-      context
-    };
-    const cb = (v2, updateCache = false) => {
-      const { aborted } = ac.signal;
-      const ignoreAbort = options.ignoreFetchAbort && v2 !== void 0;
-      if (options.status) {
-        if (aborted && !updateCache) {
-          options.status.fetchAborted = true;
-          options.status.fetchError = ac.signal.reason;
-          if (ignoreAbort)
-            options.status.fetchAbortIgnored = true;
-        } else {
-          options.status.fetchResolved = true;
-        }
-      }
-      if (aborted && !ignoreAbort && !updateCache) {
-        return fetchFail(ac.signal.reason);
-      }
-      const bf2 = p;
-      const vl = this.#valList[index];
-      if (vl === p || ignoreAbort && updateCache && vl === void 0) {
-        if (v2 === void 0) {
-          if (bf2.__staleWhileFetching !== void 0) {
-            this.#valList[index] = bf2.__staleWhileFetching;
-          } else {
-            this.#delete(k, "fetch");
-          }
-        } else {
-          if (options.status)
-            options.status.fetchUpdated = true;
-          this.set(k, v2, fetchOpts.options);
-        }
-      }
-      return v2;
-    };
-    const eb = (er) => {
-      if (options.status) {
-        options.status.fetchRejected = true;
-        options.status.fetchError = er;
-      }
-      return fetchFail(er);
-    };
-    const fetchFail = (er) => {
-      const { aborted } = ac.signal;
-      const allowStaleAborted = aborted && options.allowStaleOnFetchAbort;
-      const allowStale = allowStaleAborted || options.allowStaleOnFetchRejection;
-      const noDelete = allowStale || options.noDeleteOnFetchRejection;
-      const bf2 = p;
-      if (this.#valList[index] === p) {
-        const del = !noDelete || bf2.__staleWhileFetching === void 0;
-        if (del) {
-          this.#delete(k, "fetch");
-        } else if (!allowStaleAborted) {
-          this.#valList[index] = bf2.__staleWhileFetching;
-        }
-      }
-      if (allowStale) {
-        if (options.status && bf2.__staleWhileFetching !== void 0) {
-          options.status.returnedStale = true;
-        }
-        return bf2.__staleWhileFetching;
-      } else if (bf2.__returned === bf2) {
-        throw er;
-      }
-    };
-    const pcall = (res, rej) => {
-      const fmp = this.#fetchMethod?.(k, v, fetchOpts);
-      if (fmp && fmp instanceof Promise) {
-        fmp.then((v2) => res(v2 === void 0 ? void 0 : v2), rej);
-      }
-      ac.signal.addEventListener("abort", () => {
-        if (!options.ignoreFetchAbort || options.allowStaleOnFetchAbort) {
-          res(void 0);
-          if (options.allowStaleOnFetchAbort) {
-            res = (v2) => cb(v2, true);
-          }
-        }
+  #U(t, e, s, i) {
+    let r = e === void 0 ? void 0 : this.#i[e];
+    if (this.#l(r)) return r;
+    let o = new At(), { signal: h } = s;
+    h?.addEventListener("abort", () => o.abort(h.reason), { signal: o.signal });
+    let a = { signal: o.signal, options: s, context: i }, l = (p, w = false) => {
+      let { aborted: g } = o.signal, S = s.ignoreFetchAbort && p !== void 0, E = s.ignoreFetchAbort || !!(s.allowStaleOnFetchAbort && p !== void 0);
+      if (s.status && (g && !w ? (s.status.fetchAborted = true, s.status.fetchError = o.signal.reason, S && (s.status.fetchAbortIgnored = true)) : s.status.fetchResolved = true), g && !S && !w) return c(o.signal.reason, E);
+      let y = f, b = this.#i[e];
+      return (b === f || S && w && b === void 0) && (p === void 0 ? y.__staleWhileFetching !== void 0 ? this.#i[e] = y.__staleWhileFetching : this.#O(t, "fetch") : (s.status && (s.status.fetchUpdated = true), this.set(t, p, a.options))), p;
+    }, u = (p) => (s.status && (s.status.fetchRejected = true, s.status.fetchError = p), c(p, false)), c = (p, w) => {
+      let { aborted: g } = o.signal, S = g && s.allowStaleOnFetchAbort, E = S || s.allowStaleOnFetchRejection, y = E || s.noDeleteOnFetchRejection, b = f;
+      if (this.#i[e] === f && (!y || !w && b.__staleWhileFetching === void 0 ? this.#O(t, "fetch") : S || (this.#i[e] = b.__staleWhileFetching)), E) return s.status && b.__staleWhileFetching !== void 0 && (s.status.returnedStale = true), b.__staleWhileFetching;
+      if (b.__returned === b) throw p;
+    }, d = (p, w) => {
+      let g = this.#S?.(t, r, a);
+      g && g instanceof Promise && g.then((S) => p(S === void 0 ? void 0 : S), w), o.signal.addEventListener("abort", () => {
+        (!s.ignoreFetchAbort || s.allowStaleOnFetchAbort) && (p(void 0), s.allowStaleOnFetchAbort && (p = (S) => l(S, true)));
       });
     };
-    if (options.status)
-      options.status.fetchDispatched = true;
-    const p = new Promise(pcall).then(cb, eb);
-    const bf = Object.assign(p, {
-      __abortController: ac,
-      __staleWhileFetching: v,
-      __returned: void 0
-    });
-    if (index === void 0) {
-      this.set(k, bf, { ...fetchOpts.options, status: void 0 });
-      index = this.#keyMap.get(k);
+    s.status && (s.status.fetchDispatched = true);
+    let f = new Promise(d).then(l, u), m = Object.assign(f, { __abortController: o, __staleWhileFetching: r, __returned: void 0 });
+    return e === void 0 ? (this.set(t, m, { ...a.options, status: void 0 }), e = this.#f.get(t)) : this.#i[e] = m, m;
+  }
+  #l(t) {
+    if (!this.#A) return false;
+    let e = t;
+    return !!e && e instanceof Promise && e.hasOwnProperty("__staleWhileFetching") && e.__abortController instanceof At;
+  }
+  async fetch(t, e = {}) {
+    let { allowStale: s = this.allowStale, updateAgeOnGet: i = this.updateAgeOnGet, noDeleteOnStaleGet: r = this.noDeleteOnStaleGet, ttl: o = this.ttl, noDisposeOnSet: h = this.noDisposeOnSet, size: a = 0, sizeCalculation: l = this.sizeCalculation, noUpdateTTL: u = this.noUpdateTTL, noDeleteOnFetchRejection: c = this.noDeleteOnFetchRejection, allowStaleOnFetchRejection: d = this.allowStaleOnFetchRejection, ignoreFetchAbort: f = this.ignoreFetchAbort, allowStaleOnFetchAbort: m = this.allowStaleOnFetchAbort, context: p, forceRefresh: w = false, status: g, signal: S } = e;
+    if (!this.#A) return g && (g.fetch = "get"), this.get(t, { allowStale: s, updateAgeOnGet: i, noDeleteOnStaleGet: r, status: g });
+    let E = { allowStale: s, updateAgeOnGet: i, noDeleteOnStaleGet: r, ttl: o, noDisposeOnSet: h, size: a, sizeCalculation: l, noUpdateTTL: u, noDeleteOnFetchRejection: c, allowStaleOnFetchRejection: d, allowStaleOnFetchAbort: m, ignoreFetchAbort: f, status: g, signal: S }, y = this.#f.get(t);
+    if (y === void 0) {
+      g && (g.fetch = "miss");
+      let b = this.#U(t, y, E, p);
+      return b.__returned = b;
     } else {
-      this.#valList[index] = bf;
+      let b = this.#i[y];
+      if (this.#l(b)) {
+        let Z = s && b.__staleWhileFetching !== void 0;
+        return g && (g.fetch = "inflight", Z && (g.returnedStale = true)), Z ? b.__staleWhileFetching : b.__returned = b;
+      }
+      let z = this.#v(y);
+      if (!w && !z) return g && (g.fetch = "hit"), this.#W(y), i && this.#k(y), g && this.#N(g, y), b;
+      let $ = this.#U(t, y, E, p), J = $.__staleWhileFetching !== void 0 && s;
+      return g && (g.fetch = z ? "stale" : "refresh", J && z && (g.returnedStale = true)), J ? $.__staleWhileFetching : $.__returned = $;
     }
-    return bf;
   }
-  #isBackgroundFetch(p) {
-    if (!this.#hasFetchMethod)
-      return false;
-    const b = p;
-    return !!b && b instanceof Promise && b.hasOwnProperty("__staleWhileFetching") && b.__abortController instanceof AC;
+  async forceFetch(t, e = {}) {
+    let s = await this.fetch(t, e);
+    if (s === void 0) throw new Error("fetch() returned undefined");
+    return s;
   }
-  async fetch(k, fetchOptions = {}) {
-    const {
-      // get options
-      allowStale = this.allowStale,
-      updateAgeOnGet = this.updateAgeOnGet,
-      noDeleteOnStaleGet = this.noDeleteOnStaleGet,
-      // set options
-      ttl = this.ttl,
-      noDisposeOnSet = this.noDisposeOnSet,
-      size = 0,
-      sizeCalculation = this.sizeCalculation,
-      noUpdateTTL = this.noUpdateTTL,
-      // fetch exclusive options
-      noDeleteOnFetchRejection = this.noDeleteOnFetchRejection,
-      allowStaleOnFetchRejection = this.allowStaleOnFetchRejection,
-      ignoreFetchAbort = this.ignoreFetchAbort,
-      allowStaleOnFetchAbort = this.allowStaleOnFetchAbort,
-      context,
-      forceRefresh = false,
-      status,
-      signal
-    } = fetchOptions;
-    if (!this.#hasFetchMethod) {
-      if (status)
-        status.fetch = "get";
-      return this.get(k, {
-        allowStale,
-        updateAgeOnGet,
-        noDeleteOnStaleGet,
-        status
-      });
-    }
-    const options = {
-      allowStale,
-      updateAgeOnGet,
-      noDeleteOnStaleGet,
-      ttl,
-      noDisposeOnSet,
-      size,
-      sizeCalculation,
-      noUpdateTTL,
-      noDeleteOnFetchRejection,
-      allowStaleOnFetchRejection,
-      allowStaleOnFetchAbort,
-      ignoreFetchAbort,
-      status,
-      signal
-    };
-    let index = this.#keyMap.get(k);
-    if (index === void 0) {
-      if (status)
-        status.fetch = "miss";
-      const p = this.#backgroundFetch(k, index, options, context);
-      return p.__returned = p;
-    } else {
-      const v = this.#valList[index];
-      if (this.#isBackgroundFetch(v)) {
-        const stale = allowStale && v.__staleWhileFetching !== void 0;
-        if (status) {
-          status.fetch = "inflight";
-          if (stale)
-            status.returnedStale = true;
+  memo(t, e = {}) {
+    let s = this.#w;
+    if (!s) throw new Error("no memoMethod provided to constructor");
+    let { context: i, forceRefresh: r, ...o } = e, h = this.get(t, o);
+    if (!r && h !== void 0) return h;
+    let a = s(t, h, { options: o, context: i });
+    return this.set(t, a, o), a;
+  }
+  get(t, e = {}) {
+    let { allowStale: s = this.allowStale, updateAgeOnGet: i = this.updateAgeOnGet, noDeleteOnStaleGet: r = this.noDeleteOnStaleGet, status: o } = e, h = this.#f.get(t);
+    if (h !== void 0) {
+      let a = this.#i[h], l = this.#l(a);
+      return o && this.#N(o, h), this.#v(h) ? (o && (o.get = "stale"), l ? (o && s && a.__staleWhileFetching !== void 0 && (o.returnedStale = true), s ? a.__staleWhileFetching : void 0) : (r || this.#O(t, "expire"), o && s && (o.returnedStale = true), s ? a : void 0)) : (o && (o.get = "hit"), l ? a.__staleWhileFetching : (this.#W(h), i && this.#k(h), a));
+    } else o && (o.get = "miss");
+  }
+  #$(t, e) {
+    this.#E[e] = t, this.#d[t] = e;
+  }
+  #W(t) {
+    t !== this.#p && (t === this.#b ? this.#b = this.#d[t] : this.#$(this.#E[t], this.#d[t]), this.#$(this.#p, t), this.#p = t);
+  }
+  delete(t) {
+    return this.#O(t, "delete");
+  }
+  #O(t, e) {
+    let s = false;
+    if (this.#h !== 0) {
+      let i = this.#f.get(t);
+      if (i !== void 0) if (this.#y?.[i] && (clearTimeout(this.#y?.[i]), this.#y[i] = void 0), s = true, this.#h === 1) this.#H(e);
+      else {
+        this.#P(i);
+        let r = this.#i[i];
+        if (this.#l(r) ? r.__abortController.abort(new Error("deleted")) : (this.#x || this.#e) && (this.#x && this.#n?.(r, t, e), this.#e && this.#m?.push([r, t, e])), this.#f.delete(t), this.#a[i] = void 0, this.#i[i] = void 0, i === this.#p) this.#p = this.#E[i];
+        else if (i === this.#b) this.#b = this.#d[i];
+        else {
+          let o = this.#E[i];
+          this.#d[o] = this.#d[i];
+          let h = this.#d[i];
+          this.#E[h] = this.#E[i];
         }
-        return stale ? v.__staleWhileFetching : v.__returned = v;
-      }
-      const isStale = this.#isStale(index);
-      if (!forceRefresh && !isStale) {
-        if (status)
-          status.fetch = "hit";
-        this.#moveToTail(index);
-        if (updateAgeOnGet) {
-          this.#updateItemAge(index);
-        }
-        if (status)
-          this.#statusTTL(status, index);
-        return v;
-      }
-      const p = this.#backgroundFetch(k, index, options, context);
-      const hasStale = p.__staleWhileFetching !== void 0;
-      const staleVal = hasStale && allowStale;
-      if (status) {
-        status.fetch = isStale ? "stale" : "refresh";
-        if (staleVal && isStale)
-          status.returnedStale = true;
-      }
-      return staleVal ? p.__staleWhileFetching : p.__returned = p;
-    }
-  }
-  async forceFetch(k, fetchOptions = {}) {
-    const v = await this.fetch(k, fetchOptions);
-    if (v === void 0)
-      throw new Error("fetch() returned undefined");
-    return v;
-  }
-  memo(k, memoOptions = {}) {
-    const memoMethod = this.#memoMethod;
-    if (!memoMethod) {
-      throw new Error("no memoMethod provided to constructor");
-    }
-    const { context, forceRefresh, ...options } = memoOptions;
-    const v = this.get(k, options);
-    if (!forceRefresh && v !== void 0)
-      return v;
-    const vv = memoMethod(k, v, {
-      options,
-      context
-    });
-    this.set(k, vv, options);
-    return vv;
-  }
-  /**
-   * Return a value from the cache. Will update the recency of the cache
-   * entry found.
-   *
-   * If the key is not found, get() will return `undefined`.
-   */
-  get(k, getOptions = {}) {
-    const { allowStale = this.allowStale, updateAgeOnGet = this.updateAgeOnGet, noDeleteOnStaleGet = this.noDeleteOnStaleGet, status } = getOptions;
-    const index = this.#keyMap.get(k);
-    if (index !== void 0) {
-      const value = this.#valList[index];
-      const fetching = this.#isBackgroundFetch(value);
-      if (status)
-        this.#statusTTL(status, index);
-      if (this.#isStale(index)) {
-        if (status)
-          status.get = "stale";
-        if (!fetching) {
-          if (!noDeleteOnStaleGet) {
-            this.#delete(k, "expire");
-          }
-          if (status && allowStale)
-            status.returnedStale = true;
-          return allowStale ? value : void 0;
-        } else {
-          if (status && allowStale && value.__staleWhileFetching !== void 0) {
-            status.returnedStale = true;
-          }
-          return allowStale ? value.__staleWhileFetching : void 0;
-        }
-      } else {
-        if (status)
-          status.get = "hit";
-        if (fetching) {
-          return value.__staleWhileFetching;
-        }
-        this.#moveToTail(index);
-        if (updateAgeOnGet) {
-          this.#updateItemAge(index);
-        }
-        return value;
-      }
-    } else if (status) {
-      status.get = "miss";
-    }
-  }
-  #connect(p, n) {
-    this.#prev[n] = p;
-    this.#next[p] = n;
-  }
-  #moveToTail(index) {
-    if (index !== this.#tail) {
-      if (index === this.#head) {
-        this.#head = this.#next[index];
-      } else {
-        this.#connect(this.#prev[index], this.#next[index]);
-      }
-      this.#connect(this.#tail, index);
-      this.#tail = index;
-    }
-  }
-  /**
-   * Deletes a key out of the cache.
-   *
-   * Returns true if the key was deleted, false otherwise.
-   */
-  delete(k) {
-    return this.#delete(k, "delete");
-  }
-  #delete(k, reason) {
-    let deleted = false;
-    if (this.#size !== 0) {
-      const index = this.#keyMap.get(k);
-      if (index !== void 0) {
-        deleted = true;
-        if (this.#size === 1) {
-          this.#clear(reason);
-        } else {
-          this.#removeItemSize(index);
-          const v = this.#valList[index];
-          if (this.#isBackgroundFetch(v)) {
-            v.__abortController.abort(new Error("deleted"));
-          } else if (this.#hasDispose || this.#hasDisposeAfter) {
-            if (this.#hasDispose) {
-              this.#dispose?.(v, k, reason);
-            }
-            if (this.#hasDisposeAfter) {
-              this.#disposed?.push([v, k, reason]);
-            }
-          }
-          this.#keyMap.delete(k);
-          this.#keyList[index] = void 0;
-          this.#valList[index] = void 0;
-          if (index === this.#tail) {
-            this.#tail = this.#prev[index];
-          } else if (index === this.#head) {
-            this.#head = this.#next[index];
-          } else {
-            const pi = this.#prev[index];
-            this.#next[pi] = this.#next[index];
-            const ni = this.#next[index];
-            this.#prev[ni] = this.#prev[index];
-          }
-          this.#size--;
-          this.#free.push(index);
-        }
+        this.#h--, this.#R.push(i);
       }
     }
-    if (this.#hasDisposeAfter && this.#disposed?.length) {
-      const dt = this.#disposed;
-      let task;
-      while (task = dt?.shift()) {
-        this.#disposeAfter?.(...task);
-      }
+    if (this.#e && this.#m?.length) {
+      let i = this.#m, r;
+      for (; r = i?.shift(); ) this.#o?.(...r);
     }
-    return deleted;
+    return s;
   }
-  /**
-   * Clear the cache entirely, throwing away all values.
-   */
   clear() {
-    return this.#clear("delete");
+    return this.#H("delete");
   }
-  #clear(reason) {
-    for (const index of this.#rindexes({ allowStale: true })) {
-      const v = this.#valList[index];
-      if (this.#isBackgroundFetch(v)) {
-        v.__abortController.abort(new Error("deleted"));
-      } else {
-        const k = this.#keyList[index];
-        if (this.#hasDispose) {
-          this.#dispose?.(v, k, reason);
-        }
-        if (this.#hasDisposeAfter) {
-          this.#disposed?.push([v, k, reason]);
-        }
+  #H(t) {
+    for (let e of this.#D({ allowStale: true })) {
+      let s = this.#i[e];
+      if (this.#l(s)) s.__abortController.abort(new Error("deleted"));
+      else {
+        let i = this.#a[e];
+        this.#x && this.#n?.(s, i, t), this.#e && this.#m?.push([s, i, t]);
       }
     }
-    this.#keyMap.clear();
-    this.#valList.fill(void 0);
-    this.#keyList.fill(void 0);
-    if (this.#ttls && this.#starts) {
-      this.#ttls.fill(0);
-      this.#starts.fill(0);
+    if (this.#f.clear(), this.#i.fill(void 0), this.#a.fill(void 0), this.#g && this.#T) {
+      this.#g.fill(0), this.#T.fill(0);
+      for (let e of this.#y ?? []) e !== void 0 && clearTimeout(e);
+      this.#y?.fill(void 0);
     }
-    if (this.#sizes) {
-      this.#sizes.fill(0);
-    }
-    this.#head = 0;
-    this.#tail = 0;
-    this.#free.length = 0;
-    this.#calculatedSize = 0;
-    this.#size = 0;
-    if (this.#hasDisposeAfter && this.#disposed) {
-      const dt = this.#disposed;
-      let task;
-      while (task = dt?.shift()) {
-        this.#disposeAfter?.(...task);
-      }
+    if (this.#C && this.#C.fill(0), this.#b = 0, this.#p = 0, this.#R.length = 0, this.#u = 0, this.#h = 0, this.#e && this.#m) {
+      let e = this.#m, s;
+      for (; s = e?.shift(); ) this.#o?.(...s);
     }
   }
 };
-
-// ../../node_modules/path-scurry/dist/esm/index.js
-var import_node_path = require("node:path");
-var import_node_url = require("node:url");
-var import_fs = require("fs");
-var actualFS = __toESM(require("node:fs"), 1);
-var import_promises = require("node:fs/promises");
-
-// ../../node_modules/minipass/dist/esm/index.js
-var import_node_events = require("node:events");
-var import_node_stream = __toESM(require("node:stream"), 1);
-var import_node_string_decoder = require("node:string_decoder");
-var proc = typeof process === "object" && process ? process : {
-  stdout: null,
-  stderr: null
-};
-var isStream = (s) => !!s && typeof s === "object" && (s instanceof Minipass || s instanceof import_node_stream.default || isReadable(s) || isWritable(s));
-var isReadable = (s) => !!s && typeof s === "object" && s instanceof import_node_events.EventEmitter && typeof s.pipe === "function" && // node core Writable streams have a pipe() method, but it throws
-s.pipe !== import_node_stream.default.Writable.prototype.pipe;
-var isWritable = (s) => !!s && typeof s === "object" && s instanceof import_node_events.EventEmitter && typeof s.write === "function" && typeof s.end === "function";
-var EOF = Symbol("EOF");
-var MAYBE_EMIT_END = Symbol("maybeEmitEnd");
-var EMITTED_END = Symbol("emittedEnd");
-var EMITTING_END = Symbol("emittingEnd");
-var EMITTED_ERROR = Symbol("emittedError");
-var CLOSED = Symbol("closed");
-var READ = Symbol("read");
-var FLUSH = Symbol("flush");
-var FLUSHCHUNK = Symbol("flushChunk");
-var ENCODING = Symbol("encoding");
-var DECODER = Symbol("decoder");
-var FLOWING = Symbol("flowing");
-var PAUSED = Symbol("paused");
-var RESUME = Symbol("resume");
-var BUFFER = Symbol("buffer");
-var PIPES = Symbol("pipes");
-var BUFFERLENGTH = Symbol("bufferLength");
-var BUFFERPUSH = Symbol("bufferPush");
-var BUFFERSHIFT = Symbol("bufferShift");
-var OBJECTMODE = Symbol("objectMode");
-var DESTROYED = Symbol("destroyed");
-var ERROR = Symbol("error");
-var EMITDATA = Symbol("emitData");
-var EMITEND = Symbol("emitEnd");
-var EMITEND2 = Symbol("emitEnd2");
-var ASYNC = Symbol("async");
-var ABORT = Symbol("abort");
-var ABORTED = Symbol("aborted");
-var SIGNAL = Symbol("signal");
-var DATALISTENERS = Symbol("dataListeners");
-var DISCARDED = Symbol("discarded");
-var defer = (fn) => Promise.resolve().then(fn);
-var nodefer = (fn) => fn();
-var isEndish = (ev) => ev === "end" || ev === "finish" || ev === "prefinish";
-var isArrayBufferLike = (b) => b instanceof ArrayBuffer || !!b && typeof b === "object" && b.constructor && b.constructor.name === "ArrayBuffer" && b.byteLength >= 0;
-var isArrayBufferView = (b) => !Buffer.isBuffer(b) && ArrayBuffer.isView(b);
-var Pipe = class {
+var Ne = typeof process == "object" && process ? process : { stdout: null, stderr: null };
+var oi = (n7) => !!n7 && typeof n7 == "object" && (n7 instanceof V || n7 instanceof import_node_stream.default || hi(n7) || ai(n7));
+var hi = (n7) => !!n7 && typeof n7 == "object" && n7 instanceof import_node_events.EventEmitter && typeof n7.pipe == "function" && n7.pipe !== import_node_stream.default.Writable.prototype.pipe;
+var ai = (n7) => !!n7 && typeof n7 == "object" && n7 instanceof import_node_events.EventEmitter && typeof n7.write == "function" && typeof n7.end == "function";
+var G = Symbol("EOF");
+var H = Symbol("maybeEmitEnd");
+var K = Symbol("emittedEnd");
+var kt = Symbol("emittingEnd");
+var ut = Symbol("emittedError");
+var Rt = Symbol("closed");
+var _e = Symbol("read");
+var Ot = Symbol("flush");
+var Le = Symbol("flushChunk");
+var P = Symbol("encoding");
+var et = Symbol("decoder");
+var v = Symbol("flowing");
+var dt = Symbol("paused");
+var st = Symbol("resume");
+var C = Symbol("buffer");
+var F = Symbol("pipes");
+var T = Symbol("bufferLength");
+var Yt = Symbol("bufferPush");
+var Ft = Symbol("bufferShift");
+var k = Symbol("objectMode");
+var x = Symbol("destroyed");
+var Xt = Symbol("error");
+var Jt = Symbol("emitData");
+var We = Symbol("emitEnd");
+var Zt = Symbol("emitEnd2");
+var B = Symbol("async");
+var Qt = Symbol("abort");
+var Dt = Symbol("aborted");
+var pt = Symbol("signal");
+var Y = Symbol("dataListeners");
+var M = Symbol("discarded");
+var mt = (n7) => Promise.resolve().then(n7);
+var li = (n7) => n7();
+var ci = (n7) => n7 === "end" || n7 === "finish" || n7 === "prefinish";
+var fi = (n7) => n7 instanceof ArrayBuffer || !!n7 && typeof n7 == "object" && n7.constructor && n7.constructor.name === "ArrayBuffer" && n7.byteLength >= 0;
+var ui = (n7) => !Buffer.isBuffer(n7) && ArrayBuffer.isView(n7);
+var Mt = class {
   src;
   dest;
   opts;
   ondrain;
-  constructor(src, dest, opts) {
-    this.src = src;
-    this.dest = dest;
-    this.opts = opts;
-    this.ondrain = () => src[RESUME]();
-    this.dest.on("drain", this.ondrain);
+  constructor(t, e, s) {
+    this.src = t, this.dest = e, this.opts = s, this.ondrain = () => t[st](), this.dest.on("drain", this.ondrain);
   }
   unpipe() {
     this.dest.removeListener("drain", this.ondrain);
   }
-  // only here for the prototype
-  /* c8 ignore start */
-  proxyErrors(_er) {
+  proxyErrors(t) {
   }
-  /* c8 ignore stop */
   end() {
-    this.unpipe();
-    if (this.opts.end)
-      this.dest.end();
+    this.unpipe(), this.opts.end && this.dest.end();
   }
 };
-var PipeProxyErrors = class extends Pipe {
+var te = class extends Mt {
   unpipe() {
-    this.src.removeListener("error", this.proxyErrors);
-    super.unpipe();
+    this.src.removeListener("error", this.proxyErrors), super.unpipe();
   }
-  constructor(src, dest, opts) {
-    super(src, dest, opts);
-    this.proxyErrors = (er) => dest.emit("error", er);
-    src.on("error", this.proxyErrors);
+  constructor(t, e, s) {
+    super(t, e, s), this.proxyErrors = (i) => this.dest.emit("error", i), t.on("error", this.proxyErrors);
   }
 };
-var isObjectModeOptions = (o) => !!o.objectMode;
-var isEncodingOptions = (o) => !o.objectMode && !!o.encoding && o.encoding !== "buffer";
-var Minipass = class extends import_node_events.EventEmitter {
-  [FLOWING] = false;
-  [PAUSED] = false;
-  [PIPES] = [];
-  [BUFFER] = [];
-  [OBJECTMODE];
-  [ENCODING];
-  [ASYNC];
-  [DECODER];
-  [EOF] = false;
-  [EMITTED_END] = false;
-  [EMITTING_END] = false;
-  [CLOSED] = false;
-  [EMITTED_ERROR] = null;
-  [BUFFERLENGTH] = 0;
-  [DESTROYED] = false;
-  [SIGNAL];
-  [ABORTED] = false;
-  [DATALISTENERS] = 0;
-  [DISCARDED] = false;
-  /**
-   * true if the stream can be written
-   */
+var di = (n7) => !!n7.objectMode;
+var pi = (n7) => !n7.objectMode && !!n7.encoding && n7.encoding !== "buffer";
+var V = class extends import_node_events.EventEmitter {
+  [v] = false;
+  [dt] = false;
+  [F] = [];
+  [C] = [];
+  [k];
+  [P];
+  [B];
+  [et];
+  [G] = false;
+  [K] = false;
+  [kt] = false;
+  [Rt] = false;
+  [ut] = null;
+  [T] = 0;
+  [x] = false;
+  [pt];
+  [Dt] = false;
+  [Y] = 0;
+  [M] = false;
   writable = true;
-  /**
-   * true if the stream can be read
-   */
   readable = true;
-  /**
-   * If `RType` is Buffer, then options do not need to be provided.
-   * Otherwise, an options object must be provided to specify either
-   * {@link Minipass.SharedOptions.objectMode} or
-   * {@link Minipass.SharedOptions.encoding}, as appropriate.
-   */
-  constructor(...args) {
-    const options = args[0] || {};
-    super();
-    if (options.objectMode && typeof options.encoding === "string") {
-      throw new TypeError("Encoding and objectMode may not be used together");
-    }
-    if (isObjectModeOptions(options)) {
-      this[OBJECTMODE] = true;
-      this[ENCODING] = null;
-    } else if (isEncodingOptions(options)) {
-      this[ENCODING] = options.encoding;
-      this[OBJECTMODE] = false;
-    } else {
-      this[OBJECTMODE] = false;
-      this[ENCODING] = null;
-    }
-    this[ASYNC] = !!options.async;
-    this[DECODER] = this[ENCODING] ? new import_node_string_decoder.StringDecoder(this[ENCODING]) : null;
-    if (options && options.debugExposeBuffer === true) {
-      Object.defineProperty(this, "buffer", { get: () => this[BUFFER] });
-    }
-    if (options && options.debugExposePipes === true) {
-      Object.defineProperty(this, "pipes", { get: () => this[PIPES] });
-    }
-    const { signal } = options;
-    if (signal) {
-      this[SIGNAL] = signal;
-      if (signal.aborted) {
-        this[ABORT]();
-      } else {
-        signal.addEventListener("abort", () => this[ABORT]());
-      }
-    }
+  constructor(...t) {
+    let e = t[0] || {};
+    if (super(), e.objectMode && typeof e.encoding == "string") throw new TypeError("Encoding and objectMode may not be used together");
+    di(e) ? (this[k] = true, this[P] = null) : pi(e) ? (this[P] = e.encoding, this[k] = false) : (this[k] = false, this[P] = null), this[B] = !!e.async, this[et] = this[P] ? new import_node_string_decoder.StringDecoder(this[P]) : null, e && e.debugExposeBuffer === true && Object.defineProperty(this, "buffer", { get: () => this[C] }), e && e.debugExposePipes === true && Object.defineProperty(this, "pipes", { get: () => this[F] });
+    let { signal: s } = e;
+    s && (this[pt] = s, s.aborted ? this[Qt]() : s.addEventListener("abort", () => this[Qt]()));
   }
-  /**
-   * The amount of data stored in the buffer waiting to be read.
-   *
-   * For Buffer strings, this will be the total byte length.
-   * For string encoding streams, this will be the string character length,
-   * according to JavaScript's `string.length` logic.
-   * For objectMode streams, this is a count of the items waiting to be
-   * emitted.
-   */
   get bufferLength() {
-    return this[BUFFERLENGTH];
+    return this[T];
   }
-  /**
-   * The `BufferEncoding` currently in use, or `null`
-   */
   get encoding() {
-    return this[ENCODING];
+    return this[P];
   }
-  /**
-   * @deprecated - This is a read only property
-   */
-  set encoding(_enc) {
+  set encoding(t) {
     throw new Error("Encoding must be set at instantiation time");
   }
-  /**
-   * @deprecated - Encoding may only be set at instantiation time
-   */
-  setEncoding(_enc) {
+  setEncoding(t) {
     throw new Error("Encoding must be set at instantiation time");
   }
-  /**
-   * True if this is an objectMode stream
-   */
   get objectMode() {
-    return this[OBJECTMODE];
+    return this[k];
   }
-  /**
-   * @deprecated - This is a read-only property
-   */
-  set objectMode(_om) {
+  set objectMode(t) {
     throw new Error("objectMode must be set at instantiation time");
   }
-  /**
-   * true if this is an async stream
-   */
-  get ["async"]() {
-    return this[ASYNC];
+  get async() {
+    return this[B];
   }
-  /**
-   * Set to true to make this stream async.
-   *
-   * Once set, it cannot be unset, as this would potentially cause incorrect
-   * behavior.  Ie, a sync stream can be made async, but an async stream
-   * cannot be safely made sync.
-   */
-  set ["async"](a) {
-    this[ASYNC] = this[ASYNC] || !!a;
+  set async(t) {
+    this[B] = this[B] || !!t;
   }
-  // drop everything and get out of the flow completely
-  [ABORT]() {
-    this[ABORTED] = true;
-    this.emit("abort", this[SIGNAL]?.reason);
-    this.destroy(this[SIGNAL]?.reason);
+  [Qt]() {
+    this[Dt] = true, this.emit("abort", this[pt]?.reason), this.destroy(this[pt]?.reason);
   }
-  /**
-   * True if the stream has been aborted.
-   */
   get aborted() {
-    return this[ABORTED];
+    return this[Dt];
   }
-  /**
-   * No-op setter. Stream aborted status is set via the AbortSignal provided
-   * in the constructor options.
-   */
-  set aborted(_) {
+  set aborted(t) {
   }
-  write(chunk, encoding, cb) {
-    if (this[ABORTED])
-      return false;
-    if (this[EOF])
-      throw new Error("write after end");
-    if (this[DESTROYED]) {
-      this.emit("error", Object.assign(new Error("Cannot call write after a stream was destroyed"), { code: "ERR_STREAM_DESTROYED" }));
-      return true;
+  write(t, e, s) {
+    if (this[Dt]) return false;
+    if (this[G]) throw new Error("write after end");
+    if (this[x]) return this.emit("error", Object.assign(new Error("Cannot call write after a stream was destroyed"), { code: "ERR_STREAM_DESTROYED" })), true;
+    typeof e == "function" && (s = e, e = "utf8"), e || (e = "utf8");
+    let i = this[B] ? mt : li;
+    if (!this[k] && !Buffer.isBuffer(t)) {
+      if (ui(t)) t = Buffer.from(t.buffer, t.byteOffset, t.byteLength);
+      else if (fi(t)) t = Buffer.from(t);
+      else if (typeof t != "string") throw new Error("Non-contiguous data written to non-objectMode stream");
     }
-    if (typeof encoding === "function") {
-      cb = encoding;
-      encoding = "utf8";
-    }
-    if (!encoding)
-      encoding = "utf8";
-    const fn = this[ASYNC] ? defer : nodefer;
-    if (!this[OBJECTMODE] && !Buffer.isBuffer(chunk)) {
-      if (isArrayBufferView(chunk)) {
-        chunk = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-      } else if (isArrayBufferLike(chunk)) {
-        chunk = Buffer.from(chunk);
-      } else if (typeof chunk !== "string") {
-        throw new Error("Non-contiguous data written to non-objectMode stream");
-      }
-    }
-    if (this[OBJECTMODE]) {
-      if (this[FLOWING] && this[BUFFERLENGTH] !== 0)
-        this[FLUSH](true);
-      if (this[FLOWING])
-        this.emit("data", chunk);
-      else
-        this[BUFFERPUSH](chunk);
-      if (this[BUFFERLENGTH] !== 0)
-        this.emit("readable");
-      if (cb)
-        fn(cb);
-      return this[FLOWING];
-    }
-    if (!chunk.length) {
-      if (this[BUFFERLENGTH] !== 0)
-        this.emit("readable");
-      if (cb)
-        fn(cb);
-      return this[FLOWING];
-    }
-    if (typeof chunk === "string" && // unless it is a string already ready for us to use
-    !(encoding === this[ENCODING] && !this[DECODER]?.lastNeed)) {
-      chunk = Buffer.from(chunk, encoding);
-    }
-    if (Buffer.isBuffer(chunk) && this[ENCODING]) {
-      chunk = this[DECODER].write(chunk);
-    }
-    if (this[FLOWING] && this[BUFFERLENGTH] !== 0)
-      this[FLUSH](true);
-    if (this[FLOWING])
-      this.emit("data", chunk);
-    else
-      this[BUFFERPUSH](chunk);
-    if (this[BUFFERLENGTH] !== 0)
-      this.emit("readable");
-    if (cb)
-      fn(cb);
-    return this[FLOWING];
+    return this[k] ? (this[v] && this[T] !== 0 && this[Ot](true), this[v] ? this.emit("data", t) : this[Yt](t), this[T] !== 0 && this.emit("readable"), s && i(s), this[v]) : t.length ? (typeof t == "string" && !(e === this[P] && !this[et]?.lastNeed) && (t = Buffer.from(t, e)), Buffer.isBuffer(t) && this[P] && (t = this[et].write(t)), this[v] && this[T] !== 0 && this[Ot](true), this[v] ? this.emit("data", t) : this[Yt](t), this[T] !== 0 && this.emit("readable"), s && i(s), this[v]) : (this[T] !== 0 && this.emit("readable"), s && i(s), this[v]);
   }
-  /**
-   * Low-level explicit read method.
-   *
-   * In objectMode, the argument is ignored, and one item is returned if
-   * available.
-   *
-   * `n` is the number of bytes (or in the case of encoding streams,
-   * characters) to consume. If `n` is not provided, then the entire buffer
-   * is returned, or `null` is returned if no data is available.
-   *
-   * If `n` is greater that the amount of data in the internal buffer,
-   * then `null` is returned.
-   */
-  read(n) {
-    if (this[DESTROYED])
-      return null;
-    this[DISCARDED] = false;
-    if (this[BUFFERLENGTH] === 0 || n === 0 || n && n > this[BUFFERLENGTH]) {
-      this[MAYBE_EMIT_END]();
-      return null;
-    }
-    if (this[OBJECTMODE])
-      n = null;
-    if (this[BUFFER].length > 1 && !this[OBJECTMODE]) {
-      this[BUFFER] = [
-        this[ENCODING] ? this[BUFFER].join("") : Buffer.concat(this[BUFFER], this[BUFFERLENGTH])
-      ];
-    }
-    const ret = this[READ](n || null, this[BUFFER][0]);
-    this[MAYBE_EMIT_END]();
-    return ret;
+  read(t) {
+    if (this[x]) return null;
+    if (this[M] = false, this[T] === 0 || t === 0 || t && t > this[T]) return this[H](), null;
+    this[k] && (t = null), this[C].length > 1 && !this[k] && (this[C] = [this[P] ? this[C].join("") : Buffer.concat(this[C], this[T])]);
+    let e = this[_e](t || null, this[C][0]);
+    return this[H](), e;
   }
-  [READ](n, chunk) {
-    if (this[OBJECTMODE])
-      this[BUFFERSHIFT]();
+  [_e](t, e) {
+    if (this[k]) this[Ft]();
     else {
-      const c = chunk;
-      if (n === c.length || n === null)
-        this[BUFFERSHIFT]();
-      else if (typeof c === "string") {
-        this[BUFFER][0] = c.slice(n);
-        chunk = c.slice(0, n);
-        this[BUFFERLENGTH] -= n;
-      } else {
-        this[BUFFER][0] = c.subarray(n);
-        chunk = c.subarray(0, n);
-        this[BUFFERLENGTH] -= n;
-      }
+      let s = e;
+      t === s.length || t === null ? this[Ft]() : typeof s == "string" ? (this[C][0] = s.slice(t), e = s.slice(0, t), this[T] -= t) : (this[C][0] = s.subarray(t), e = s.subarray(0, t), this[T] -= t);
     }
-    this.emit("data", chunk);
-    if (!this[BUFFER].length && !this[EOF])
-      this.emit("drain");
-    return chunk;
+    return this.emit("data", e), !this[C].length && !this[G] && this.emit("drain"), e;
   }
-  end(chunk, encoding, cb) {
-    if (typeof chunk === "function") {
-      cb = chunk;
-      chunk = void 0;
-    }
-    if (typeof encoding === "function") {
-      cb = encoding;
-      encoding = "utf8";
-    }
-    if (chunk !== void 0)
-      this.write(chunk, encoding);
-    if (cb)
-      this.once("end", cb);
-    this[EOF] = true;
-    this.writable = false;
-    if (this[FLOWING] || !this[PAUSED])
-      this[MAYBE_EMIT_END]();
-    return this;
+  end(t, e, s) {
+    return typeof t == "function" && (s = t, t = void 0), typeof e == "function" && (s = e, e = "utf8"), t !== void 0 && this.write(t, e), s && this.once("end", s), this[G] = true, this.writable = false, (this[v] || !this[dt]) && this[H](), this;
   }
-  // don't let the internal resume be overwritten
-  [RESUME]() {
-    if (this[DESTROYED])
-      return;
-    if (!this[DATALISTENERS] && !this[PIPES].length) {
-      this[DISCARDED] = true;
-    }
-    this[PAUSED] = false;
-    this[FLOWING] = true;
-    this.emit("resume");
-    if (this[BUFFER].length)
-      this[FLUSH]();
-    else if (this[EOF])
-      this[MAYBE_EMIT_END]();
-    else
-      this.emit("drain");
+  [st]() {
+    this[x] || (!this[Y] && !this[F].length && (this[M] = true), this[dt] = false, this[v] = true, this.emit("resume"), this[C].length ? this[Ot]() : this[G] ? this[H]() : this.emit("drain"));
   }
-  /**
-   * Resume the stream if it is currently in a paused state
-   *
-   * If called when there are no pipe destinations or `data` event listeners,
-   * this will place the stream in a "discarded" state, where all data will
-   * be thrown away. The discarded state is removed if a pipe destination or
-   * data handler is added, if pause() is called, or if any synchronous or
-   * asynchronous iteration is started.
-   */
   resume() {
-    return this[RESUME]();
+    return this[st]();
   }
-  /**
-   * Pause the stream
-   */
   pause() {
-    this[FLOWING] = false;
-    this[PAUSED] = true;
-    this[DISCARDED] = false;
+    this[v] = false, this[dt] = true, this[M] = false;
   }
-  /**
-   * true if the stream has been forcibly destroyed
-   */
   get destroyed() {
-    return this[DESTROYED];
+    return this[x];
   }
-  /**
-   * true if the stream is currently in a flowing state, meaning that
-   * any writes will be immediately emitted.
-   */
   get flowing() {
-    return this[FLOWING];
+    return this[v];
   }
-  /**
-   * true if the stream is currently in a paused state
-   */
   get paused() {
-    return this[PAUSED];
+    return this[dt];
   }
-  [BUFFERPUSH](chunk) {
-    if (this[OBJECTMODE])
-      this[BUFFERLENGTH] += 1;
-    else
-      this[BUFFERLENGTH] += chunk.length;
-    this[BUFFER].push(chunk);
+  [Yt](t) {
+    this[k] ? this[T] += 1 : this[T] += t.length, this[C].push(t);
   }
-  [BUFFERSHIFT]() {
-    if (this[OBJECTMODE])
-      this[BUFFERLENGTH] -= 1;
-    else
-      this[BUFFERLENGTH] -= this[BUFFER][0].length;
-    return this[BUFFER].shift();
+  [Ft]() {
+    return this[k] ? this[T] -= 1 : this[T] -= this[C][0].length, this[C].shift();
   }
-  [FLUSH](noDrain = false) {
-    do {
-    } while (this[FLUSHCHUNK](this[BUFFERSHIFT]()) && this[BUFFER].length);
-    if (!noDrain && !this[BUFFER].length && !this[EOF])
-      this.emit("drain");
+  [Ot](t = false) {
+    do
+      ;
+    while (this[Le](this[Ft]()) && this[C].length);
+    !t && !this[C].length && !this[G] && this.emit("drain");
   }
-  [FLUSHCHUNK](chunk) {
-    this.emit("data", chunk);
-    return this[FLOWING];
+  [Le](t) {
+    return this.emit("data", t), this[v];
   }
-  /**
-   * Pipe all data emitted by this stream into the destination provided.
-   *
-   * Triggers the flow of data.
-   */
-  pipe(dest, opts) {
-    if (this[DESTROYED])
-      return dest;
-    this[DISCARDED] = false;
-    const ended = this[EMITTED_END];
-    opts = opts || {};
-    if (dest === proc.stdout || dest === proc.stderr)
-      opts.end = false;
-    else
-      opts.end = opts.end !== false;
-    opts.proxyErrors = !!opts.proxyErrors;
-    if (ended) {
-      if (opts.end)
-        dest.end();
-    } else {
-      this[PIPES].push(!opts.proxyErrors ? new Pipe(this, dest, opts) : new PipeProxyErrors(this, dest, opts));
-      if (this[ASYNC])
-        defer(() => this[RESUME]());
-      else
-        this[RESUME]();
+  pipe(t, e) {
+    if (this[x]) return t;
+    this[M] = false;
+    let s = this[K];
+    return e = e || {}, t === Ne.stdout || t === Ne.stderr ? e.end = false : e.end = e.end !== false, e.proxyErrors = !!e.proxyErrors, s ? e.end && t.end() : (this[F].push(e.proxyErrors ? new te(this, t, e) : new Mt(this, t, e)), this[B] ? mt(() => this[st]()) : this[st]()), t;
+  }
+  unpipe(t) {
+    let e = this[F].find((s) => s.dest === t);
+    e && (this[F].length === 1 ? (this[v] && this[Y] === 0 && (this[v] = false), this[F] = []) : this[F].splice(this[F].indexOf(e), 1), e.unpipe());
+  }
+  addListener(t, e) {
+    return this.on(t, e);
+  }
+  on(t, e) {
+    let s = super.on(t, e);
+    if (t === "data") this[M] = false, this[Y]++, !this[F].length && !this[v] && this[st]();
+    else if (t === "readable" && this[T] !== 0) super.emit("readable");
+    else if (ci(t) && this[K]) super.emit(t), this.removeAllListeners(t);
+    else if (t === "error" && this[ut]) {
+      let i = e;
+      this[B] ? mt(() => i.call(this, this[ut])) : i.call(this, this[ut]);
     }
-    return dest;
+    return s;
   }
-  /**
-   * Fully unhook a piped destination stream.
-   *
-   * If the destination stream was the only consumer of this stream (ie,
-   * there are no other piped destinations or `'data'` event listeners)
-   * then the flow of data will stop until there is another consumer or
-   * {@link Minipass#resume} is explicitly called.
-   */
-  unpipe(dest) {
-    const p = this[PIPES].find((p2) => p2.dest === dest);
-    if (p) {
-      if (this[PIPES].length === 1) {
-        if (this[FLOWING] && this[DATALISTENERS] === 0) {
-          this[FLOWING] = false;
-        }
-        this[PIPES] = [];
-      } else
-        this[PIPES].splice(this[PIPES].indexOf(p), 1);
-      p.unpipe();
-    }
+  removeListener(t, e) {
+    return this.off(t, e);
   }
-  /**
-   * Alias for {@link Minipass#on}
-   */
-  addListener(ev, handler) {
-    return this.on(ev, handler);
+  off(t, e) {
+    let s = super.off(t, e);
+    return t === "data" && (this[Y] = this.listeners("data").length, this[Y] === 0 && !this[M] && !this[F].length && (this[v] = false)), s;
   }
-  /**
-   * Mostly identical to `EventEmitter.on`, with the following
-   * behavior differences to prevent data loss and unnecessary hangs:
-   *
-   * - Adding a 'data' event handler will trigger the flow of data
-   *
-   * - Adding a 'readable' event handler when there is data waiting to be read
-   *   will cause 'readable' to be emitted immediately.
-   *
-   * - Adding an 'endish' event handler ('end', 'finish', etc.) which has
-   *   already passed will cause the event to be emitted immediately and all
-   *   handlers removed.
-   *
-   * - Adding an 'error' event handler after an error has been emitted will
-   *   cause the event to be re-emitted immediately with the error previously
-   *   raised.
-   */
-  on(ev, handler) {
-    const ret = super.on(ev, handler);
-    if (ev === "data") {
-      this[DISCARDED] = false;
-      this[DATALISTENERS]++;
-      if (!this[PIPES].length && !this[FLOWING]) {
-        this[RESUME]();
-      }
-    } else if (ev === "readable" && this[BUFFERLENGTH] !== 0) {
-      super.emit("readable");
-    } else if (isEndish(ev) && this[EMITTED_END]) {
-      super.emit(ev);
-      this.removeAllListeners(ev);
-    } else if (ev === "error" && this[EMITTED_ERROR]) {
-      const h = handler;
-      if (this[ASYNC])
-        defer(() => h.call(this, this[EMITTED_ERROR]));
-      else
-        h.call(this, this[EMITTED_ERROR]);
-    }
-    return ret;
+  removeAllListeners(t) {
+    let e = super.removeAllListeners(t);
+    return (t === "data" || t === void 0) && (this[Y] = 0, !this[M] && !this[F].length && (this[v] = false)), e;
   }
-  /**
-   * Alias for {@link Minipass#off}
-   */
-  removeListener(ev, handler) {
-    return this.off(ev, handler);
-  }
-  /**
-   * Mostly identical to `EventEmitter.off`
-   *
-   * If a 'data' event handler is removed, and it was the last consumer
-   * (ie, there are no pipe destinations or other 'data' event listeners),
-   * then the flow of data will stop until there is another consumer or
-   * {@link Minipass#resume} is explicitly called.
-   */
-  off(ev, handler) {
-    const ret = super.off(ev, handler);
-    if (ev === "data") {
-      this[DATALISTENERS] = this.listeners("data").length;
-      if (this[DATALISTENERS] === 0 && !this[DISCARDED] && !this[PIPES].length) {
-        this[FLOWING] = false;
-      }
-    }
-    return ret;
-  }
-  /**
-   * Mostly identical to `EventEmitter.removeAllListeners`
-   *
-   * If all 'data' event handlers are removed, and they were the last consumer
-   * (ie, there are no pipe destinations), then the flow of data will stop
-   * until there is another consumer or {@link Minipass#resume} is explicitly
-   * called.
-   */
-  removeAllListeners(ev) {
-    const ret = super.removeAllListeners(ev);
-    if (ev === "data" || ev === void 0) {
-      this[DATALISTENERS] = 0;
-      if (!this[DISCARDED] && !this[PIPES].length) {
-        this[FLOWING] = false;
-      }
-    }
-    return ret;
-  }
-  /**
-   * true if the 'end' event has been emitted
-   */
   get emittedEnd() {
-    return this[EMITTED_END];
+    return this[K];
   }
-  [MAYBE_EMIT_END]() {
-    if (!this[EMITTING_END] && !this[EMITTED_END] && !this[DESTROYED] && this[BUFFER].length === 0 && this[EOF]) {
-      this[EMITTING_END] = true;
-      this.emit("end");
-      this.emit("prefinish");
-      this.emit("finish");
-      if (this[CLOSED])
-        this.emit("close");
-      this[EMITTING_END] = false;
+  [H]() {
+    !this[kt] && !this[K] && !this[x] && this[C].length === 0 && this[G] && (this[kt] = true, this.emit("end"), this.emit("prefinish"), this.emit("finish"), this[Rt] && this.emit("close"), this[kt] = false);
+  }
+  emit(t, ...e) {
+    let s = e[0];
+    if (t !== "error" && t !== "close" && t !== x && this[x]) return false;
+    if (t === "data") return !this[k] && !s ? false : this[B] ? (mt(() => this[Jt](s)), true) : this[Jt](s);
+    if (t === "end") return this[We]();
+    if (t === "close") {
+      if (this[Rt] = true, !this[K] && !this[x]) return false;
+      let r = super.emit("close");
+      return this.removeAllListeners("close"), r;
+    } else if (t === "error") {
+      this[ut] = s, super.emit(Xt, s);
+      let r = !this[pt] || this.listeners("error").length ? super.emit("error", s) : false;
+      return this[H](), r;
+    } else if (t === "resume") {
+      let r = super.emit("resume");
+      return this[H](), r;
+    } else if (t === "finish" || t === "prefinish") {
+      let r = super.emit(t);
+      return this.removeAllListeners(t), r;
     }
+    let i = super.emit(t, ...e);
+    return this[H](), i;
   }
-  /**
-   * Mostly identical to `EventEmitter.emit`, with the following
-   * behavior differences to prevent data loss and unnecessary hangs:
-   *
-   * If the stream has been destroyed, and the event is something other
-   * than 'close' or 'error', then `false` is returned and no handlers
-   * are called.
-   *
-   * If the event is 'end', and has already been emitted, then the event
-   * is ignored. If the stream is in a paused or non-flowing state, then
-   * the event will be deferred until data flow resumes. If the stream is
-   * async, then handlers will be called on the next tick rather than
-   * immediately.
-   *
-   * If the event is 'close', and 'end' has not yet been emitted, then
-   * the event will be deferred until after 'end' is emitted.
-   *
-   * If the event is 'error', and an AbortSignal was provided for the stream,
-   * and there are no listeners, then the event is ignored, matching the
-   * behavior of node core streams in the presense of an AbortSignal.
-   *
-   * If the event is 'finish' or 'prefinish', then all listeners will be
-   * removed after emitting the event, to prevent double-firing.
-   */
-  emit(ev, ...args) {
-    const data = args[0];
-    if (ev !== "error" && ev !== "close" && ev !== DESTROYED && this[DESTROYED]) {
-      return false;
-    } else if (ev === "data") {
-      return !this[OBJECTMODE] && !data ? false : this[ASYNC] ? (defer(() => this[EMITDATA](data)), true) : this[EMITDATA](data);
-    } else if (ev === "end") {
-      return this[EMITEND]();
-    } else if (ev === "close") {
-      this[CLOSED] = true;
-      if (!this[EMITTED_END] && !this[DESTROYED])
-        return false;
-      const ret2 = super.emit("close");
-      this.removeAllListeners("close");
-      return ret2;
-    } else if (ev === "error") {
-      this[EMITTED_ERROR] = data;
-      super.emit(ERROR, data);
-      const ret2 = !this[SIGNAL] || this.listeners("error").length ? super.emit("error", data) : false;
-      this[MAYBE_EMIT_END]();
-      return ret2;
-    } else if (ev === "resume") {
-      const ret2 = super.emit("resume");
-      this[MAYBE_EMIT_END]();
-      return ret2;
-    } else if (ev === "finish" || ev === "prefinish") {
-      const ret2 = super.emit(ev);
-      this.removeAllListeners(ev);
-      return ret2;
-    }
-    const ret = super.emit(ev, ...args);
-    this[MAYBE_EMIT_END]();
-    return ret;
+  [Jt](t) {
+    for (let s of this[F]) s.dest.write(t) === false && this.pause();
+    let e = this[M] ? false : super.emit("data", t);
+    return this[H](), e;
   }
-  [EMITDATA](data) {
-    for (const p of this[PIPES]) {
-      if (p.dest.write(data) === false)
-        this.pause();
-    }
-    const ret = this[DISCARDED] ? false : super.emit("data", data);
-    this[MAYBE_EMIT_END]();
-    return ret;
+  [We]() {
+    return this[K] ? false : (this[K] = true, this.readable = false, this[B] ? (mt(() => this[Zt]()), true) : this[Zt]());
   }
-  [EMITEND]() {
-    if (this[EMITTED_END])
-      return false;
-    this[EMITTED_END] = true;
-    this.readable = false;
-    return this[ASYNC] ? (defer(() => this[EMITEND2]()), true) : this[EMITEND2]();
-  }
-  [EMITEND2]() {
-    if (this[DECODER]) {
-      const data = this[DECODER].end();
-      if (data) {
-        for (const p of this[PIPES]) {
-          p.dest.write(data);
-        }
-        if (!this[DISCARDED])
-          super.emit("data", data);
+  [Zt]() {
+    if (this[et]) {
+      let e = this[et].end();
+      if (e) {
+        for (let s of this[F]) s.dest.write(e);
+        this[M] || super.emit("data", e);
       }
     }
-    for (const p of this[PIPES]) {
-      p.end();
-    }
-    const ret = super.emit("end");
-    this.removeAllListeners("end");
-    return ret;
+    for (let e of this[F]) e.end();
+    let t = super.emit("end");
+    return this.removeAllListeners("end"), t;
   }
-  /**
-   * Return a Promise that resolves to an array of all emitted data once
-   * the stream ends.
-   */
   async collect() {
-    const buf = Object.assign([], {
-      dataLength: 0
-    });
-    if (!this[OBJECTMODE])
-      buf.dataLength = 0;
-    const p = this.promise();
-    this.on("data", (c) => {
-      buf.push(c);
-      if (!this[OBJECTMODE])
-        buf.dataLength += c.length;
-    });
-    await p;
-    return buf;
+    let t = Object.assign([], { dataLength: 0 });
+    this[k] || (t.dataLength = 0);
+    let e = this.promise();
+    return this.on("data", (s) => {
+      t.push(s), this[k] || (t.dataLength += s.length);
+    }), await e, t;
   }
-  /**
-   * Return a Promise that resolves to the concatenation of all emitted data
-   * once the stream ends.
-   *
-   * Not allowed on objectMode streams.
-   */
   async concat() {
-    if (this[OBJECTMODE]) {
-      throw new Error("cannot concat in objectMode");
-    }
-    const buf = await this.collect();
-    return this[ENCODING] ? buf.join("") : Buffer.concat(buf, buf.dataLength);
+    if (this[k]) throw new Error("cannot concat in objectMode");
+    let t = await this.collect();
+    return this[P] ? t.join("") : Buffer.concat(t, t.dataLength);
   }
-  /**
-   * Return a void Promise that resolves once the stream ends.
-   */
   async promise() {
-    return new Promise((resolve, reject) => {
-      this.on(DESTROYED, () => reject(new Error("stream destroyed")));
-      this.on("error", (er) => reject(er));
-      this.on("end", () => resolve());
+    return new Promise((t, e) => {
+      this.on(x, () => e(new Error("stream destroyed"))), this.on("error", (s) => e(s)), this.on("end", () => t());
     });
   }
-  /**
-   * Asynchronous `for await of` iteration.
-   *
-   * This will continue emitting all chunks until the stream terminates.
-   */
   [Symbol.asyncIterator]() {
-    this[DISCARDED] = false;
-    let stopped = false;
-    const stop = async () => {
-      this.pause();
-      stopped = true;
-      return { value: void 0, done: true };
-    };
-    const next = () => {
-      if (stopped)
-        return stop();
-      const res = this.read();
-      if (res !== null)
-        return Promise.resolve({ done: false, value: res });
-      if (this[EOF])
-        return stop();
-      let resolve;
-      let reject;
-      const onerr = (er) => {
-        this.off("data", ondata);
-        this.off("end", onend);
-        this.off(DESTROYED, ondestroy);
-        stop();
-        reject(er);
-      };
-      const ondata = (value) => {
-        this.off("error", onerr);
-        this.off("end", onend);
-        this.off(DESTROYED, ondestroy);
-        this.pause();
-        resolve({ value, done: !!this[EOF] });
-      };
-      const onend = () => {
-        this.off("error", onerr);
-        this.off("data", ondata);
-        this.off(DESTROYED, ondestroy);
-        stop();
-        resolve({ done: true, value: void 0 });
-      };
-      const ondestroy = () => onerr(new Error("stream destroyed"));
-      return new Promise((res2, rej) => {
-        reject = rej;
-        resolve = res2;
-        this.once(DESTROYED, ondestroy);
-        this.once("error", onerr);
-        this.once("end", onend);
-        this.once("data", ondata);
+    this[M] = false;
+    let t = false, e = async () => (this.pause(), t = true, { value: void 0, done: true });
+    return { next: () => {
+      if (t) return e();
+      let i = this.read();
+      if (i !== null) return Promise.resolve({ done: false, value: i });
+      if (this[G]) return e();
+      let r, o, h = (c) => {
+        this.off("data", a), this.off("end", l), this.off(x, u), e(), o(c);
+      }, a = (c) => {
+        this.off("error", h), this.off("end", l), this.off(x, u), this.pause(), r({ value: c, done: !!this[G] });
+      }, l = () => {
+        this.off("error", h), this.off("data", a), this.off(x, u), e(), r({ done: true, value: void 0 });
+      }, u = () => h(new Error("stream destroyed"));
+      return new Promise((c, d) => {
+        o = d, r = c, this.once(x, u), this.once("error", h), this.once("end", l), this.once("data", a);
       });
-    };
-    return {
-      next,
-      throw: stop,
-      return: stop,
-      [Symbol.asyncIterator]() {
-        return this;
-      }
-    };
-  }
-  /**
-   * Synchronous `for of` iteration.
-   *
-   * The iteration will terminate when the internal buffer runs out, even
-   * if the stream has not yet terminated.
-   */
-  [Symbol.iterator]() {
-    this[DISCARDED] = false;
-    let stopped = false;
-    const stop = () => {
-      this.pause();
-      this.off(ERROR, stop);
-      this.off(DESTROYED, stop);
-      this.off("end", stop);
-      stopped = true;
-      return { done: true, value: void 0 };
-    };
-    const next = () => {
-      if (stopped)
-        return stop();
-      const value = this.read();
-      return value === null ? stop() : { done: false, value };
-    };
-    this.once("end", stop);
-    this.once(ERROR, stop);
-    this.once(DESTROYED, stop);
-    return {
-      next,
-      throw: stop,
-      return: stop,
-      [Symbol.iterator]() {
-        return this;
-      }
-    };
-  }
-  /**
-   * Destroy a stream, preventing it from being used for any further purpose.
-   *
-   * If the stream has a `close()` method, then it will be called on
-   * destruction.
-   *
-   * After destruction, any attempt to write data, read data, or emit most
-   * events will be ignored.
-   *
-   * If an error argument is provided, then it will be emitted in an
-   * 'error' event.
-   */
-  destroy(er) {
-    if (this[DESTROYED]) {
-      if (er)
-        this.emit("error", er);
-      else
-        this.emit(DESTROYED);
+    }, throw: e, return: e, [Symbol.asyncIterator]() {
       return this;
-    }
-    this[DESTROYED] = true;
-    this[DISCARDED] = true;
-    this[BUFFER].length = 0;
-    this[BUFFERLENGTH] = 0;
-    const wc = this;
-    if (typeof wc.close === "function" && !this[CLOSED])
-      wc.close();
-    if (er)
-      this.emit("error", er);
-    else
-      this.emit(DESTROYED);
-    return this;
+    }, [Symbol.asyncDispose]: async () => {
+    } };
   }
-  /**
-   * Alias for {@link isStream}
-   *
-   * Former export location, maintained for backwards compatibility.
-   *
-   * @deprecated
-   */
+  [Symbol.iterator]() {
+    this[M] = false;
+    let t = false, e = () => (this.pause(), this.off(Xt, e), this.off(x, e), this.off("end", e), t = true, { done: true, value: void 0 }), s = () => {
+      if (t) return e();
+      let i = this.read();
+      return i === null ? e() : { done: false, value: i };
+    };
+    return this.once("end", e), this.once(Xt, e), this.once(x, e), { next: s, throw: e, return: e, [Symbol.iterator]() {
+      return this;
+    }, [Symbol.dispose]: () => {
+    } };
+  }
+  destroy(t) {
+    if (this[x]) return t ? this.emit("error", t) : this.emit(x), this;
+    this[x] = true, this[M] = true, this[C].length = 0, this[T] = 0;
+    let e = this;
+    return typeof e.close == "function" && !this[Rt] && e.close(), t ? this.emit("error", t) : this.emit(x), this;
+  }
   static get isStream() {
-    return isStream;
+    return oi;
   }
 };
-
-// ../../node_modules/path-scurry/dist/esm/index.js
-var realpathSync = import_fs.realpathSync.native;
-var defaultFS = {
-  lstatSync: import_fs.lstatSync,
-  readdir: import_fs.readdir,
-  readdirSync: import_fs.readdirSync,
-  readlinkSync: import_fs.readlinkSync,
-  realpathSync,
-  promises: {
-    lstat: import_promises.lstat,
-    readdir: import_promises.readdir,
-    readlink: import_promises.readlink,
-    realpath: import_promises.realpath
-  }
+var vi = import_fs.realpathSync.native;
+var wt = { lstatSync: import_fs.lstatSync, readdir: import_fs.readdir, readdirSync: import_fs.readdirSync, readlinkSync: import_fs.readlinkSync, realpathSync: vi, promises: { lstat: import_promises.lstat, readdir: import_promises.readdir, readlink: import_promises.readlink, realpath: import_promises.realpath } };
+var Ue = (n7) => !n7 || n7 === wt || n7 === xi ? wt : { ...wt, ...n7, promises: { ...wt.promises, ...n7.promises || {} } };
+var $e = /^\\\\\?\\([a-z]:)\\?$/i;
+var Ri = (n7) => n7.replace(/\//g, "\\").replace($e, "$1\\");
+var Oi = /[\\\/]/;
+var L = 0;
+var Ge = 1;
+var He = 2;
+var U = 4;
+var qe = 6;
+var Ke = 8;
+var X = 10;
+var Ve = 12;
+var _ = 15;
+var gt = ~_;
+var se = 16;
+var je = 32;
+var yt = 64;
+var j = 128;
+var Nt = 256;
+var Lt = 512;
+var Ie = yt | j | Lt;
+var Fi = 1023;
+var ie = (n7) => n7.isFile() ? Ke : n7.isDirectory() ? U : n7.isSymbolicLink() ? X : n7.isCharacterDevice() ? He : n7.isBlockDevice() ? qe : n7.isSocket() ? Ve : n7.isFIFO() ? Ge : L;
+var ze = new ft({ max: 2 ** 12 });
+var bt = (n7) => {
+  let t = ze.get(n7);
+  if (t) return t;
+  let e = n7.normalize("NFKD");
+  return ze.set(n7, e), e;
 };
-var fsFromOption = (fsOption) => !fsOption || fsOption === defaultFS || fsOption === actualFS ? defaultFS : {
-  ...defaultFS,
-  ...fsOption,
-  promises: {
-    ...defaultFS.promises,
-    ...fsOption.promises || {}
-  }
+var Be = new ft({ max: 2 ** 12 });
+var _t = (n7) => {
+  let t = Be.get(n7);
+  if (t) return t;
+  let e = bt(n7.toLowerCase());
+  return Be.set(n7, e), e;
 };
-var uncDriveRegexp = /^\\\\\?\\([a-z]:)\\?$/i;
-var uncToDrive = (rootPath) => rootPath.replace(/\//g, "\\").replace(uncDriveRegexp, "$1\\");
-var eitherSep = /[\\\/]/;
-var UNKNOWN = 0;
-var IFIFO = 1;
-var IFCHR = 2;
-var IFDIR = 4;
-var IFBLK = 6;
-var IFREG = 8;
-var IFLNK = 10;
-var IFSOCK = 12;
-var IFMT = 15;
-var IFMT_UNKNOWN = ~IFMT;
-var READDIR_CALLED = 16;
-var LSTAT_CALLED = 32;
-var ENOTDIR = 64;
-var ENOENT = 128;
-var ENOREADLINK = 256;
-var ENOREALPATH = 512;
-var ENOCHILD = ENOTDIR | ENOENT | ENOREALPATH;
-var TYPEMASK = 1023;
-var entToType = (s) => s.isFile() ? IFREG : s.isDirectory() ? IFDIR : s.isSymbolicLink() ? IFLNK : s.isCharacterDevice() ? IFCHR : s.isBlockDevice() ? IFBLK : s.isSocket() ? IFSOCK : s.isFIFO() ? IFIFO : UNKNOWN;
-var normalizeCache = /* @__PURE__ */ new Map();
-var normalize2 = (s) => {
-  const c = normalizeCache.get(s);
-  if (c)
-    return c;
-  const n = s.normalize("NFKD");
-  normalizeCache.set(s, n);
-  return n;
-};
-var normalizeNocaseCache = /* @__PURE__ */ new Map();
-var normalizeNocase = (s) => {
-  const c = normalizeNocaseCache.get(s);
-  if (c)
-    return c;
-  const n = normalize2(s.toLowerCase());
-  normalizeNocaseCache.set(s, n);
-  return n;
-};
-var ResolveCache = class extends LRUCache {
+var Wt = class extends ft {
   constructor() {
     super({ max: 256 });
   }
 };
-var ChildrenCache = class extends LRUCache {
-  constructor(maxSize = 16 * 1024) {
-    super({
-      maxSize,
-      // parent + children
-      sizeCalculation: (a) => a.length + 1
-    });
+var ne = class extends ft {
+  constructor(t = 16 * 1024) {
+    super({ maxSize: t, sizeCalculation: (e) => e.length + 1 });
   }
 };
-var setAsCwd = Symbol("PathScurry setAsCwd");
-var PathBase = class {
-  /**
-   * the basename of this path
-   *
-   * **Important**: *always* test the path name against any test string
-   * usingthe {@link isNamed} method, and not by directly comparing this
-   * string. Otherwise, unicode path strings that the system sees as identical
-   * will not be properly treated as the same path, leading to incorrect
-   * behavior and possible security issues.
-   */
+var Ye = Symbol("PathScurry setAsCwd");
+var R = class {
   name;
-  /**
-   * the Path entry corresponding to the path root.
-   *
-   * @internal
-   */
   root;
-  /**
-   * All roots found within the current PathScurry family
-   *
-   * @internal
-   */
   roots;
-  /**
-   * a reference to the parent path, or undefined in the case of root entries
-   *
-   * @internal
-   */
   parent;
-  /**
-   * boolean indicating whether paths are compared case-insensitively
-   * @internal
-   */
   nocase;
-  /**
-   * boolean indicating that this path is the current working directory
-   * of the PathScurry collection that contains it.
-   */
   isCWD = false;
-  // potential default fs override
-  #fs;
-  // Stats fields
-  #dev;
+  #t;
+  #s;
   get dev() {
-    return this.#dev;
+    return this.#s;
   }
-  #mode;
+  #n;
   get mode() {
-    return this.#mode;
+    return this.#n;
   }
-  #nlink;
+  #r;
   get nlink() {
-    return this.#nlink;
+    return this.#r;
   }
-  #uid;
+  #o;
   get uid() {
-    return this.#uid;
+    return this.#o;
   }
-  #gid;
+  #S;
   get gid() {
-    return this.#gid;
+    return this.#S;
   }
-  #rdev;
+  #w;
   get rdev() {
-    return this.#rdev;
+    return this.#w;
   }
-  #blksize;
+  #c;
   get blksize() {
-    return this.#blksize;
+    return this.#c;
   }
-  #ino;
+  #h;
   get ino() {
-    return this.#ino;
+    return this.#h;
   }
-  #size;
+  #u;
   get size() {
-    return this.#size;
+    return this.#u;
   }
-  #blocks;
+  #f;
   get blocks() {
-    return this.#blocks;
+    return this.#f;
   }
-  #atimeMs;
+  #a;
   get atimeMs() {
-    return this.#atimeMs;
+    return this.#a;
   }
-  #mtimeMs;
+  #i;
   get mtimeMs() {
-    return this.#mtimeMs;
+    return this.#i;
   }
-  #ctimeMs;
+  #d;
   get ctimeMs() {
-    return this.#ctimeMs;
+    return this.#d;
   }
-  #birthtimeMs;
+  #E;
   get birthtimeMs() {
-    return this.#birthtimeMs;
+    return this.#E;
   }
-  #atime;
+  #b;
   get atime() {
-    return this.#atime;
+    return this.#b;
   }
-  #mtime;
+  #p;
   get mtime() {
-    return this.#mtime;
+    return this.#p;
   }
-  #ctime;
+  #R;
   get ctime() {
-    return this.#ctime;
+    return this.#R;
   }
-  #birthtime;
+  #m;
   get birthtime() {
-    return this.#birthtime;
+    return this.#m;
   }
-  #matchName;
-  #depth;
-  #fullpath;
-  #fullpathPosix;
-  #relative;
-  #relativePosix;
-  #type;
-  #children;
-  #linkTarget;
-  #realpath;
-  /**
-   * This property is for compatibility with the Dirent class as of
-   * Node v20, where Dirent['parentPath'] refers to the path of the
-   * directory that was passed to readdir. For root entries, it's the path
-   * to the entry itself.
-   */
+  #C;
+  #T;
+  #g;
+  #y;
+  #x;
+  #A;
+  #e;
+  #_;
+  #M;
+  #k;
   get parentPath() {
     return (this.parent || this).fullpath();
   }
-  /**
-   * Deprecated alias for Dirent['parentPath'] Somewhat counterintuitively,
-   * this property refers to the *parent* path, not the path object itself.
-   *
-   * @deprecated
-   */
   get path() {
     return this.parentPath;
   }
-  /**
-   * Do not create new Path objects directly.  They should always be accessed
-   * via the PathScurry class or other methods on the Path class.
-   *
-   * @internal
-   */
-  constructor(name, type = UNKNOWN, root, roots, nocase, children, opts) {
-    this.name = name;
-    this.#matchName = nocase ? normalizeNocase(name) : normalize2(name);
-    this.#type = type & TYPEMASK;
-    this.nocase = nocase;
-    this.roots = roots;
-    this.root = root || this;
-    this.#children = children;
-    this.#fullpath = opts.fullpath;
-    this.#relative = opts.relative;
-    this.#relativePosix = opts.relativePosix;
-    this.parent = opts.parent;
-    if (this.parent) {
-      this.#fs = this.parent.#fs;
-    } else {
-      this.#fs = fsFromOption(opts.fs);
-    }
+  constructor(t, e = L, s, i, r, o, h) {
+    this.name = t, this.#C = r ? _t(t) : bt(t), this.#e = e & Fi, this.nocase = r, this.roots = i, this.root = s || this, this.#_ = o, this.#g = h.fullpath, this.#x = h.relative, this.#A = h.relativePosix, this.parent = h.parent, this.parent ? this.#t = this.parent.#t : this.#t = Ue(h.fs);
   }
-  /**
-   * Returns the depth of the Path object from its root.
-   *
-   * For example, a path at `/foo/bar` would have a depth of 2.
-   */
   depth() {
-    if (this.#depth !== void 0)
-      return this.#depth;
-    if (!this.parent)
-      return this.#depth = 0;
-    return this.#depth = this.parent.depth() + 1;
+    return this.#T !== void 0 ? this.#T : this.parent ? this.#T = this.parent.depth() + 1 : this.#T = 0;
   }
-  /**
-   * @internal
-   */
   childrenCache() {
-    return this.#children;
+    return this.#_;
   }
-  /**
-   * Get the Path object referenced by the string path, resolved from this Path
-   */
-  resolve(path3) {
-    if (!path3) {
-      return this;
-    }
-    const rootPath = this.getRootString(path3);
-    const dir = path3.substring(rootPath.length);
-    const dirParts = dir.split(this.splitSep);
-    const result = rootPath ? this.getRoot(rootPath).#resolveParts(dirParts) : this.#resolveParts(dirParts);
-    return result;
+  resolve(t) {
+    if (!t) return this;
+    let e = this.getRootString(t), i = t.substring(e.length).split(this.splitSep);
+    return e ? this.getRoot(e).#N(i) : this.#N(i);
   }
-  #resolveParts(dirParts) {
-    let p = this;
-    for (const part of dirParts) {
-      p = p.child(part);
-    }
-    return p;
+  #N(t) {
+    let e = this;
+    for (let s of t) e = e.child(s);
+    return e;
   }
-  /**
-   * Returns the cached children Path objects, if still available.  If they
-   * have fallen out of the cache, then returns an empty array, and resets the
-   * READDIR_CALLED bit, so that future calls to readdir() will require an fs
-   * lookup.
-   *
-   * @internal
-   */
   children() {
-    const cached = this.#children.get(this);
-    if (cached) {
-      return cached;
-    }
-    const children = Object.assign([], { provisional: 0 });
-    this.#children.set(this, children);
-    this.#type &= ~READDIR_CALLED;
-    return children;
+    let t = this.#_.get(this);
+    if (t) return t;
+    let e = Object.assign([], { provisional: 0 });
+    return this.#_.set(this, e), this.#e &= ~se, e;
   }
-  /**
-   * Resolves a path portion and returns or creates the child Path.
-   *
-   * Returns `this` if pathPart is `''` or `'.'`, or `parent` if pathPart is
-   * `'..'`.
-   *
-   * This should not be called directly.  If `pathPart` contains any path
-   * separators, it will lead to unsafe undefined behavior.
-   *
-   * Use `Path.resolve()` instead.
-   *
-   * @internal
-   */
-  child(pathPart, opts) {
-    if (pathPart === "" || pathPart === ".") {
-      return this;
-    }
-    if (pathPart === "..") {
-      return this.parent || this;
-    }
-    const children = this.children();
-    const name = this.nocase ? normalizeNocase(pathPart) : normalize2(pathPart);
-    for (const p of children) {
-      if (p.#matchName === name) {
-        return p;
-      }
-    }
-    const s = this.parent ? this.sep : "";
-    const fullpath = this.#fullpath ? this.#fullpath + s + pathPart : void 0;
-    const pchild = this.newChild(pathPart, UNKNOWN, {
-      ...opts,
-      parent: this,
-      fullpath
-    });
-    if (!this.canReaddir()) {
-      pchild.#type |= ENOENT;
-    }
-    children.push(pchild);
-    return pchild;
+  child(t, e) {
+    if (t === "" || t === ".") return this;
+    if (t === "..") return this.parent || this;
+    let s = this.children(), i = this.nocase ? _t(t) : bt(t);
+    for (let a of s) if (a.#C === i) return a;
+    let r = this.parent ? this.sep : "", o = this.#g ? this.#g + r + t : void 0, h = this.newChild(t, L, { ...e, parent: this, fullpath: o });
+    return this.canReaddir() || (h.#e |= j), s.push(h), h;
   }
-  /**
-   * The relative path from the cwd. If it does not share an ancestor with
-   * the cwd, then this ends up being equivalent to the fullpath()
-   */
   relative() {
-    if (this.isCWD)
-      return "";
-    if (this.#relative !== void 0) {
-      return this.#relative;
-    }
-    const name = this.name;
-    const p = this.parent;
-    if (!p) {
-      return this.#relative = this.name;
-    }
-    const pv = p.relative();
-    return pv + (!pv || !p.parent ? "" : this.sep) + name;
+    if (this.isCWD) return "";
+    if (this.#x !== void 0) return this.#x;
+    let t = this.name, e = this.parent;
+    if (!e) return this.#x = this.name;
+    let s = e.relative();
+    return s + (!s || !e.parent ? "" : this.sep) + t;
   }
-  /**
-   * The relative path from the cwd, using / as the path separator.
-   * If it does not share an ancestor with
-   * the cwd, then this ends up being equivalent to the fullpathPosix()
-   * On posix systems, this is identical to relative().
-   */
   relativePosix() {
-    if (this.sep === "/")
-      return this.relative();
-    if (this.isCWD)
-      return "";
-    if (this.#relativePosix !== void 0)
-      return this.#relativePosix;
-    const name = this.name;
-    const p = this.parent;
-    if (!p) {
-      return this.#relativePosix = this.fullpathPosix();
-    }
-    const pv = p.relativePosix();
-    return pv + (!pv || !p.parent ? "" : "/") + name;
+    if (this.sep === "/") return this.relative();
+    if (this.isCWD) return "";
+    if (this.#A !== void 0) return this.#A;
+    let t = this.name, e = this.parent;
+    if (!e) return this.#A = this.fullpathPosix();
+    let s = e.relativePosix();
+    return s + (!s || !e.parent ? "" : "/") + t;
   }
-  /**
-   * The fully resolved path string for this Path entry
-   */
   fullpath() {
-    if (this.#fullpath !== void 0) {
-      return this.#fullpath;
-    }
-    const name = this.name;
-    const p = this.parent;
-    if (!p) {
-      return this.#fullpath = this.name;
-    }
-    const pv = p.fullpath();
-    const fp = pv + (!p.parent ? "" : this.sep) + name;
-    return this.#fullpath = fp;
+    if (this.#g !== void 0) return this.#g;
+    let t = this.name, e = this.parent;
+    if (!e) return this.#g = this.name;
+    let i = e.fullpath() + (e.parent ? this.sep : "") + t;
+    return this.#g = i;
   }
-  /**
-   * On platforms other than windows, this is identical to fullpath.
-   *
-   * On windows, this is overridden to return the forward-slash form of the
-   * full UNC path.
-   */
   fullpathPosix() {
-    if (this.#fullpathPosix !== void 0)
-      return this.#fullpathPosix;
-    if (this.sep === "/")
-      return this.#fullpathPosix = this.fullpath();
+    if (this.#y !== void 0) return this.#y;
+    if (this.sep === "/") return this.#y = this.fullpath();
     if (!this.parent) {
-      const p2 = this.fullpath().replace(/\\/g, "/");
-      if (/^[a-z]:\//i.test(p2)) {
-        return this.#fullpathPosix = `//?/${p2}`;
-      } else {
-        return this.#fullpathPosix = p2;
-      }
+      let i = this.fullpath().replace(/\\/g, "/");
+      return /^[a-z]:\//i.test(i) ? this.#y = `//?/${i}` : this.#y = i;
     }
-    const p = this.parent;
-    const pfpp = p.fullpathPosix();
-    const fpp = pfpp + (!pfpp || !p.parent ? "" : "/") + this.name;
-    return this.#fullpathPosix = fpp;
+    let t = this.parent, e = t.fullpathPosix(), s = e + (!e || !t.parent ? "" : "/") + this.name;
+    return this.#y = s;
   }
-  /**
-   * Is the Path of an unknown type?
-   *
-   * Note that we might know *something* about it if there has been a previous
-   * filesystem operation, for example that it does not exist, or is not a
-   * link, or whether it has child entries.
-   */
   isUnknown() {
-    return (this.#type & IFMT) === UNKNOWN;
+    return (this.#e & _) === L;
   }
-  isType(type) {
-    return this[`is${type}`]();
+  isType(t) {
+    return this[`is${t}`]();
   }
   getType() {
-    return this.isUnknown() ? "Unknown" : this.isDirectory() ? "Directory" : this.isFile() ? "File" : this.isSymbolicLink() ? "SymbolicLink" : this.isFIFO() ? "FIFO" : this.isCharacterDevice() ? "CharacterDevice" : this.isBlockDevice() ? "BlockDevice" : (
-      /* c8 ignore start */
-      this.isSocket() ? "Socket" : "Unknown"
-    );
+    return this.isUnknown() ? "Unknown" : this.isDirectory() ? "Directory" : this.isFile() ? "File" : this.isSymbolicLink() ? "SymbolicLink" : this.isFIFO() ? "FIFO" : this.isCharacterDevice() ? "CharacterDevice" : this.isBlockDevice() ? "BlockDevice" : this.isSocket() ? "Socket" : "Unknown";
   }
-  /**
-   * Is the Path a regular file?
-   */
   isFile() {
-    return (this.#type & IFMT) === IFREG;
+    return (this.#e & _) === Ke;
   }
-  /**
-   * Is the Path a directory?
-   */
   isDirectory() {
-    return (this.#type & IFMT) === IFDIR;
+    return (this.#e & _) === U;
   }
-  /**
-   * Is the path a character device?
-   */
   isCharacterDevice() {
-    return (this.#type & IFMT) === IFCHR;
+    return (this.#e & _) === He;
   }
-  /**
-   * Is the path a block device?
-   */
   isBlockDevice() {
-    return (this.#type & IFMT) === IFBLK;
+    return (this.#e & _) === qe;
   }
-  /**
-   * Is the path a FIFO pipe?
-   */
   isFIFO() {
-    return (this.#type & IFMT) === IFIFO;
+    return (this.#e & _) === Ge;
   }
-  /**
-   * Is the path a socket?
-   */
   isSocket() {
-    return (this.#type & IFMT) === IFSOCK;
+    return (this.#e & _) === Ve;
   }
-  /**
-   * Is the path a symbolic link?
-   */
   isSymbolicLink() {
-    return (this.#type & IFLNK) === IFLNK;
+    return (this.#e & X) === X;
   }
-  /**
-   * Return the entry if it has been subject of a successful lstat, or
-   * undefined otherwise.
-   *
-   * Does not read the filesystem, so an undefined result *could* simply
-   * mean that we haven't called lstat on it.
-   */
   lstatCached() {
-    return this.#type & LSTAT_CALLED ? this : void 0;
+    return this.#e & je ? this : void 0;
   }
-  /**
-   * Return the cached link target if the entry has been the subject of a
-   * successful readlink, or undefined otherwise.
-   *
-   * Does not read the filesystem, so an undefined result *could* just mean we
-   * don't have any cached data. Only use it if you are very sure that a
-   * readlink() has been called at some point.
-   */
   readlinkCached() {
-    return this.#linkTarget;
+    return this.#M;
   }
-  /**
-   * Returns the cached realpath target if the entry has been the subject
-   * of a successful realpath, or undefined otherwise.
-   *
-   * Does not read the filesystem, so an undefined result *could* just mean we
-   * don't have any cached data. Only use it if you are very sure that a
-   * realpath() has been called at some point.
-   */
   realpathCached() {
-    return this.#realpath;
+    return this.#k;
   }
-  /**
-   * Returns the cached child Path entries array if the entry has been the
-   * subject of a successful readdir(), or [] otherwise.
-   *
-   * Does not read the filesystem, so an empty array *could* just mean we
-   * don't have any cached data. Only use it if you are very sure that a
-   * readdir() has been called recently enough to still be valid.
-   */
   readdirCached() {
-    const children = this.children();
-    return children.slice(0, children.provisional);
+    let t = this.children();
+    return t.slice(0, t.provisional);
   }
-  /**
-   * Return true if it's worth trying to readlink.  Ie, we don't (yet) have
-   * any indication that readlink will definitely fail.
-   *
-   * Returns false if the path is known to not be a symlink, if a previous
-   * readlink failed, or if the entry does not exist.
-   */
   canReadlink() {
-    if (this.#linkTarget)
-      return true;
-    if (!this.parent)
-      return false;
-    const ifmt = this.#type & IFMT;
-    return !(ifmt !== UNKNOWN && ifmt !== IFLNK || this.#type & ENOREADLINK || this.#type & ENOENT);
+    if (this.#M) return true;
+    if (!this.parent) return false;
+    let t = this.#e & _;
+    return !(t !== L && t !== X || this.#e & Nt || this.#e & j);
   }
-  /**
-   * Return true if readdir has previously been successfully called on this
-   * path, indicating that cachedReaddir() is likely valid.
-   */
   calledReaddir() {
-    return !!(this.#type & READDIR_CALLED);
+    return !!(this.#e & se);
   }
-  /**
-   * Returns true if the path is known to not exist. That is, a previous lstat
-   * or readdir failed to verify its existence when that would have been
-   * expected, or a parent entry was marked either enoent or enotdir.
-   */
   isENOENT() {
-    return !!(this.#type & ENOENT);
+    return !!(this.#e & j);
   }
-  /**
-   * Return true if the path is a match for the given path name.  This handles
-   * case sensitivity and unicode normalization.
-   *
-   * Note: even on case-sensitive systems, it is **not** safe to test the
-   * equality of the `.name` property to determine whether a given pathname
-   * matches, due to unicode normalization mismatches.
-   *
-   * Always use this method instead of testing the `path.name` property
-   * directly.
-   */
-  isNamed(n) {
-    return !this.nocase ? this.#matchName === normalize2(n) : this.#matchName === normalizeNocase(n);
+  isNamed(t) {
+    return this.nocase ? this.#C === _t(t) : this.#C === bt(t);
   }
-  /**
-   * Return the Path object corresponding to the target of a symbolic link.
-   *
-   * If the Path is not a symbolic link, or if the readlink call fails for any
-   * reason, `undefined` is returned.
-   *
-   * Result is cached, and thus may be outdated if the filesystem is mutated.
-   */
   async readlink() {
-    const target = this.#linkTarget;
-    if (target) {
-      return target;
-    }
-    if (!this.canReadlink()) {
-      return void 0;
-    }
-    if (!this.parent) {
-      return void 0;
-    }
-    try {
-      const read = await this.#fs.promises.readlink(this.fullpath());
-      const linkTarget = (await this.parent.realpath())?.resolve(read);
-      if (linkTarget) {
-        return this.#linkTarget = linkTarget;
-      }
-    } catch (er) {
-      this.#readlinkFail(er.code);
-      return void 0;
+    let t = this.#M;
+    if (t) return t;
+    if (this.canReadlink() && this.parent) try {
+      let e = await this.#t.promises.readlink(this.fullpath()), s = (await this.parent.realpath())?.resolve(e);
+      if (s) return this.#M = s;
+    } catch (e) {
+      this.#D(e.code);
+      return;
     }
   }
-  /**
-   * Synchronous {@link PathBase.readlink}
-   */
   readlinkSync() {
-    const target = this.#linkTarget;
-    if (target) {
-      return target;
-    }
-    if (!this.canReadlink()) {
-      return void 0;
-    }
-    if (!this.parent) {
-      return void 0;
-    }
-    try {
-      const read = this.#fs.readlinkSync(this.fullpath());
-      const linkTarget = this.parent.realpathSync()?.resolve(read);
-      if (linkTarget) {
-        return this.#linkTarget = linkTarget;
-      }
-    } catch (er) {
-      this.#readlinkFail(er.code);
-      return void 0;
-    }
-  }
-  #readdirSuccess(children) {
-    this.#type |= READDIR_CALLED;
-    for (let p = children.provisional; p < children.length; p++) {
-      const c = children[p];
-      if (c)
-        c.#markENOENT();
-    }
-  }
-  #markENOENT() {
-    if (this.#type & ENOENT)
+    let t = this.#M;
+    if (t) return t;
+    if (this.canReadlink() && this.parent) try {
+      let e = this.#t.readlinkSync(this.fullpath()), s = this.parent.realpathSync()?.resolve(e);
+      if (s) return this.#M = s;
+    } catch (e) {
+      this.#D(e.code);
       return;
-    this.#type = (this.#type | ENOENT) & IFMT_UNKNOWN;
-    this.#markChildrenENOENT();
-  }
-  #markChildrenENOENT() {
-    const children = this.children();
-    children.provisional = 0;
-    for (const p of children) {
-      p.#markENOENT();
     }
   }
-  #markENOREALPATH() {
-    this.#type |= ENOREALPATH;
-    this.#markENOTDIR();
-  }
-  // save the information when we know the entry is not a dir
-  #markENOTDIR() {
-    if (this.#type & ENOTDIR)
-      return;
-    let t = this.#type;
-    if ((t & IFMT) === IFDIR)
-      t &= IFMT_UNKNOWN;
-    this.#type = t | ENOTDIR;
-    this.#markChildrenENOENT();
-  }
-  #readdirFail(code = "") {
-    if (code === "ENOTDIR" || code === "EPERM") {
-      this.#markENOTDIR();
-    } else if (code === "ENOENT") {
-      this.#markENOENT();
-    } else {
-      this.children().provisional = 0;
+  #j(t) {
+    this.#e |= se;
+    for (let e = t.provisional; e < t.length; e++) {
+      let s = t[e];
+      s && s.#v();
     }
   }
-  #lstatFail(code = "") {
-    if (code === "ENOTDIR") {
-      const p = this.parent;
-      p.#markENOTDIR();
-    } else if (code === "ENOENT") {
-      this.#markENOENT();
+  #v() {
+    this.#e & j || (this.#e = (this.#e | j) & gt, this.#G());
+  }
+  #G() {
+    let t = this.children();
+    t.provisional = 0;
+    for (let e of t) e.#v();
+  }
+  #P() {
+    this.#e |= Lt, this.#L();
+  }
+  #L() {
+    if (this.#e & yt) return;
+    let t = this.#e;
+    (t & _) === U && (t &= gt), this.#e = t | yt, this.#G();
+  }
+  #I(t = "") {
+    t === "ENOTDIR" || t === "EPERM" ? this.#L() : t === "ENOENT" ? this.#v() : this.children().provisional = 0;
+  }
+  #F(t = "") {
+    t === "ENOTDIR" ? this.parent.#L() : t === "ENOENT" && this.#v();
+  }
+  #D(t = "") {
+    let e = this.#e;
+    e |= Nt, t === "ENOENT" && (e |= j), (t === "EINVAL" || t === "UNKNOWN") && (e &= gt), this.#e = e, t === "ENOTDIR" && this.parent && this.parent.#L();
+  }
+  #z(t, e) {
+    return this.#U(t, e) || this.#B(t, e);
+  }
+  #B(t, e) {
+    let s = ie(t), i = this.newChild(t.name, s, { parent: this }), r = i.#e & _;
+    return r !== U && r !== X && r !== L && (i.#e |= yt), e.unshift(i), e.provisional++, i;
+  }
+  #U(t, e) {
+    for (let s = e.provisional; s < e.length; s++) {
+      let i = e[s];
+      if ((this.nocase ? _t(t.name) : bt(t.name)) === i.#C) return this.#l(t, i, s, e);
     }
   }
-  #readlinkFail(code = "") {
-    let ter = this.#type;
-    ter |= ENOREADLINK;
-    if (code === "ENOENT")
-      ter |= ENOENT;
-    if (code === "EINVAL" || code === "UNKNOWN") {
-      ter &= IFMT_UNKNOWN;
-    }
-    this.#type = ter;
-    if (code === "ENOTDIR" && this.parent) {
-      this.parent.#markENOTDIR();
-    }
+  #l(t, e, s, i) {
+    let r = e.name;
+    return e.#e = e.#e & gt | ie(t), r !== t.name && (e.name = t.name), s !== i.provisional && (s === i.length - 1 ? i.pop() : i.splice(s, 1), i.unshift(e)), i.provisional++, e;
   }
-  #readdirAddChild(e, c) {
-    return this.#readdirMaybePromoteChild(e, c) || this.#readdirAddNewChild(e, c);
-  }
-  #readdirAddNewChild(e, c) {
-    const type = entToType(e);
-    const child = this.newChild(e.name, type, { parent: this });
-    const ifmt = child.#type & IFMT;
-    if (ifmt !== IFDIR && ifmt !== IFLNK && ifmt !== UNKNOWN) {
-      child.#type |= ENOTDIR;
-    }
-    c.unshift(child);
-    c.provisional++;
-    return child;
-  }
-  #readdirMaybePromoteChild(e, c) {
-    for (let p = c.provisional; p < c.length; p++) {
-      const pchild = c[p];
-      const name = this.nocase ? normalizeNocase(e.name) : normalize2(e.name);
-      if (name !== pchild.#matchName) {
-        continue;
-      }
-      return this.#readdirPromoteChild(e, pchild, p, c);
-    }
-  }
-  #readdirPromoteChild(e, p, index, c) {
-    const v = p.name;
-    p.#type = p.#type & IFMT_UNKNOWN | entToType(e);
-    if (v !== e.name)
-      p.name = e.name;
-    if (index !== c.provisional) {
-      if (index === c.length - 1)
-        c.pop();
-      else
-        c.splice(index, 1);
-      c.unshift(p);
-    }
-    c.provisional++;
-    return p;
-  }
-  /**
-   * Call lstat() on this Path, and update all known information that can be
-   * determined.
-   *
-   * Note that unlike `fs.lstat()`, the returned value does not contain some
-   * information, such as `mode`, `dev`, `nlink`, and `ino`.  If that
-   * information is required, you will need to call `fs.lstat` yourself.
-   *
-   * If the Path refers to a nonexistent file, or if the lstat call fails for
-   * any reason, `undefined` is returned.  Otherwise the updated Path object is
-   * returned.
-   *
-   * Results are cached, and thus may be out of date if the filesystem is
-   * mutated.
-   */
   async lstat() {
-    if ((this.#type & ENOENT) === 0) {
-      try {
-        this.#applyStat(await this.#fs.promises.lstat(this.fullpath()));
-        return this;
-      } catch (er) {
-        this.#lstatFail(er.code);
-      }
+    if ((this.#e & j) === 0) try {
+      return this.#$(await this.#t.promises.lstat(this.fullpath())), this;
+    } catch (t) {
+      this.#F(t.code);
     }
   }
-  /**
-   * synchronous {@link PathBase.lstat}
-   */
   lstatSync() {
-    if ((this.#type & ENOENT) === 0) {
-      try {
-        this.#applyStat(this.#fs.lstatSync(this.fullpath()));
-        return this;
-      } catch (er) {
-        this.#lstatFail(er.code);
-      }
+    if ((this.#e & j) === 0) try {
+      return this.#$(this.#t.lstatSync(this.fullpath())), this;
+    } catch (t) {
+      this.#F(t.code);
     }
   }
-  #applyStat(st) {
-    const { atime, atimeMs, birthtime, birthtimeMs, blksize, blocks, ctime, ctimeMs, dev, gid, ino, mode, mtime, mtimeMs, nlink, rdev, size, uid } = st;
-    this.#atime = atime;
-    this.#atimeMs = atimeMs;
-    this.#birthtime = birthtime;
-    this.#birthtimeMs = birthtimeMs;
-    this.#blksize = blksize;
-    this.#blocks = blocks;
-    this.#ctime = ctime;
-    this.#ctimeMs = ctimeMs;
-    this.#dev = dev;
-    this.#gid = gid;
-    this.#ino = ino;
-    this.#mode = mode;
-    this.#mtime = mtime;
-    this.#mtimeMs = mtimeMs;
-    this.#nlink = nlink;
-    this.#rdev = rdev;
-    this.#size = size;
-    this.#uid = uid;
-    const ifmt = entToType(st);
-    this.#type = this.#type & IFMT_UNKNOWN | ifmt | LSTAT_CALLED;
-    if (ifmt !== UNKNOWN && ifmt !== IFDIR && ifmt !== IFLNK) {
-      this.#type |= ENOTDIR;
-    }
+  #$(t) {
+    let { atime: e, atimeMs: s, birthtime: i, birthtimeMs: r, blksize: o, blocks: h, ctime: a, ctimeMs: l, dev: u, gid: c, ino: d, mode: f, mtime: m, mtimeMs: p, nlink: w, rdev: g, size: S, uid: E } = t;
+    this.#b = e, this.#a = s, this.#m = i, this.#E = r, this.#c = o, this.#f = h, this.#R = a, this.#d = l, this.#s = u, this.#S = c, this.#h = d, this.#n = f, this.#p = m, this.#i = p, this.#r = w, this.#w = g, this.#u = S, this.#o = E;
+    let y = ie(t);
+    this.#e = this.#e & gt | y | je, y !== L && y !== U && y !== X && (this.#e |= yt);
   }
-  #onReaddirCB = [];
-  #readdirCBInFlight = false;
-  #callOnReaddirCB(children) {
-    this.#readdirCBInFlight = false;
-    const cbs = this.#onReaddirCB.slice();
-    this.#onReaddirCB.length = 0;
-    cbs.forEach((cb) => cb(null, children));
+  #W = [];
+  #O = false;
+  #H(t) {
+    this.#O = false;
+    let e = this.#W.slice();
+    this.#W.length = 0, e.forEach((s) => s(null, t));
   }
-  /**
-   * Standard node-style callback interface to get list of directory entries.
-   *
-   * If the Path cannot or does not contain any children, then an empty array
-   * is returned.
-   *
-   * Results are cached, and thus may be out of date if the filesystem is
-   * mutated.
-   *
-   * @param cb The callback called with (er, entries).  Note that the `er`
-   * param is somewhat extraneous, as all readdir() errors are handled and
-   * simply result in an empty set of entries being returned.
-   * @param allowZalgo Boolean indicating that immediately known results should
-   * *not* be deferred with `queueMicrotask`. Defaults to `false`. Release
-   * zalgo at your peril, the dark pony lord is devious and unforgiving.
-   */
-  readdirCB(cb, allowZalgo = false) {
+  readdirCB(t, e = false) {
     if (!this.canReaddir()) {
-      if (allowZalgo)
-        cb(null, []);
-      else
-        queueMicrotask(() => cb(null, []));
+      e ? t(null, []) : queueMicrotask(() => t(null, []));
       return;
     }
-    const children = this.children();
+    let s = this.children();
     if (this.calledReaddir()) {
-      const c = children.slice(0, children.provisional);
-      if (allowZalgo)
-        cb(null, c);
-      else
-        queueMicrotask(() => cb(null, c));
+      let r = s.slice(0, s.provisional);
+      e ? t(null, r) : queueMicrotask(() => t(null, r));
       return;
     }
-    this.#onReaddirCB.push(cb);
-    if (this.#readdirCBInFlight) {
-      return;
-    }
-    this.#readdirCBInFlight = true;
-    const fullpath = this.fullpath();
-    this.#fs.readdir(fullpath, { withFileTypes: true }, (er, entries) => {
-      if (er) {
-        this.#readdirFail(er.code);
-        children.provisional = 0;
-      } else {
-        for (const e of entries) {
-          this.#readdirAddChild(e, children);
-        }
-        this.#readdirSuccess(children);
+    if (this.#W.push(t), this.#O) return;
+    this.#O = true;
+    let i = this.fullpath();
+    this.#t.readdir(i, { withFileTypes: true }, (r, o) => {
+      if (r) this.#I(r.code), s.provisional = 0;
+      else {
+        for (let h of o) this.#z(h, s);
+        this.#j(s);
       }
-      this.#callOnReaddirCB(children.slice(0, children.provisional));
-      return;
+      this.#H(s.slice(0, s.provisional));
     });
   }
-  #asyncReaddirInFlight;
-  /**
-   * Return an array of known child entries.
-   *
-   * If the Path cannot or does not contain any children, then an empty array
-   * is returned.
-   *
-   * Results are cached, and thus may be out of date if the filesystem is
-   * mutated.
-   */
+  #q;
   async readdir() {
-    if (!this.canReaddir()) {
-      return [];
-    }
-    const children = this.children();
-    if (this.calledReaddir()) {
-      return children.slice(0, children.provisional);
-    }
-    const fullpath = this.fullpath();
-    if (this.#asyncReaddirInFlight) {
-      await this.#asyncReaddirInFlight;
-    } else {
-      let resolve = () => {
+    if (!this.canReaddir()) return [];
+    let t = this.children();
+    if (this.calledReaddir()) return t.slice(0, t.provisional);
+    let e = this.fullpath();
+    if (this.#q) await this.#q;
+    else {
+      let s = () => {
       };
-      this.#asyncReaddirInFlight = new Promise((res) => resolve = res);
+      this.#q = new Promise((i) => s = i);
       try {
-        for (const e of await this.#fs.promises.readdir(fullpath, {
-          withFileTypes: true
-        })) {
-          this.#readdirAddChild(e, children);
-        }
-        this.#readdirSuccess(children);
-      } catch (er) {
-        this.#readdirFail(er.code);
-        children.provisional = 0;
+        for (let i of await this.#t.promises.readdir(e, { withFileTypes: true })) this.#z(i, t);
+        this.#j(t);
+      } catch (i) {
+        this.#I(i.code), t.provisional = 0;
       }
-      this.#asyncReaddirInFlight = void 0;
-      resolve();
+      this.#q = void 0, s();
     }
-    return children.slice(0, children.provisional);
+    return t.slice(0, t.provisional);
   }
-  /**
-   * synchronous {@link PathBase.readdir}
-   */
   readdirSync() {
-    if (!this.canReaddir()) {
-      return [];
-    }
-    const children = this.children();
-    if (this.calledReaddir()) {
-      return children.slice(0, children.provisional);
-    }
-    const fullpath = this.fullpath();
+    if (!this.canReaddir()) return [];
+    let t = this.children();
+    if (this.calledReaddir()) return t.slice(0, t.provisional);
+    let e = this.fullpath();
     try {
-      for (const e of this.#fs.readdirSync(fullpath, {
-        withFileTypes: true
-      })) {
-        this.#readdirAddChild(e, children);
-      }
-      this.#readdirSuccess(children);
-    } catch (er) {
-      this.#readdirFail(er.code);
-      children.provisional = 0;
+      for (let s of this.#t.readdirSync(e, { withFileTypes: true })) this.#z(s, t);
+      this.#j(t);
+    } catch (s) {
+      this.#I(s.code), t.provisional = 0;
     }
-    return children.slice(0, children.provisional);
+    return t.slice(0, t.provisional);
   }
   canReaddir() {
-    if (this.#type & ENOCHILD)
-      return false;
-    const ifmt = IFMT & this.#type;
-    if (!(ifmt === UNKNOWN || ifmt === IFDIR || ifmt === IFLNK)) {
-      return false;
-    }
-    return true;
+    if (this.#e & Ie) return false;
+    let t = _ & this.#e;
+    return t === L || t === U || t === X;
   }
-  shouldWalk(dirs, walkFilter) {
-    return (this.#type & IFDIR) === IFDIR && !(this.#type & ENOCHILD) && !dirs.has(this) && (!walkFilter || walkFilter(this));
+  shouldWalk(t, e) {
+    return (this.#e & U) === U && !(this.#e & Ie) && !t.has(this) && (!e || e(this));
   }
-  /**
-   * Return the Path object corresponding to path as resolved
-   * by realpath(3).
-   *
-   * If the realpath call fails for any reason, `undefined` is returned.
-   *
-   * Result is cached, and thus may be outdated if the filesystem is mutated.
-   * On success, returns a Path object.
-   */
   async realpath() {
-    if (this.#realpath)
-      return this.#realpath;
-    if ((ENOREALPATH | ENOREADLINK | ENOENT) & this.#type)
-      return void 0;
-    try {
-      const rp = await this.#fs.promises.realpath(this.fullpath());
-      return this.#realpath = this.resolve(rp);
-    } catch (_) {
-      this.#markENOREALPATH();
+    if (this.#k) return this.#k;
+    if (!((Lt | Nt | j) & this.#e)) try {
+      let t = await this.#t.promises.realpath(this.fullpath());
+      return this.#k = this.resolve(t);
+    } catch {
+      this.#P();
     }
   }
-  /**
-   * Synchronous {@link realpath}
-   */
   realpathSync() {
-    if (this.#realpath)
-      return this.#realpath;
-    if ((ENOREALPATH | ENOREADLINK | ENOENT) & this.#type)
-      return void 0;
-    try {
-      const rp = this.#fs.realpathSync(this.fullpath());
-      return this.#realpath = this.resolve(rp);
-    } catch (_) {
-      this.#markENOREALPATH();
+    if (this.#k) return this.#k;
+    if (!((Lt | Nt | j) & this.#e)) try {
+      let t = this.#t.realpathSync(this.fullpath());
+      return this.#k = this.resolve(t);
+    } catch {
+      this.#P();
     }
   }
-  /**
-   * Internal method to mark this Path object as the scurry cwd,
-   * called by {@link PathScurry#chdir}
-   *
-   * @internal
-   */
-  [setAsCwd](oldCwd) {
-    if (oldCwd === this)
-      return;
-    oldCwd.isCWD = false;
-    this.isCWD = true;
-    const changed = /* @__PURE__ */ new Set([]);
-    let rp = [];
-    let p = this;
-    while (p && p.parent) {
-      changed.add(p);
-      p.#relative = rp.join(this.sep);
-      p.#relativePosix = rp.join("/");
-      p = p.parent;
-      rp.push("..");
-    }
-    p = oldCwd;
-    while (p && p.parent && !changed.has(p)) {
-      p.#relative = void 0;
-      p.#relativePosix = void 0;
-      p = p.parent;
-    }
+  [Ye](t) {
+    if (t === this) return;
+    t.isCWD = false, this.isCWD = true;
+    let e = /* @__PURE__ */ new Set([]), s = [], i = this;
+    for (; i && i.parent; ) e.add(i), i.#x = s.join(this.sep), i.#A = s.join("/"), i = i.parent, s.push("..");
+    for (i = t; i && i.parent && !e.has(i); ) i.#x = void 0, i.#A = void 0, i = i.parent;
   }
 };
-var PathWin32 = class _PathWin32 extends PathBase {
-  /**
-   * Separator for generating path strings.
-   */
+var Pt = class n2 extends R {
   sep = "\\";
-  /**
-   * Separator for parsing path strings.
-   */
-  splitSep = eitherSep;
-  /**
-   * Do not create new Path objects directly.  They should always be accessed
-   * via the PathScurry class or other methods on the Path class.
-   *
-   * @internal
-   */
-  constructor(name, type = UNKNOWN, root, roots, nocase, children, opts) {
-    super(name, type, root, roots, nocase, children, opts);
+  splitSep = Oi;
+  constructor(t, e = L, s, i, r, o, h) {
+    super(t, e, s, i, r, o, h);
   }
-  /**
-   * @internal
-   */
-  newChild(name, type = UNKNOWN, opts = {}) {
-    return new _PathWin32(name, type, this.root, this.roots, this.nocase, this.childrenCache(), opts);
+  newChild(t, e = L, s = {}) {
+    return new n2(t, e, this.root, this.roots, this.nocase, this.childrenCache(), s);
   }
-  /**
-   * @internal
-   */
-  getRootString(path3) {
-    return import_node_path.win32.parse(path3).root;
+  getRootString(t) {
+    return import_node_path.win32.parse(t).root;
   }
-  /**
-   * @internal
-   */
-  getRoot(rootPath) {
-    rootPath = uncToDrive(rootPath.toUpperCase());
-    if (rootPath === this.root.name) {
-      return this.root;
-    }
-    for (const [compare, root] of Object.entries(this.roots)) {
-      if (this.sameRoot(rootPath, compare)) {
-        return this.roots[rootPath] = root;
-      }
-    }
-    return this.roots[rootPath] = new PathScurryWin32(rootPath, this).root;
+  getRoot(t) {
+    if (t = Ri(t.toUpperCase()), t === this.root.name) return this.root;
+    for (let [e, s] of Object.entries(this.roots)) if (this.sameRoot(t, e)) return this.roots[t] = s;
+    return this.roots[t] = new it(t, this).root;
   }
-  /**
-   * @internal
-   */
-  sameRoot(rootPath, compare = this.root.name) {
-    rootPath = rootPath.toUpperCase().replace(/\//g, "\\").replace(uncDriveRegexp, "$1\\");
-    return rootPath === compare;
+  sameRoot(t, e = this.root.name) {
+    return t = t.toUpperCase().replace(/\//g, "\\").replace($e, "$1\\"), t === e;
   }
 };
-var PathPosix = class _PathPosix extends PathBase {
-  /**
-   * separator for parsing path strings
-   */
+var jt = class n3 extends R {
   splitSep = "/";
-  /**
-   * separator for generating path strings
-   */
   sep = "/";
-  /**
-   * Do not create new Path objects directly.  They should always be accessed
-   * via the PathScurry class or other methods on the Path class.
-   *
-   * @internal
-   */
-  constructor(name, type = UNKNOWN, root, roots, nocase, children, opts) {
-    super(name, type, root, roots, nocase, children, opts);
+  constructor(t, e = L, s, i, r, o, h) {
+    super(t, e, s, i, r, o, h);
   }
-  /**
-   * @internal
-   */
-  getRootString(path3) {
-    return path3.startsWith("/") ? "/" : "";
+  getRootString(t) {
+    return t.startsWith("/") ? "/" : "";
   }
-  /**
-   * @internal
-   */
-  getRoot(_rootPath) {
+  getRoot(t) {
     return this.root;
   }
-  /**
-   * @internal
-   */
-  newChild(name, type = UNKNOWN, opts = {}) {
-    return new _PathPosix(name, type, this.root, this.roots, this.nocase, this.childrenCache(), opts);
+  newChild(t, e = L, s = {}) {
+    return new n3(t, e, this.root, this.roots, this.nocase, this.childrenCache(), s);
   }
 };
-var PathScurryBase = class {
-  /**
-   * The root Path entry for the current working directory of this Scurry
-   */
+var It = class {
   root;
-  /**
-   * The string path for the root of this Scurry's current working directory
-   */
   rootPath;
-  /**
-   * A collection of all roots encountered, referenced by rootPath
-   */
   roots;
-  /**
-   * The Path entry corresponding to this PathScurry's current working directory.
-   */
   cwd;
-  #resolveCache;
-  #resolvePosixCache;
-  #children;
-  /**
-   * Perform path comparisons case-insensitively.
-   *
-   * Defaults true on Darwin and Windows systems, false elsewhere.
-   */
+  #t;
+  #s;
+  #n;
   nocase;
-  #fs;
-  /**
-   * This class should not be instantiated directly.
-   *
-   * Use PathScurryWin32, PathScurryDarwin, PathScurryPosix, or PathScurry
-   *
-   * @internal
-   */
-  constructor(cwd = process.cwd(), pathImpl, sep2, { nocase, childrenCacheSize = 16 * 1024, fs: fs2 = defaultFS } = {}) {
-    this.#fs = fsFromOption(fs2);
-    if (cwd instanceof URL || cwd.startsWith("file://")) {
-      cwd = (0, import_node_url.fileURLToPath)(cwd);
+  #r;
+  constructor(t = process.cwd(), e, s, { nocase: i, childrenCacheSize: r = 16 * 1024, fs: o = wt } = {}) {
+    this.#r = Ue(o), (t instanceof URL || t.startsWith("file://")) && (t = (0, import_node_url2.fileURLToPath)(t));
+    let h = e.resolve(t);
+    this.roots = /* @__PURE__ */ Object.create(null), this.rootPath = this.parseRootPath(h), this.#t = new Wt(), this.#s = new Wt(), this.#n = new ne(r);
+    let a = h.substring(this.rootPath.length).split(s);
+    if (a.length === 1 && !a[0] && a.pop(), i === void 0) throw new TypeError("must provide nocase setting to PathScurryBase ctor");
+    this.nocase = i, this.root = this.newRoot(this.#r), this.roots[this.rootPath] = this.root;
+    let l = this.root, u = a.length - 1, c = e.sep, d = this.rootPath, f = false;
+    for (let m of a) {
+      let p = u--;
+      l = l.child(m, { relative: new Array(p).fill("..").join(c), relativePosix: new Array(p).fill("..").join("/"), fullpath: d += (f ? "" : c) + m }), f = true;
     }
-    const cwdPath = pathImpl.resolve(cwd);
-    this.roots = /* @__PURE__ */ Object.create(null);
-    this.rootPath = this.parseRootPath(cwdPath);
-    this.#resolveCache = new ResolveCache();
-    this.#resolvePosixCache = new ResolveCache();
-    this.#children = new ChildrenCache(childrenCacheSize);
-    const split = cwdPath.substring(this.rootPath.length).split(sep2);
-    if (split.length === 1 && !split[0]) {
-      split.pop();
-    }
-    if (nocase === void 0) {
-      throw new TypeError("must provide nocase setting to PathScurryBase ctor");
-    }
-    this.nocase = nocase;
-    this.root = this.newRoot(this.#fs);
-    this.roots[this.rootPath] = this.root;
-    let prev = this.root;
-    let len = split.length - 1;
-    const joinSep = pathImpl.sep;
-    let abs = this.rootPath;
-    let sawFirst = false;
-    for (const part of split) {
-      const l = len--;
-      prev = prev.child(part, {
-        relative: new Array(l).fill("..").join(joinSep),
-        relativePosix: new Array(l).fill("..").join("/"),
-        fullpath: abs += (sawFirst ? "" : joinSep) + part
-      });
-      sawFirst = true;
-    }
-    this.cwd = prev;
+    this.cwd = l;
   }
-  /**
-   * Get the depth of a provided path, string, or the cwd
-   */
-  depth(path3 = this.cwd) {
-    if (typeof path3 === "string") {
-      path3 = this.cwd.resolve(path3);
-    }
-    return path3.depth();
+  depth(t = this.cwd) {
+    return typeof t == "string" && (t = this.cwd.resolve(t)), t.depth();
   }
-  /**
-   * Return the cache of child entries.  Exposed so subclasses can create
-   * child Path objects in a platform-specific way.
-   *
-   * @internal
-   */
   childrenCache() {
-    return this.#children;
+    return this.#n;
   }
-  /**
-   * Resolve one or more path strings to a resolved string
-   *
-   * Same interface as require('path').resolve.
-   *
-   * Much faster than path.resolve() when called multiple times for the same
-   * path, because the resolved Path objects are cached.  Much slower
-   * otherwise.
-   */
-  resolve(...paths2) {
-    let r = "";
-    for (let i = paths2.length - 1; i >= 0; i--) {
-      const p = paths2[i];
-      if (!p || p === ".")
-        continue;
-      r = r ? `${p}/${r}` : p;
-      if (this.isAbsolute(p)) {
-        break;
-      }
+  resolve(...t) {
+    let e = "";
+    for (let r = t.length - 1; r >= 0; r--) {
+      let o = t[r];
+      if (!(!o || o === ".") && (e = e ? `${o}/${e}` : o, this.isAbsolute(o))) break;
     }
-    const cached = this.#resolveCache.get(r);
-    if (cached !== void 0) {
-      return cached;
-    }
-    const result = this.cwd.resolve(r).fullpath();
-    this.#resolveCache.set(r, result);
-    return result;
+    let s = this.#t.get(e);
+    if (s !== void 0) return s;
+    let i = this.cwd.resolve(e).fullpath();
+    return this.#t.set(e, i), i;
   }
-  /**
-   * Resolve one or more path strings to a resolved string, returning
-   * the posix path.  Identical to .resolve() on posix systems, but on
-   * windows will return a forward-slash separated UNC path.
-   *
-   * Same interface as require('path').resolve.
-   *
-   * Much faster than path.resolve() when called multiple times for the same
-   * path, because the resolved Path objects are cached.  Much slower
-   * otherwise.
-   */
-  resolvePosix(...paths2) {
-    let r = "";
-    for (let i = paths2.length - 1; i >= 0; i--) {
-      const p = paths2[i];
-      if (!p || p === ".")
-        continue;
-      r = r ? `${p}/${r}` : p;
-      if (this.isAbsolute(p)) {
-        break;
-      }
+  resolvePosix(...t) {
+    let e = "";
+    for (let r = t.length - 1; r >= 0; r--) {
+      let o = t[r];
+      if (!(!o || o === ".") && (e = e ? `${o}/${e}` : o, this.isAbsolute(o))) break;
     }
-    const cached = this.#resolvePosixCache.get(r);
-    if (cached !== void 0) {
-      return cached;
-    }
-    const result = this.cwd.resolve(r).fullpathPosix();
-    this.#resolvePosixCache.set(r, result);
-    return result;
+    let s = this.#s.get(e);
+    if (s !== void 0) return s;
+    let i = this.cwd.resolve(e).fullpathPosix();
+    return this.#s.set(e, i), i;
   }
-  /**
-   * find the relative path from the cwd to the supplied path string or entry
-   */
-  relative(entry = this.cwd) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    }
-    return entry.relative();
+  relative(t = this.cwd) {
+    return typeof t == "string" && (t = this.cwd.resolve(t)), t.relative();
   }
-  /**
-   * find the relative path from the cwd to the supplied path string or
-   * entry, using / as the path delimiter, even on Windows.
-   */
-  relativePosix(entry = this.cwd) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    }
-    return entry.relativePosix();
+  relativePosix(t = this.cwd) {
+    return typeof t == "string" && (t = this.cwd.resolve(t)), t.relativePosix();
   }
-  /**
-   * Return the basename for the provided string or Path object
-   */
-  basename(entry = this.cwd) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    }
-    return entry.name;
+  basename(t = this.cwd) {
+    return typeof t == "string" && (t = this.cwd.resolve(t)), t.name;
   }
-  /**
-   * Return the dirname for the provided string or Path object
-   */
-  dirname(entry = this.cwd) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    }
-    return (entry.parent || entry).fullpath();
+  dirname(t = this.cwd) {
+    return typeof t == "string" && (t = this.cwd.resolve(t)), (t.parent || t).fullpath();
   }
-  async readdir(entry = this.cwd, opts = {
-    withFileTypes: true
-  }) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      opts = entry;
-      entry = this.cwd;
-    }
-    const { withFileTypes } = opts;
-    if (!entry.canReaddir()) {
-      return [];
-    } else {
-      const p = await entry.readdir();
-      return withFileTypes ? p : p.map((e) => e.name);
-    }
+  async readdir(t = this.cwd, e = { withFileTypes: true }) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    let { withFileTypes: s } = e;
+    if (t.canReaddir()) {
+      let i = await t.readdir();
+      return s ? i : i.map((r) => r.name);
+    } else return [];
   }
-  readdirSync(entry = this.cwd, opts = {
-    withFileTypes: true
-  }) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      opts = entry;
-      entry = this.cwd;
-    }
-    const { withFileTypes = true } = opts;
-    if (!entry.canReaddir()) {
-      return [];
-    } else if (withFileTypes) {
-      return entry.readdirSync();
-    } else {
-      return entry.readdirSync().map((e) => e.name);
-    }
+  readdirSync(t = this.cwd, e = { withFileTypes: true }) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    let { withFileTypes: s = true } = e;
+    return t.canReaddir() ? s ? t.readdirSync() : t.readdirSync().map((i) => i.name) : [];
   }
-  /**
-   * Call lstat() on the string or Path object, and update all known
-   * information that can be determined.
-   *
-   * Note that unlike `fs.lstat()`, the returned value does not contain some
-   * information, such as `mode`, `dev`, `nlink`, and `ino`.  If that
-   * information is required, you will need to call `fs.lstat` yourself.
-   *
-   * If the Path refers to a nonexistent file, or if the lstat call fails for
-   * any reason, `undefined` is returned.  Otherwise the updated Path object is
-   * returned.
-   *
-   * Results are cached, and thus may be out of date if the filesystem is
-   * mutated.
-   */
-  async lstat(entry = this.cwd) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    }
-    return entry.lstat();
+  async lstat(t = this.cwd) {
+    return typeof t == "string" && (t = this.cwd.resolve(t)), t.lstat();
   }
-  /**
-   * synchronous {@link PathScurryBase.lstat}
-   */
-  lstatSync(entry = this.cwd) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    }
-    return entry.lstatSync();
+  lstatSync(t = this.cwd) {
+    return typeof t == "string" && (t = this.cwd.resolve(t)), t.lstatSync();
   }
-  async readlink(entry = this.cwd, { withFileTypes } = {
-    withFileTypes: false
-  }) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      withFileTypes = entry.withFileTypes;
-      entry = this.cwd;
-    }
-    const e = await entry.readlink();
-    return withFileTypes ? e : e?.fullpath();
+  async readlink(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    let s = await t.readlink();
+    return e ? s : s?.fullpath();
   }
-  readlinkSync(entry = this.cwd, { withFileTypes } = {
-    withFileTypes: false
-  }) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      withFileTypes = entry.withFileTypes;
-      entry = this.cwd;
-    }
-    const e = entry.readlinkSync();
-    return withFileTypes ? e : e?.fullpath();
+  readlinkSync(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    let s = t.readlinkSync();
+    return e ? s : s?.fullpath();
   }
-  async realpath(entry = this.cwd, { withFileTypes } = {
-    withFileTypes: false
-  }) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      withFileTypes = entry.withFileTypes;
-      entry = this.cwd;
-    }
-    const e = await entry.realpath();
-    return withFileTypes ? e : e?.fullpath();
+  async realpath(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    let s = await t.realpath();
+    return e ? s : s?.fullpath();
   }
-  realpathSync(entry = this.cwd, { withFileTypes } = {
-    withFileTypes: false
-  }) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      withFileTypes = entry.withFileTypes;
-      entry = this.cwd;
-    }
-    const e = entry.realpathSync();
-    return withFileTypes ? e : e?.fullpath();
+  realpathSync(t = this.cwd, { withFileTypes: e } = { withFileTypes: false }) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t.withFileTypes, t = this.cwd);
+    let s = t.realpathSync();
+    return e ? s : s?.fullpath();
   }
-  async walk(entry = this.cwd, opts = {}) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      opts = entry;
-      entry = this.cwd;
-    }
-    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
-    const results = [];
-    if (!filter2 || filter2(entry)) {
-      results.push(withFileTypes ? entry : entry.fullpath());
-    }
-    const dirs = /* @__PURE__ */ new Set();
-    const walk = (dir, cb) => {
-      dirs.add(dir);
-      dir.readdirCB((er, entries) => {
-        if (er) {
-          return cb(er);
-        }
-        let len = entries.length;
-        if (!len)
-          return cb();
-        const next = () => {
-          if (--len === 0) {
-            cb();
-          }
+  async walk(t = this.cwd, e = {}) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = [];
+    (!r || r(t)) && h.push(s ? t : t.fullpath());
+    let a = /* @__PURE__ */ new Set(), l = (c, d) => {
+      a.add(c), c.readdirCB((f, m) => {
+        if (f) return d(f);
+        let p = m.length;
+        if (!p) return d();
+        let w = () => {
+          --p === 0 && d();
         };
-        for (const e of entries) {
-          if (!filter2 || filter2(e)) {
-            results.push(withFileTypes ? e : e.fullpath());
-          }
-          if (follow && e.isSymbolicLink()) {
-            e.realpath().then((r) => r?.isUnknown() ? r.lstat() : r).then((r) => r?.shouldWalk(dirs, walkFilter) ? walk(r, next) : next());
-          } else {
-            if (e.shouldWalk(dirs, walkFilter)) {
-              walk(e, next);
-            } else {
-              next();
-            }
-          }
-        }
+        for (let g of m) (!r || r(g)) && h.push(s ? g : g.fullpath()), i && g.isSymbolicLink() ? g.realpath().then((S) => S?.isUnknown() ? S.lstat() : S).then((S) => S?.shouldWalk(a, o) ? l(S, w) : w()) : g.shouldWalk(a, o) ? l(g, w) : w();
       }, true);
-    };
-    const start = entry;
-    return new Promise((res, rej) => {
-      walk(start, (er) => {
-        if (er)
-          return rej(er);
-        res(results);
+    }, u = t;
+    return new Promise((c, d) => {
+      l(u, (f) => {
+        if (f) return d(f);
+        c(h);
       });
     });
   }
-  walkSync(entry = this.cwd, opts = {}) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      opts = entry;
-      entry = this.cwd;
-    }
-    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
-    const results = [];
-    if (!filter2 || filter2(entry)) {
-      results.push(withFileTypes ? entry : entry.fullpath());
-    }
-    const dirs = /* @__PURE__ */ new Set([entry]);
-    for (const dir of dirs) {
-      const entries = dir.readdirSync();
-      for (const e of entries) {
-        if (!filter2 || filter2(e)) {
-          results.push(withFileTypes ? e : e.fullpath());
+  walkSync(t = this.cwd, e = {}) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = [];
+    (!r || r(t)) && h.push(s ? t : t.fullpath());
+    let a = /* @__PURE__ */ new Set([t]);
+    for (let l of a) {
+      let u = l.readdirSync();
+      for (let c of u) {
+        (!r || r(c)) && h.push(s ? c : c.fullpath());
+        let d = c;
+        if (c.isSymbolicLink()) {
+          if (!(i && (d = c.realpathSync()))) continue;
+          d.isUnknown() && d.lstatSync();
         }
-        let r = e;
-        if (e.isSymbolicLink()) {
-          if (!(follow && (r = e.realpathSync())))
-            continue;
-          if (r.isUnknown())
-            r.lstatSync();
-        }
-        if (r.shouldWalk(dirs, walkFilter)) {
-          dirs.add(r);
-        }
+        d.shouldWalk(a, o) && a.add(d);
       }
     }
-    return results;
+    return h;
   }
-  /**
-   * Support for `for await`
-   *
-   * Alias for {@link PathScurryBase.iterate}
-   *
-   * Note: As of Node 19, this is very slow, compared to other methods of
-   * walking.  Consider using {@link PathScurryBase.stream} if memory overhead
-   * and backpressure are concerns, or {@link PathScurryBase.walk} if not.
-   */
   [Symbol.asyncIterator]() {
     return this.iterate();
   }
-  iterate(entry = this.cwd, options = {}) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      options = entry;
-      entry = this.cwd;
-    }
-    return this.stream(entry, options)[Symbol.asyncIterator]();
+  iterate(t = this.cwd, e = {}) {
+    return typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd), this.stream(t, e)[Symbol.asyncIterator]();
   }
-  /**
-   * Iterating over a PathScurry performs a synchronous walk.
-   *
-   * Alias for {@link PathScurryBase.iterateSync}
-   */
   [Symbol.iterator]() {
     return this.iterateSync();
   }
-  *iterateSync(entry = this.cwd, opts = {}) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      opts = entry;
-      entry = this.cwd;
-    }
-    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
-    if (!filter2 || filter2(entry)) {
-      yield withFileTypes ? entry : entry.fullpath();
-    }
-    const dirs = /* @__PURE__ */ new Set([entry]);
-    for (const dir of dirs) {
-      const entries = dir.readdirSync();
-      for (const e of entries) {
-        if (!filter2 || filter2(e)) {
-          yield withFileTypes ? e : e.fullpath();
+  *iterateSync(t = this.cwd, e = {}) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e;
+    (!r || r(t)) && (yield s ? t : t.fullpath());
+    let h = /* @__PURE__ */ new Set([t]);
+    for (let a of h) {
+      let l = a.readdirSync();
+      for (let u of l) {
+        (!r || r(u)) && (yield s ? u : u.fullpath());
+        let c = u;
+        if (u.isSymbolicLink()) {
+          if (!(i && (c = u.realpathSync()))) continue;
+          c.isUnknown() && c.lstatSync();
         }
-        let r = e;
-        if (e.isSymbolicLink()) {
-          if (!(follow && (r = e.realpathSync())))
-            continue;
-          if (r.isUnknown())
-            r.lstatSync();
-        }
-        if (r.shouldWalk(dirs, walkFilter)) {
-          dirs.add(r);
-        }
+        c.shouldWalk(h, o) && h.add(c);
       }
     }
   }
-  stream(entry = this.cwd, opts = {}) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      opts = entry;
-      entry = this.cwd;
-    }
-    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
-    const results = new Minipass({ objectMode: true });
-    if (!filter2 || filter2(entry)) {
-      results.write(withFileTypes ? entry : entry.fullpath());
-    }
-    const dirs = /* @__PURE__ */ new Set();
-    const queue = [entry];
-    let processing = 0;
-    const process2 = () => {
-      let paused = false;
-      while (!paused) {
-        const dir = queue.shift();
-        if (!dir) {
-          if (processing === 0)
-            results.end();
+  stream(t = this.cwd, e = {}) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = new V({ objectMode: true });
+    (!r || r(t)) && h.write(s ? t : t.fullpath());
+    let a = /* @__PURE__ */ new Set(), l = [t], u = 0, c = () => {
+      let d = false;
+      for (; !d; ) {
+        let f = l.shift();
+        if (!f) {
+          u === 0 && h.end();
           return;
         }
-        processing++;
-        dirs.add(dir);
-        const onReaddir = (er, entries, didRealpaths = false) => {
-          if (er)
-            return results.emit("error", er);
-          if (follow && !didRealpaths) {
-            const promises = [];
-            for (const e of entries) {
-              if (e.isSymbolicLink()) {
-                promises.push(e.realpath().then((r) => r?.isUnknown() ? r.lstat() : r));
-              }
-            }
-            if (promises.length) {
-              Promise.all(promises).then(() => onReaddir(null, entries, true));
+        u++, a.add(f);
+        let m = (w, g, S = false) => {
+          if (w) return h.emit("error", w);
+          if (i && !S) {
+            let E = [];
+            for (let y of g) y.isSymbolicLink() && E.push(y.realpath().then((b) => b?.isUnknown() ? b.lstat() : b));
+            if (E.length) {
+              Promise.all(E).then(() => m(null, g, true));
               return;
             }
           }
-          for (const e of entries) {
-            if (e && (!filter2 || filter2(e))) {
-              if (!results.write(withFileTypes ? e : e.fullpath())) {
-                paused = true;
-              }
-            }
+          for (let E of g) E && (!r || r(E)) && (h.write(s ? E : E.fullpath()) || (d = true));
+          u--;
+          for (let E of g) {
+            let y = E.realpathCached() || E;
+            y.shouldWalk(a, o) && l.push(y);
           }
-          processing--;
-          for (const e of entries) {
-            const r = e.realpathCached() || e;
-            if (r.shouldWalk(dirs, walkFilter)) {
-              queue.push(r);
-            }
-          }
-          if (paused && !results.flowing) {
-            results.once("drain", process2);
-          } else if (!sync2) {
-            process2();
-          }
-        };
-        let sync2 = true;
-        dir.readdirCB(onReaddir, true);
-        sync2 = false;
+          d && !h.flowing ? h.once("drain", c) : p || c();
+        }, p = true;
+        f.readdirCB(m, true), p = false;
       }
     };
-    process2();
-    return results;
+    return c(), h;
   }
-  streamSync(entry = this.cwd, opts = {}) {
-    if (typeof entry === "string") {
-      entry = this.cwd.resolve(entry);
-    } else if (!(entry instanceof PathBase)) {
-      opts = entry;
-      entry = this.cwd;
-    }
-    const { withFileTypes = true, follow = false, filter: filter2, walkFilter } = opts;
-    const results = new Minipass({ objectMode: true });
-    const dirs = /* @__PURE__ */ new Set();
-    if (!filter2 || filter2(entry)) {
-      results.write(withFileTypes ? entry : entry.fullpath());
-    }
-    const queue = [entry];
-    let processing = 0;
-    const process2 = () => {
-      let paused = false;
-      while (!paused) {
-        const dir = queue.shift();
-        if (!dir) {
-          if (processing === 0)
-            results.end();
+  streamSync(t = this.cwd, e = {}) {
+    typeof t == "string" ? t = this.cwd.resolve(t) : t instanceof R || (e = t, t = this.cwd);
+    let { withFileTypes: s = true, follow: i = false, filter: r, walkFilter: o } = e, h = new V({ objectMode: true }), a = /* @__PURE__ */ new Set();
+    (!r || r(t)) && h.write(s ? t : t.fullpath());
+    let l = [t], u = 0, c = () => {
+      let d = false;
+      for (; !d; ) {
+        let f = l.shift();
+        if (!f) {
+          u === 0 && h.end();
           return;
         }
-        processing++;
-        dirs.add(dir);
-        const entries = dir.readdirSync();
-        for (const e of entries) {
-          if (!filter2 || filter2(e)) {
-            if (!results.write(withFileTypes ? e : e.fullpath())) {
-              paused = true;
-            }
+        u++, a.add(f);
+        let m = f.readdirSync();
+        for (let p of m) (!r || r(p)) && (h.write(s ? p : p.fullpath()) || (d = true));
+        u--;
+        for (let p of m) {
+          let w = p;
+          if (p.isSymbolicLink()) {
+            if (!(i && (w = p.realpathSync()))) continue;
+            w.isUnknown() && w.lstatSync();
           }
-        }
-        processing--;
-        for (const e of entries) {
-          let r = e;
-          if (e.isSymbolicLink()) {
-            if (!(follow && (r = e.realpathSync())))
-              continue;
-            if (r.isUnknown())
-              r.lstatSync();
-          }
-          if (r.shouldWalk(dirs, walkFilter)) {
-            queue.push(r);
-          }
+          w.shouldWalk(a, o) && l.push(w);
         }
       }
-      if (paused && !results.flowing)
-        results.once("drain", process2);
+      d && !h.flowing && h.once("drain", c);
     };
-    process2();
-    return results;
+    return c(), h;
   }
-  chdir(path3 = this.cwd) {
-    const oldCwd = this.cwd;
-    this.cwd = typeof path3 === "string" ? this.cwd.resolve(path3) : path3;
-    this.cwd[setAsCwd](oldCwd);
+  chdir(t = this.cwd) {
+    let e = this.cwd;
+    this.cwd = typeof t == "string" ? this.cwd.resolve(t) : t, this.cwd[Ye](e);
   }
 };
-var PathScurryWin32 = class extends PathScurryBase {
-  /**
-   * separator for generating path strings
-   */
+var it = class extends It {
   sep = "\\";
-  constructor(cwd = process.cwd(), opts = {}) {
-    const { nocase = true } = opts;
-    super(cwd, import_node_path.win32, "\\", { ...opts, nocase });
-    this.nocase = nocase;
-    for (let p = this.cwd; p; p = p.parent) {
-      p.nocase = this.nocase;
-    }
+  constructor(t = process.cwd(), e = {}) {
+    let { nocase: s = true } = e;
+    super(t, import_node_path.win32, "\\", { ...e, nocase: s }), this.nocase = s;
+    for (let i = this.cwd; i; i = i.parent) i.nocase = this.nocase;
   }
-  /**
-   * @internal
-   */
-  parseRootPath(dir) {
-    return import_node_path.win32.parse(dir).root.toUpperCase();
+  parseRootPath(t) {
+    return import_node_path.win32.parse(t).root.toUpperCase();
   }
-  /**
-   * @internal
-   */
-  newRoot(fs2) {
-    return new PathWin32(this.rootPath, IFDIR, void 0, this.roots, this.nocase, this.childrenCache(), { fs: fs2 });
+  newRoot(t) {
+    return new Pt(this.rootPath, U, void 0, this.roots, this.nocase, this.childrenCache(), { fs: t });
   }
-  /**
-   * Return true if the provided path string is an absolute path
-   */
-  isAbsolute(p) {
-    return p.startsWith("/") || p.startsWith("\\") || /^[a-z]:(\/|\\)/i.test(p);
+  isAbsolute(t) {
+    return t.startsWith("/") || t.startsWith("\\") || /^[a-z]:(\/|\\)/i.test(t);
   }
 };
-var PathScurryPosix = class extends PathScurryBase {
-  /**
-   * separator for generating path strings
-   */
+var rt = class extends It {
   sep = "/";
-  constructor(cwd = process.cwd(), opts = {}) {
-    const { nocase = false } = opts;
-    super(cwd, import_node_path.posix, "/", { ...opts, nocase });
-    this.nocase = nocase;
+  constructor(t = process.cwd(), e = {}) {
+    let { nocase: s = false } = e;
+    super(t, import_node_path.posix, "/", { ...e, nocase: s }), this.nocase = s;
   }
-  /**
-   * @internal
-   */
-  parseRootPath(_dir) {
+  parseRootPath(t) {
     return "/";
   }
-  /**
-   * @internal
-   */
-  newRoot(fs2) {
-    return new PathPosix(this.rootPath, IFDIR, void 0, this.roots, this.nocase, this.childrenCache(), { fs: fs2 });
+  newRoot(t) {
+    return new jt(this.rootPath, U, void 0, this.roots, this.nocase, this.childrenCache(), { fs: t });
   }
-  /**
-   * Return true if the provided path string is an absolute path
-   */
-  isAbsolute(p) {
-    return p.startsWith("/");
+  isAbsolute(t) {
+    return t.startsWith("/");
   }
 };
-var PathScurryDarwin = class extends PathScurryPosix {
-  constructor(cwd = process.cwd(), opts = {}) {
-    const { nocase = true } = opts;
-    super(cwd, { ...opts, nocase });
+var St = class extends rt {
+  constructor(t = process.cwd(), e = {}) {
+    let { nocase: s = true } = e;
+    super(t, { ...e, nocase: s });
   }
 };
-var Path = process.platform === "win32" ? PathWin32 : PathPosix;
-var PathScurry = process.platform === "win32" ? PathScurryWin32 : process.platform === "darwin" ? PathScurryDarwin : PathScurryPosix;
-
-// ../../node_modules/glob/dist/esm/pattern.js
-var isPatternList = (pl) => pl.length >= 1;
-var isGlobList = (gl) => gl.length >= 1;
-var Pattern = class _Pattern {
-  #patternList;
-  #globList;
-  #index;
+var Cr = process.platform === "win32" ? Pt : jt;
+var Xe = process.platform === "win32" ? it : process.platform === "darwin" ? St : rt;
+var Di = (n7) => n7.length >= 1;
+var Mi = (n7) => n7.length >= 1;
+var Ni = Symbol.for("nodejs.util.inspect.custom");
+var nt = class n4 {
+  #t;
+  #s;
+  #n;
   length;
-  #platform;
-  #rest;
-  #globString;
-  #isDrive;
-  #isUNC;
-  #isAbsolute;
-  #followGlobstar = true;
-  constructor(patternList, globList, index, platform) {
-    if (!isPatternList(patternList)) {
-      throw new TypeError("empty pattern list");
-    }
-    if (!isGlobList(globList)) {
-      throw new TypeError("empty glob list");
-    }
-    if (globList.length !== patternList.length) {
-      throw new TypeError("mismatched pattern list and glob list lengths");
-    }
-    this.length = patternList.length;
-    if (index < 0 || index >= this.length) {
-      throw new TypeError("index out of range");
-    }
-    this.#patternList = patternList;
-    this.#globList = globList;
-    this.#index = index;
-    this.#platform = platform;
-    if (this.#index === 0) {
+  #r;
+  #o;
+  #S;
+  #w;
+  #c;
+  #h;
+  #u = true;
+  constructor(t, e, s, i) {
+    if (!Di(t)) throw new TypeError("empty pattern list");
+    if (!Mi(e)) throw new TypeError("empty glob list");
+    if (e.length !== t.length) throw new TypeError("mismatched pattern list and glob list lengths");
+    if (this.length = t.length, s < 0 || s >= this.length) throw new TypeError("index out of range");
+    if (this.#t = t, this.#s = e, this.#n = s, this.#r = i, this.#n === 0) {
       if (this.isUNC()) {
-        const [p0, p1, p2, p3, ...prest] = this.#patternList;
-        const [g0, g1, g2, g3, ...grest] = this.#globList;
-        if (prest[0] === "") {
-          prest.shift();
-          grest.shift();
-        }
-        const p = [p0, p1, p2, p3, ""].join("/");
-        const g = [g0, g1, g2, g3, ""].join("/");
-        this.#patternList = [p, ...prest];
-        this.#globList = [g, ...grest];
-        this.length = this.#patternList.length;
+        let [r, o, h, a, ...l] = this.#t, [u, c, d, f, ...m] = this.#s;
+        l[0] === "" && (l.shift(), m.shift());
+        let p = [r, o, h, a, ""].join("/"), w = [u, c, d, f, ""].join("/");
+        this.#t = [p, ...l], this.#s = [w, ...m], this.length = this.#t.length;
       } else if (this.isDrive() || this.isAbsolute()) {
-        const [p1, ...prest] = this.#patternList;
-        const [g1, ...grest] = this.#globList;
-        if (prest[0] === "") {
-          prest.shift();
-          grest.shift();
-        }
-        const p = p1 + "/";
-        const g = g1 + "/";
-        this.#patternList = [p, ...prest];
-        this.#globList = [g, ...grest];
-        this.length = this.#patternList.length;
+        let [r, ...o] = this.#t, [h, ...a] = this.#s;
+        o[0] === "" && (o.shift(), a.shift());
+        let l = r + "/", u = h + "/";
+        this.#t = [l, ...o], this.#s = [u, ...a], this.length = this.#t.length;
       }
     }
   }
-  /**
-   * The first entry in the parsed list of patterns
-   */
+  [Ni]() {
+    return "Pattern <" + this.#s.slice(this.#n).join("/") + ">";
+  }
   pattern() {
-    return this.#patternList[this.#index];
+    return this.#t[this.#n];
   }
-  /**
-   * true of if pattern() returns a string
-   */
   isString() {
-    return typeof this.#patternList[this.#index] === "string";
+    return typeof this.#t[this.#n] == "string";
   }
-  /**
-   * true of if pattern() returns GLOBSTAR
-   */
   isGlobstar() {
-    return this.#patternList[this.#index] === GLOBSTAR;
+    return this.#t[this.#n] === A;
   }
-  /**
-   * true if pattern() returns a regexp
-   */
   isRegExp() {
-    return this.#patternList[this.#index] instanceof RegExp;
+    return this.#t[this.#n] instanceof RegExp;
   }
-  /**
-   * The /-joined set of glob parts that make up this pattern
-   */
   globString() {
-    return this.#globString = this.#globString || (this.#index === 0 ? this.isAbsolute() ? this.#globList[0] + this.#globList.slice(1).join("/") : this.#globList.join("/") : this.#globList.slice(this.#index).join("/"));
+    return this.#S = this.#S || (this.#n === 0 ? this.isAbsolute() ? this.#s[0] + this.#s.slice(1).join("/") : this.#s.join("/") : this.#s.slice(this.#n).join("/"));
   }
-  /**
-   * true if there are more pattern parts after this one
-   */
   hasMore() {
-    return this.length > this.#index + 1;
+    return this.length > this.#n + 1;
   }
-  /**
-   * The rest of the pattern after this part, or null if this is the end
-   */
   rest() {
-    if (this.#rest !== void 0)
-      return this.#rest;
-    if (!this.hasMore())
-      return this.#rest = null;
-    this.#rest = new _Pattern(this.#patternList, this.#globList, this.#index + 1, this.#platform);
-    this.#rest.#isAbsolute = this.#isAbsolute;
-    this.#rest.#isUNC = this.#isUNC;
-    this.#rest.#isDrive = this.#isDrive;
-    return this.#rest;
+    return this.#o !== void 0 ? this.#o : this.hasMore() ? (this.#o = new n4(this.#t, this.#s, this.#n + 1, this.#r), this.#o.#h = this.#h, this.#o.#c = this.#c, this.#o.#w = this.#w, this.#o) : this.#o = null;
   }
-  /**
-   * true if the pattern represents a //unc/path/ on windows
-   */
   isUNC() {
-    const pl = this.#patternList;
-    return this.#isUNC !== void 0 ? this.#isUNC : this.#isUNC = this.#platform === "win32" && this.#index === 0 && pl[0] === "" && pl[1] === "" && typeof pl[2] === "string" && !!pl[2] && typeof pl[3] === "string" && !!pl[3];
+    let t = this.#t;
+    return this.#c !== void 0 ? this.#c : this.#c = this.#r === "win32" && this.#n === 0 && t[0] === "" && t[1] === "" && typeof t[2] == "string" && !!t[2] && typeof t[3] == "string" && !!t[3];
   }
-  // pattern like C:/...
-  // split = ['C:', ...]
-  // XXX: would be nice to handle patterns like `c:*` to test the cwd
-  // in c: for *, but I don't know of a way to even figure out what that
-  // cwd is without actually chdir'ing into it?
-  /**
-   * True if the pattern starts with a drive letter on Windows
-   */
   isDrive() {
-    const pl = this.#patternList;
-    return this.#isDrive !== void 0 ? this.#isDrive : this.#isDrive = this.#platform === "win32" && this.#index === 0 && this.length > 1 && typeof pl[0] === "string" && /^[a-z]:$/i.test(pl[0]);
+    let t = this.#t;
+    return this.#w !== void 0 ? this.#w : this.#w = this.#r === "win32" && this.#n === 0 && this.length > 1 && typeof t[0] == "string" && /^[a-z]:$/i.test(t[0]);
   }
-  // pattern = '/' or '/...' or '/x/...'
-  // split = ['', ''] or ['', ...] or ['', 'x', ...]
-  // Drive and UNC both considered absolute on windows
-  /**
-   * True if the pattern is rooted on an absolute path
-   */
   isAbsolute() {
-    const pl = this.#patternList;
-    return this.#isAbsolute !== void 0 ? this.#isAbsolute : this.#isAbsolute = pl[0] === "" && pl.length > 1 || this.isDrive() || this.isUNC();
+    let t = this.#t;
+    return this.#h !== void 0 ? this.#h : this.#h = t[0] === "" && t.length > 1 || this.isDrive() || this.isUNC();
   }
-  /**
-   * consume the root of the pattern, and return it
-   */
   root() {
-    const p = this.#patternList[0];
-    return typeof p === "string" && this.isAbsolute() && this.#index === 0 ? p : "";
+    let t = this.#t[0];
+    return typeof t == "string" && this.isAbsolute() && this.#n === 0 ? t : "";
   }
-  /**
-   * Check to see if the current globstar pattern is allowed to follow
-   * a symbolic link.
-   */
   checkFollowGlobstar() {
-    return !(this.#index === 0 || !this.isGlobstar() || !this.#followGlobstar);
+    return !(this.#n === 0 || !this.isGlobstar() || !this.#u);
   }
-  /**
-   * Mark that the current globstar pattern is following a symbolic link
-   */
   markFollowGlobstar() {
-    if (this.#index === 0 || !this.isGlobstar() || !this.#followGlobstar)
-      return false;
-    this.#followGlobstar = false;
-    return true;
+    return this.#n === 0 || !this.isGlobstar() || !this.#u ? false : (this.#u = false, true);
   }
 };
-
-// ../../node_modules/glob/dist/esm/ignore.js
-var defaultPlatform2 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
-var Ignore = class {
+var _i = typeof process == "object" && process && typeof process.platform == "string" ? process.platform : "linux";
+var ot = class {
   relative;
   relativeChildren;
   absolute;
   absoluteChildren;
   platform;
   mmopts;
-  constructor(ignored, { nobrace, nocase, noext, noglobstar, platform = defaultPlatform2 }) {
-    this.relative = [];
-    this.absolute = [];
-    this.relativeChildren = [];
-    this.absoluteChildren = [];
-    this.platform = platform;
-    this.mmopts = {
-      dot: true,
-      nobrace,
-      nocase,
-      noext,
-      noglobstar,
-      optimizationLevel: 2,
-      platform,
-      nocomment: true,
-      nonegate: true
-    };
-    for (const ign of ignored)
-      this.add(ign);
+  constructor(t, { nobrace: e, nocase: s, noext: i, noglobstar: r, platform: o = _i }) {
+    this.relative = [], this.absolute = [], this.relativeChildren = [], this.absoluteChildren = [], this.platform = o, this.mmopts = { dot: true, nobrace: e, nocase: s, noext: i, noglobstar: r, optimizationLevel: 2, platform: o, nocomment: true, nonegate: true };
+    for (let h of t) this.add(h);
   }
-  add(ign) {
-    const mm = new Minimatch(ign, this.mmopts);
-    for (let i = 0; i < mm.set.length; i++) {
-      const parsed = mm.set[i];
-      const globParts = mm.globParts[i];
-      if (!parsed || !globParts) {
-        throw new Error("invalid pattern object");
-      }
-      while (parsed[0] === "." && globParts[0] === ".") {
-        parsed.shift();
-        globParts.shift();
-      }
-      const p = new Pattern(parsed, globParts, 0, this.platform);
-      const m = new Minimatch(p.globString(), this.mmopts);
-      const children = globParts[globParts.length - 1] === "**";
-      const absolute = p.isAbsolute();
-      if (absolute)
-        this.absolute.push(m);
-      else
-        this.relative.push(m);
-      if (children) {
-        if (absolute)
-          this.absoluteChildren.push(m);
-        else
-          this.relativeChildren.push(m);
-      }
+  add(t) {
+    let e = new D(t, this.mmopts);
+    for (let s = 0; s < e.set.length; s++) {
+      let i = e.set[s], r = e.globParts[s];
+      if (!i || !r) throw new Error("invalid pattern object");
+      for (; i[0] === "." && r[0] === "."; ) i.shift(), r.shift();
+      let o = new nt(i, r, 0, this.platform), h = new D(o.globString(), this.mmopts), a = r[r.length - 1] === "**", l = o.isAbsolute();
+      l ? this.absolute.push(h) : this.relative.push(h), a && (l ? this.absoluteChildren.push(h) : this.relativeChildren.push(h));
     }
   }
-  ignored(p) {
-    const fullpath = p.fullpath();
-    const fullpaths = `${fullpath}/`;
-    const relative2 = p.relative() || ".";
-    const relatives = `${relative2}/`;
-    for (const m of this.relative) {
-      if (m.match(relative2) || m.match(relatives))
-        return true;
-    }
-    for (const m of this.absolute) {
-      if (m.match(fullpath) || m.match(fullpaths))
-        return true;
-    }
+  ignored(t) {
+    let e = t.fullpath(), s = `${e}/`, i = t.relative() || ".", r = `${i}/`;
+    for (let o of this.relative) if (o.match(i) || o.match(r)) return true;
+    for (let o of this.absolute) if (o.match(e) || o.match(s)) return true;
     return false;
   }
-  childrenIgnored(p) {
-    const fullpath = p.fullpath() + "/";
-    const relative2 = (p.relative() || ".") + "/";
-    for (const m of this.relativeChildren) {
-      if (m.match(relative2))
-        return true;
-    }
-    for (const m of this.absoluteChildren) {
-      if (m.match(fullpath))
-        return true;
-    }
+  childrenIgnored(t) {
+    let e = t.fullpath() + "/", s = (t.relative() || ".") + "/";
+    for (let i of this.relativeChildren) if (i.match(s)) return true;
+    for (let i of this.absoluteChildren) if (i.match(e)) return true;
     return false;
   }
 };
-
-// ../../node_modules/glob/dist/esm/processor.js
-var HasWalkedCache = class _HasWalkedCache {
+var oe = class n5 {
   store;
-  constructor(store = /* @__PURE__ */ new Map()) {
-    this.store = store;
+  constructor(t = /* @__PURE__ */ new Map()) {
+    this.store = t;
   }
   copy() {
-    return new _HasWalkedCache(new Map(this.store));
+    return new n5(new Map(this.store));
   }
-  hasWalked(target, pattern) {
-    return this.store.get(target.fullpath())?.has(pattern.globString());
+  hasWalked(t, e) {
+    return this.store.get(t.fullpath())?.has(e.globString());
   }
-  storeWalked(target, pattern) {
-    const fullpath = target.fullpath();
-    const cached = this.store.get(fullpath);
-    if (cached)
-      cached.add(pattern.globString());
-    else
-      this.store.set(fullpath, /* @__PURE__ */ new Set([pattern.globString()]));
+  storeWalked(t, e) {
+    let s = t.fullpath(), i = this.store.get(s);
+    i ? i.add(e.globString()) : this.store.set(s, /* @__PURE__ */ new Set([e.globString()]));
   }
 };
-var MatchRecord = class {
+var he = class {
   store = /* @__PURE__ */ new Map();
-  add(target, absolute, ifDir) {
-    const n = (absolute ? 2 : 0) | (ifDir ? 1 : 0);
-    const current = this.store.get(target);
-    this.store.set(target, current === void 0 ? n : n & current);
+  add(t, e, s) {
+    let i = (e ? 2 : 0) | (s ? 1 : 0), r = this.store.get(t);
+    this.store.set(t, r === void 0 ? i : i & r);
   }
-  // match, absolute, ifdir
   entries() {
-    return [...this.store.entries()].map(([path3, n]) => [
-      path3,
-      !!(n & 2),
-      !!(n & 1)
-    ]);
+    return [...this.store.entries()].map(([t, e]) => [t, !!(e & 2), !!(e & 1)]);
   }
 };
-var SubWalks = class {
+var ae = class {
   store = /* @__PURE__ */ new Map();
-  add(target, pattern) {
-    if (!target.canReaddir()) {
-      return;
-    }
-    const subs = this.store.get(target);
-    if (subs) {
-      if (!subs.find((p) => p.globString() === pattern.globString())) {
-        subs.push(pattern);
-      }
-    } else
-      this.store.set(target, [pattern]);
+  add(t, e) {
+    if (!t.canReaddir()) return;
+    let s = this.store.get(t);
+    s ? s.find((i) => i.globString() === e.globString()) || s.push(e) : this.store.set(t, [e]);
   }
-  get(target) {
-    const subs = this.store.get(target);
-    if (!subs) {
-      throw new Error("attempting to walk unknown path");
-    }
-    return subs;
+  get(t) {
+    let e = this.store.get(t);
+    if (!e) throw new Error("attempting to walk unknown path");
+    return e;
   }
   entries() {
-    return this.keys().map((k) => [k, this.store.get(k)]);
+    return this.keys().map((t) => [t, this.store.get(t)]);
   }
   keys() {
     return [...this.store.keys()].filter((t) => t.canReaddir());
   }
 };
-var Processor = class _Processor {
+var Et = class n6 {
   hasWalkedCache;
-  matches = new MatchRecord();
-  subwalks = new SubWalks();
+  matches = new he();
+  subwalks = new ae();
   patterns;
   follow;
   dot;
   opts;
-  constructor(opts, hasWalkedCache) {
-    this.opts = opts;
-    this.follow = !!opts.follow;
-    this.dot = !!opts.dot;
-    this.hasWalkedCache = hasWalkedCache ? hasWalkedCache.copy() : new HasWalkedCache();
+  constructor(t, e) {
+    this.opts = t, this.follow = !!t.follow, this.dot = !!t.dot, this.hasWalkedCache = e ? e.copy() : new oe();
   }
-  processPatterns(target, patterns) {
-    this.patterns = patterns;
-    const processingSet = patterns.map((p) => [target, p]);
-    for (let [t, pattern] of processingSet) {
-      this.hasWalkedCache.storeWalked(t, pattern);
-      const root = pattern.root();
-      const absolute = pattern.isAbsolute() && this.opts.absolute !== false;
-      if (root) {
-        t = t.resolve(root === "/" && this.opts.root !== void 0 ? this.opts.root : root);
-        const rest2 = pattern.rest();
-        if (!rest2) {
-          this.matches.add(t, true, false);
+  processPatterns(t, e) {
+    this.patterns = e;
+    let s = e.map((i) => [t, i]);
+    for (let [i, r] of s) {
+      this.hasWalkedCache.storeWalked(i, r);
+      let o = r.root(), h = r.isAbsolute() && this.opts.absolute !== false;
+      if (o) {
+        i = i.resolve(o === "/" && this.opts.root !== void 0 ? this.opts.root : o);
+        let c = r.rest();
+        if (c) r = c;
+        else {
+          this.matches.add(i, true, false);
           continue;
-        } else {
-          pattern = rest2;
         }
       }
-      if (t.isENOENT())
+      if (i.isENOENT()) continue;
+      let a, l, u = false;
+      for (; typeof (a = r.pattern()) == "string" && (l = r.rest()); ) i = i.resolve(a), r = l, u = true;
+      if (a = r.pattern(), l = r.rest(), u) {
+        if (this.hasWalkedCache.hasWalked(i, r)) continue;
+        this.hasWalkedCache.storeWalked(i, r);
+      }
+      if (typeof a == "string") {
+        let c = a === ".." || a === "" || a === ".";
+        this.matches.add(i.resolve(a), h, c);
         continue;
-      let p;
-      let rest;
-      let changed = false;
-      while (typeof (p = pattern.pattern()) === "string" && (rest = pattern.rest())) {
-        const c = t.resolve(p);
-        t = c;
-        pattern = rest;
-        changed = true;
-      }
-      p = pattern.pattern();
-      rest = pattern.rest();
-      if (changed) {
-        if (this.hasWalkedCache.hasWalked(t, pattern))
-          continue;
-        this.hasWalkedCache.storeWalked(t, pattern);
-      }
-      if (typeof p === "string") {
-        const ifDir = p === ".." || p === "" || p === ".";
-        this.matches.add(t.resolve(p), absolute, ifDir);
-        continue;
-      } else if (p === GLOBSTAR) {
-        if (!t.isSymbolicLink() || this.follow || pattern.checkFollowGlobstar()) {
-          this.subwalks.add(t, pattern);
+      } else if (a === A) {
+        (!i.isSymbolicLink() || this.follow || r.checkFollowGlobstar()) && this.subwalks.add(i, r);
+        let c = l?.pattern(), d = l?.rest();
+        if (!l || (c === "" || c === ".") && !d) this.matches.add(i, h, c === "" || c === ".");
+        else if (c === "..") {
+          let f = i.parent || i;
+          d ? this.hasWalkedCache.hasWalked(f, d) || this.subwalks.add(f, d) : this.matches.add(f, h, true);
         }
-        const rp = rest?.pattern();
-        const rrest = rest?.rest();
-        if (!rest || (rp === "" || rp === ".") && !rrest) {
-          this.matches.add(t, absolute, rp === "" || rp === ".");
-        } else {
-          if (rp === "..") {
-            const tp = t.parent || t;
-            if (!rrest)
-              this.matches.add(tp, absolute, true);
-            else if (!this.hasWalkedCache.hasWalked(tp, rrest)) {
-              this.subwalks.add(tp, rrest);
-            }
-          }
-        }
-      } else if (p instanceof RegExp) {
-        this.subwalks.add(t, pattern);
-      }
+      } else a instanceof RegExp && this.subwalks.add(i, r);
     }
     return this;
   }
@@ -9531,411 +6539,237 @@ var Processor = class _Processor {
     return this.subwalks.keys();
   }
   child() {
-    return new _Processor(this.opts, this.hasWalkedCache);
+    return new n6(this.opts, this.hasWalkedCache);
   }
-  // return a new Processor containing the subwalks for each
-  // child entry, and a set of matches, and
-  // a hasWalkedCache that's a copy of this one
-  // then we're going to call
-  filterEntries(parent, entries) {
-    const patterns = this.subwalks.get(parent);
-    const results = this.child();
-    for (const e of entries) {
-      for (const pattern of patterns) {
-        const absolute = pattern.isAbsolute();
-        const p = pattern.pattern();
-        const rest = pattern.rest();
-        if (p === GLOBSTAR) {
-          results.testGlobstar(e, pattern, rest, absolute);
-        } else if (p instanceof RegExp) {
-          results.testRegExp(e, p, rest, absolute);
-        } else {
-          results.testString(e, p, rest, absolute);
-        }
-      }
+  filterEntries(t, e) {
+    let s = this.subwalks.get(t), i = this.child();
+    for (let r of e) for (let o of s) {
+      let h = o.isAbsolute(), a = o.pattern(), l = o.rest();
+      a === A ? i.testGlobstar(r, o, l, h) : a instanceof RegExp ? i.testRegExp(r, a, l, h) : i.testString(r, a, l, h);
     }
-    return results;
+    return i;
   }
-  testGlobstar(e, pattern, rest, absolute) {
-    if (this.dot || !e.name.startsWith(".")) {
-      if (!pattern.hasMore()) {
-        this.matches.add(e, absolute, false);
-      }
-      if (e.canReaddir()) {
-        if (this.follow || !e.isSymbolicLink()) {
-          this.subwalks.add(e, pattern);
-        } else if (e.isSymbolicLink()) {
-          if (rest && pattern.checkFollowGlobstar()) {
-            this.subwalks.add(e, rest);
-          } else if (pattern.markFollowGlobstar()) {
-            this.subwalks.add(e, pattern);
-          }
-        }
-      }
-    }
-    if (rest) {
-      const rp = rest.pattern();
-      if (typeof rp === "string" && // dots and empty were handled already
-      rp !== ".." && rp !== "" && rp !== ".") {
-        this.testString(e, rp, rest.rest(), absolute);
-      } else if (rp === "..") {
-        const ep = e.parent || e;
-        this.subwalks.add(ep, rest);
-      } else if (rp instanceof RegExp) {
-        this.testRegExp(e, rp, rest.rest(), absolute);
-      }
+  testGlobstar(t, e, s, i) {
+    if ((this.dot || !t.name.startsWith(".")) && (e.hasMore() || this.matches.add(t, i, false), t.canReaddir() && (this.follow || !t.isSymbolicLink() ? this.subwalks.add(t, e) : t.isSymbolicLink() && (s && e.checkFollowGlobstar() ? this.subwalks.add(t, s) : e.markFollowGlobstar() && this.subwalks.add(t, e)))), s) {
+      let r = s.pattern();
+      if (typeof r == "string" && r !== ".." && r !== "" && r !== ".") this.testString(t, r, s.rest(), i);
+      else if (r === "..") {
+        let o = t.parent || t;
+        this.subwalks.add(o, s);
+      } else r instanceof RegExp && this.testRegExp(t, r, s.rest(), i);
     }
   }
-  testRegExp(e, p, rest, absolute) {
-    if (!p.test(e.name))
-      return;
-    if (!rest) {
-      this.matches.add(e, absolute, false);
-    } else {
-      this.subwalks.add(e, rest);
-    }
+  testRegExp(t, e, s, i) {
+    e.test(t.name) && (s ? this.subwalks.add(t, s) : this.matches.add(t, i, false));
   }
-  testString(e, p, rest, absolute) {
-    if (!e.isNamed(p))
-      return;
-    if (!rest) {
-      this.matches.add(e, absolute, false);
-    } else {
-      this.subwalks.add(e, rest);
-    }
+  testString(t, e, s, i) {
+    t.isNamed(e) && (s ? this.subwalks.add(t, s) : this.matches.add(t, i, false));
   }
 };
-
-// ../../node_modules/glob/dist/esm/walker.js
-var makeIgnore = (ignore, opts) => typeof ignore === "string" ? new Ignore([ignore], opts) : Array.isArray(ignore) ? new Ignore(ignore, opts) : ignore;
-var GlobUtil = class {
+var Li = (n7, t) => typeof n7 == "string" ? new ot([n7], t) : Array.isArray(n7) ? new ot(n7, t) : n7;
+var zt = class {
   path;
   patterns;
   opts;
   seen = /* @__PURE__ */ new Set();
   paused = false;
   aborted = false;
-  #onResume = [];
-  #ignore;
-  #sep;
+  #t = [];
+  #s;
+  #n;
   signal;
   maxDepth;
   includeChildMatches;
-  constructor(patterns, path3, opts) {
-    this.patterns = patterns;
-    this.path = path3;
-    this.opts = opts;
-    this.#sep = !opts.posix && opts.platform === "win32" ? "\\" : "/";
-    this.includeChildMatches = opts.includeChildMatches !== false;
-    if (opts.ignore || !this.includeChildMatches) {
-      this.#ignore = makeIgnore(opts.ignore ?? [], opts);
-      if (!this.includeChildMatches && typeof this.#ignore.add !== "function") {
-        const m = "cannot ignore child matches, ignore lacks add() method.";
-        throw new Error(m);
-      }
+  constructor(t, e, s) {
+    if (this.patterns = t, this.path = e, this.opts = s, this.#n = !s.posix && s.platform === "win32" ? "\\" : "/", this.includeChildMatches = s.includeChildMatches !== false, (s.ignore || !this.includeChildMatches) && (this.#s = Li(s.ignore ?? [], s), !this.includeChildMatches && typeof this.#s.add != "function")) {
+      let i = "cannot ignore child matches, ignore lacks add() method.";
+      throw new Error(i);
     }
-    this.maxDepth = opts.maxDepth || Infinity;
-    if (opts.signal) {
-      this.signal = opts.signal;
-      this.signal.addEventListener("abort", () => {
-        this.#onResume.length = 0;
-      });
-    }
+    this.maxDepth = s.maxDepth || 1 / 0, s.signal && (this.signal = s.signal, this.signal.addEventListener("abort", () => {
+      this.#t.length = 0;
+    }));
   }
-  #ignored(path3) {
-    return this.seen.has(path3) || !!this.#ignore?.ignored?.(path3);
+  #r(t) {
+    return this.seen.has(t) || !!this.#s?.ignored?.(t);
   }
-  #childrenIgnored(path3) {
-    return !!this.#ignore?.childrenIgnored?.(path3);
+  #o(t) {
+    return !!this.#s?.childrenIgnored?.(t);
   }
-  // backpressure mechanism
   pause() {
     this.paused = true;
   }
   resume() {
-    if (this.signal?.aborted)
-      return;
+    if (this.signal?.aborted) return;
     this.paused = false;
-    let fn = void 0;
-    while (!this.paused && (fn = this.#onResume.shift())) {
-      fn();
-    }
+    let t;
+    for (; !this.paused && (t = this.#t.shift()); ) t();
   }
-  onResume(fn) {
-    if (this.signal?.aborted)
-      return;
-    if (!this.paused) {
-      fn();
-    } else {
-      this.#onResume.push(fn);
-    }
+  onResume(t) {
+    this.signal?.aborted || (this.paused ? this.#t.push(t) : t());
   }
-  // do the requisite realpath/stat checking, and return the path
-  // to add or undefined to filter it out.
-  async matchCheck(e, ifDir) {
-    if (ifDir && this.opts.nodir)
-      return void 0;
-    let rpc;
+  async matchCheck(t, e) {
+    if (e && this.opts.nodir) return;
+    let s;
     if (this.opts.realpath) {
-      rpc = e.realpathCached() || await e.realpath();
-      if (!rpc)
-        return void 0;
-      e = rpc;
+      if (s = t.realpathCached() || await t.realpath(), !s) return;
+      t = s;
     }
-    const needStat = e.isUnknown() || this.opts.stat;
-    const s = needStat ? await e.lstat() : e;
-    if (this.opts.follow && this.opts.nodir && s?.isSymbolicLink()) {
-      const target = await s.realpath();
-      if (target && (target.isUnknown() || this.opts.stat)) {
-        await target.lstat();
-      }
+    let r = t.isUnknown() || this.opts.stat ? await t.lstat() : t;
+    if (this.opts.follow && this.opts.nodir && r?.isSymbolicLink()) {
+      let o = await r.realpath();
+      o && (o.isUnknown() || this.opts.stat) && await o.lstat();
     }
-    return this.matchCheckTest(s, ifDir);
+    return this.matchCheckTest(r, e);
   }
-  matchCheckTest(e, ifDir) {
-    return e && (this.maxDepth === Infinity || e.depth() <= this.maxDepth) && (!ifDir || e.canReaddir()) && (!this.opts.nodir || !e.isDirectory()) && (!this.opts.nodir || !this.opts.follow || !e.isSymbolicLink() || !e.realpathCached()?.isDirectory()) && !this.#ignored(e) ? e : void 0;
+  matchCheckTest(t, e) {
+    return t && (this.maxDepth === 1 / 0 || t.depth() <= this.maxDepth) && (!e || t.canReaddir()) && (!this.opts.nodir || !t.isDirectory()) && (!this.opts.nodir || !this.opts.follow || !t.isSymbolicLink() || !t.realpathCached()?.isDirectory()) && !this.#r(t) ? t : void 0;
   }
-  matchCheckSync(e, ifDir) {
-    if (ifDir && this.opts.nodir)
-      return void 0;
-    let rpc;
+  matchCheckSync(t, e) {
+    if (e && this.opts.nodir) return;
+    let s;
     if (this.opts.realpath) {
-      rpc = e.realpathCached() || e.realpathSync();
-      if (!rpc)
-        return void 0;
-      e = rpc;
+      if (s = t.realpathCached() || t.realpathSync(), !s) return;
+      t = s;
     }
-    const needStat = e.isUnknown() || this.opts.stat;
-    const s = needStat ? e.lstatSync() : e;
-    if (this.opts.follow && this.opts.nodir && s?.isSymbolicLink()) {
-      const target = s.realpathSync();
-      if (target && (target?.isUnknown() || this.opts.stat)) {
-        target.lstatSync();
-      }
+    let r = t.isUnknown() || this.opts.stat ? t.lstatSync() : t;
+    if (this.opts.follow && this.opts.nodir && r?.isSymbolicLink()) {
+      let o = r.realpathSync();
+      o && (o?.isUnknown() || this.opts.stat) && o.lstatSync();
     }
-    return this.matchCheckTest(s, ifDir);
+    return this.matchCheckTest(r, e);
   }
-  matchFinish(e, absolute) {
-    if (this.#ignored(e))
-      return;
-    if (!this.includeChildMatches && this.#ignore?.add) {
-      const ign = `${e.relativePosix()}/**`;
-      this.#ignore.add(ign);
+  matchFinish(t, e) {
+    if (this.#r(t)) return;
+    if (!this.includeChildMatches && this.#s?.add) {
+      let r = `${t.relativePosix()}/**`;
+      this.#s.add(r);
     }
-    const abs = this.opts.absolute === void 0 ? absolute : this.opts.absolute;
-    this.seen.add(e);
-    const mark = this.opts.mark && e.isDirectory() ? this.#sep : "";
-    if (this.opts.withFileTypes) {
-      this.matchEmit(e);
-    } else if (abs) {
-      const abs2 = this.opts.posix ? e.fullpathPosix() : e.fullpath();
-      this.matchEmit(abs2 + mark);
+    let s = this.opts.absolute === void 0 ? e : this.opts.absolute;
+    this.seen.add(t);
+    let i = this.opts.mark && t.isDirectory() ? this.#n : "";
+    if (this.opts.withFileTypes) this.matchEmit(t);
+    else if (s) {
+      let r = this.opts.posix ? t.fullpathPosix() : t.fullpath();
+      this.matchEmit(r + i);
     } else {
-      const rel = this.opts.posix ? e.relativePosix() : e.relative();
-      const pre = this.opts.dotRelative && !rel.startsWith(".." + this.#sep) ? "." + this.#sep : "";
-      this.matchEmit(!rel ? "." + mark : pre + rel + mark);
+      let r = this.opts.posix ? t.relativePosix() : t.relative(), o = this.opts.dotRelative && !r.startsWith(".." + this.#n) ? "." + this.#n : "";
+      this.matchEmit(r ? o + r + i : "." + i);
     }
   }
-  async match(e, absolute, ifDir) {
-    const p = await this.matchCheck(e, ifDir);
-    if (p)
-      this.matchFinish(p, absolute);
+  async match(t, e, s) {
+    let i = await this.matchCheck(t, s);
+    i && this.matchFinish(i, e);
   }
-  matchSync(e, absolute, ifDir) {
-    const p = this.matchCheckSync(e, ifDir);
-    if (p)
-      this.matchFinish(p, absolute);
+  matchSync(t, e, s) {
+    let i = this.matchCheckSync(t, s);
+    i && this.matchFinish(i, e);
   }
-  walkCB(target, patterns, cb) {
-    if (this.signal?.aborted)
-      cb();
-    this.walkCB2(target, patterns, new Processor(this.opts), cb);
+  walkCB(t, e, s) {
+    this.signal?.aborted && s(), this.walkCB2(t, e, new Et(this.opts), s);
   }
-  walkCB2(target, patterns, processor, cb) {
-    if (this.#childrenIgnored(target))
-      return cb();
-    if (this.signal?.aborted)
-      cb();
-    if (this.paused) {
-      this.onResume(() => this.walkCB2(target, patterns, processor, cb));
+  walkCB2(t, e, s, i) {
+    if (this.#o(t)) return i();
+    if (this.signal?.aborted && i(), this.paused) {
+      this.onResume(() => this.walkCB2(t, e, s, i));
       return;
     }
-    processor.processPatterns(target, patterns);
-    let tasks = 1;
-    const next = () => {
-      if (--tasks === 0)
-        cb();
+    s.processPatterns(t, e);
+    let r = 1, o = () => {
+      --r === 0 && i();
     };
-    for (const [m, absolute, ifDir] of processor.matches.entries()) {
-      if (this.#ignored(m))
-        continue;
-      tasks++;
-      this.match(m, absolute, ifDir).then(() => next());
+    for (let [h, a, l] of s.matches.entries()) this.#r(h) || (r++, this.match(h, a, l).then(() => o()));
+    for (let h of s.subwalkTargets()) {
+      if (this.maxDepth !== 1 / 0 && h.depth() >= this.maxDepth) continue;
+      r++;
+      let a = h.readdirCached();
+      h.calledReaddir() ? this.walkCB3(h, a, s, o) : h.readdirCB((l, u) => this.walkCB3(h, u, s, o), true);
     }
-    for (const t of processor.subwalkTargets()) {
-      if (this.maxDepth !== Infinity && t.depth() >= this.maxDepth) {
-        continue;
-      }
-      tasks++;
-      const childrenCached = t.readdirCached();
-      if (t.calledReaddir())
-        this.walkCB3(t, childrenCached, processor, next);
-      else {
-        t.readdirCB((_, entries) => this.walkCB3(t, entries, processor, next), true);
-      }
-    }
-    next();
+    o();
   }
-  walkCB3(target, entries, processor, cb) {
-    processor = processor.filterEntries(target, entries);
-    let tasks = 1;
-    const next = () => {
-      if (--tasks === 0)
-        cb();
+  walkCB3(t, e, s, i) {
+    s = s.filterEntries(t, e);
+    let r = 1, o = () => {
+      --r === 0 && i();
     };
-    for (const [m, absolute, ifDir] of processor.matches.entries()) {
-      if (this.#ignored(m))
-        continue;
-      tasks++;
-      this.match(m, absolute, ifDir).then(() => next());
-    }
-    for (const [target2, patterns] of processor.subwalks.entries()) {
-      tasks++;
-      this.walkCB2(target2, patterns, processor.child(), next);
-    }
-    next();
+    for (let [h, a, l] of s.matches.entries()) this.#r(h) || (r++, this.match(h, a, l).then(() => o()));
+    for (let [h, a] of s.subwalks.entries()) r++, this.walkCB2(h, a, s.child(), o);
+    o();
   }
-  walkCBSync(target, patterns, cb) {
-    if (this.signal?.aborted)
-      cb();
-    this.walkCB2Sync(target, patterns, new Processor(this.opts), cb);
+  walkCBSync(t, e, s) {
+    this.signal?.aborted && s(), this.walkCB2Sync(t, e, new Et(this.opts), s);
   }
-  walkCB2Sync(target, patterns, processor, cb) {
-    if (this.#childrenIgnored(target))
-      return cb();
-    if (this.signal?.aborted)
-      cb();
-    if (this.paused) {
-      this.onResume(() => this.walkCB2Sync(target, patterns, processor, cb));
+  walkCB2Sync(t, e, s, i) {
+    if (this.#o(t)) return i();
+    if (this.signal?.aborted && i(), this.paused) {
+      this.onResume(() => this.walkCB2Sync(t, e, s, i));
       return;
     }
-    processor.processPatterns(target, patterns);
-    let tasks = 1;
-    const next = () => {
-      if (--tasks === 0)
-        cb();
+    s.processPatterns(t, e);
+    let r = 1, o = () => {
+      --r === 0 && i();
     };
-    for (const [m, absolute, ifDir] of processor.matches.entries()) {
-      if (this.#ignored(m))
-        continue;
-      this.matchSync(m, absolute, ifDir);
+    for (let [h, a, l] of s.matches.entries()) this.#r(h) || this.matchSync(h, a, l);
+    for (let h of s.subwalkTargets()) {
+      if (this.maxDepth !== 1 / 0 && h.depth() >= this.maxDepth) continue;
+      r++;
+      let a = h.readdirSync();
+      this.walkCB3Sync(h, a, s, o);
     }
-    for (const t of processor.subwalkTargets()) {
-      if (this.maxDepth !== Infinity && t.depth() >= this.maxDepth) {
-        continue;
-      }
-      tasks++;
-      const children = t.readdirSync();
-      this.walkCB3Sync(t, children, processor, next);
-    }
-    next();
+    o();
   }
-  walkCB3Sync(target, entries, processor, cb) {
-    processor = processor.filterEntries(target, entries);
-    let tasks = 1;
-    const next = () => {
-      if (--tasks === 0)
-        cb();
+  walkCB3Sync(t, e, s, i) {
+    s = s.filterEntries(t, e);
+    let r = 1, o = () => {
+      --r === 0 && i();
     };
-    for (const [m, absolute, ifDir] of processor.matches.entries()) {
-      if (this.#ignored(m))
-        continue;
-      this.matchSync(m, absolute, ifDir);
-    }
-    for (const [target2, patterns] of processor.subwalks.entries()) {
-      tasks++;
-      this.walkCB2Sync(target2, patterns, processor.child(), next);
-    }
-    next();
+    for (let [h, a, l] of s.matches.entries()) this.#r(h) || this.matchSync(h, a, l);
+    for (let [h, a] of s.subwalks.entries()) r++, this.walkCB2Sync(h, a, s.child(), o);
+    o();
   }
 };
-var GlobWalker = class extends GlobUtil {
+var xt = class extends zt {
   matches = /* @__PURE__ */ new Set();
-  constructor(patterns, path3, opts) {
-    super(patterns, path3, opts);
+  constructor(t, e, s) {
+    super(t, e, s);
   }
-  matchEmit(e) {
-    this.matches.add(e);
+  matchEmit(t) {
+    this.matches.add(t);
   }
   async walk() {
-    if (this.signal?.aborted)
-      throw this.signal.reason;
-    if (this.path.isUnknown()) {
-      await this.path.lstat();
-    }
-    await new Promise((res, rej) => {
+    if (this.signal?.aborted) throw this.signal.reason;
+    return this.path.isUnknown() && await this.path.lstat(), await new Promise((t, e) => {
       this.walkCB(this.path, this.patterns, () => {
-        if (this.signal?.aborted) {
-          rej(this.signal.reason);
-        } else {
-          res(this.matches);
-        }
+        this.signal?.aborted ? e(this.signal.reason) : t(this.matches);
       });
-    });
-    return this.matches;
+    }), this.matches;
   }
   walkSync() {
-    if (this.signal?.aborted)
-      throw this.signal.reason;
-    if (this.path.isUnknown()) {
-      this.path.lstatSync();
-    }
-    this.walkCBSync(this.path, this.patterns, () => {
-      if (this.signal?.aborted)
-        throw this.signal.reason;
-    });
-    return this.matches;
+    if (this.signal?.aborted) throw this.signal.reason;
+    return this.path.isUnknown() && this.path.lstatSync(), this.walkCBSync(this.path, this.patterns, () => {
+      if (this.signal?.aborted) throw this.signal.reason;
+    }), this.matches;
   }
 };
-var GlobStream = class extends GlobUtil {
+var vt = class extends zt {
   results;
-  constructor(patterns, path3, opts) {
-    super(patterns, path3, opts);
-    this.results = new Minipass({
-      signal: this.signal,
-      objectMode: true
-    });
-    this.results.on("drain", () => this.resume());
-    this.results.on("resume", () => this.resume());
+  constructor(t, e, s) {
+    super(t, e, s), this.results = new V({ signal: this.signal, objectMode: true }), this.results.on("drain", () => this.resume()), this.results.on("resume", () => this.resume());
   }
-  matchEmit(e) {
-    this.results.write(e);
-    if (!this.results.flowing)
-      this.pause();
+  matchEmit(t) {
+    this.results.write(t), this.results.flowing || this.pause();
   }
   stream() {
-    const target = this.path;
-    if (target.isUnknown()) {
-      target.lstat().then(() => {
-        this.walkCB(target, this.patterns, () => this.results.end());
-      });
-    } else {
-      this.walkCB(target, this.patterns, () => this.results.end());
-    }
-    return this.results;
+    let t = this.path;
+    return t.isUnknown() ? t.lstat().then(() => {
+      this.walkCB(t, this.patterns, () => this.results.end());
+    }) : this.walkCB(t, this.patterns, () => this.results.end()), this.results;
   }
   streamSync() {
-    if (this.path.isUnknown()) {
-      this.path.lstatSync();
-    }
-    this.walkCBSync(this.path, this.patterns, () => this.results.end());
-    return this.results;
+    return this.path.isUnknown() && this.path.lstatSync(), this.walkCBSync(this.path, this.patterns, () => this.results.end()), this.results;
   }
 };
-
-// ../../node_modules/glob/dist/esm/glob.js
-var defaultPlatform3 = typeof process === "object" && process && typeof process.platform === "string" ? process.platform : "linux";
-var Glob = class {
+var Pi = typeof process == "object" && process && typeof process.platform == "string" ? process.platform : "linux";
+var I = class {
   absolute;
   cwd;
   root;
@@ -9961,170 +6795,47 @@ var Glob = class {
   windowsPathsNoEscape;
   withFileTypes;
   includeChildMatches;
-  /**
-   * The options provided to the constructor.
-   */
   opts;
-  /**
-   * An array of parsed immutable {@link Pattern} objects.
-   */
   patterns;
-  /**
-   * All options are stored as properties on the `Glob` object.
-   *
-   * See {@link GlobOptions} for full options descriptions.
-   *
-   * Note that a previous `Glob` object can be passed as the
-   * `GlobOptions` to another `Glob` instantiation to re-use settings
-   * and caches with a new pattern.
-   *
-   * Traversal functions can be called multiple times to run the walk
-   * again.
-   */
-  constructor(pattern, opts) {
-    if (!opts)
-      throw new TypeError("glob options required");
-    this.withFileTypes = !!opts.withFileTypes;
-    this.signal = opts.signal;
-    this.follow = !!opts.follow;
-    this.dot = !!opts.dot;
-    this.dotRelative = !!opts.dotRelative;
-    this.nodir = !!opts.nodir;
-    this.mark = !!opts.mark;
-    if (!opts.cwd) {
-      this.cwd = "";
-    } else if (opts.cwd instanceof URL || opts.cwd.startsWith("file://")) {
-      opts.cwd = (0, import_node_url2.fileURLToPath)(opts.cwd);
+  constructor(t, e) {
+    if (!e) throw new TypeError("glob options required");
+    if (this.withFileTypes = !!e.withFileTypes, this.signal = e.signal, this.follow = !!e.follow, this.dot = !!e.dot, this.dotRelative = !!e.dotRelative, this.nodir = !!e.nodir, this.mark = !!e.mark, e.cwd ? (e.cwd instanceof URL || e.cwd.startsWith("file://")) && (e.cwd = (0, import_node_url.fileURLToPath)(e.cwd)) : this.cwd = "", this.cwd = e.cwd || "", this.root = e.root, this.magicalBraces = !!e.magicalBraces, this.nobrace = !!e.nobrace, this.noext = !!e.noext, this.realpath = !!e.realpath, this.absolute = e.absolute, this.includeChildMatches = e.includeChildMatches !== false, this.noglobstar = !!e.noglobstar, this.matchBase = !!e.matchBase, this.maxDepth = typeof e.maxDepth == "number" ? e.maxDepth : 1 / 0, this.stat = !!e.stat, this.ignore = e.ignore, this.withFileTypes && this.absolute !== void 0) throw new Error("cannot set absolute and withFileTypes:true");
+    if (typeof t == "string" && (t = [t]), this.windowsPathsNoEscape = !!e.windowsPathsNoEscape || e.allowWindowsEscape === false, this.windowsPathsNoEscape && (t = t.map((a) => a.replace(/\\/g, "/"))), this.matchBase) {
+      if (e.noglobstar) throw new TypeError("base matching requires globstar");
+      t = t.map((a) => a.includes("/") ? a : `./**/${a}`);
     }
-    this.cwd = opts.cwd || "";
-    this.root = opts.root;
-    this.magicalBraces = !!opts.magicalBraces;
-    this.nobrace = !!opts.nobrace;
-    this.noext = !!opts.noext;
-    this.realpath = !!opts.realpath;
-    this.absolute = opts.absolute;
-    this.includeChildMatches = opts.includeChildMatches !== false;
-    this.noglobstar = !!opts.noglobstar;
-    this.matchBase = !!opts.matchBase;
-    this.maxDepth = typeof opts.maxDepth === "number" ? opts.maxDepth : Infinity;
-    this.stat = !!opts.stat;
-    this.ignore = opts.ignore;
-    if (this.withFileTypes && this.absolute !== void 0) {
-      throw new Error("cannot set absolute and withFileTypes:true");
-    }
-    if (typeof pattern === "string") {
-      pattern = [pattern];
-    }
-    this.windowsPathsNoEscape = !!opts.windowsPathsNoEscape || opts.allowWindowsEscape === false;
-    if (this.windowsPathsNoEscape) {
-      pattern = pattern.map((p) => p.replace(/\\/g, "/"));
-    }
-    if (this.matchBase) {
-      if (opts.noglobstar) {
-        throw new TypeError("base matching requires globstar");
-      }
-      pattern = pattern.map((p) => p.includes("/") ? p : `./**/${p}`);
-    }
-    this.pattern = pattern;
-    this.platform = opts.platform || defaultPlatform3;
-    this.opts = { ...opts, platform: this.platform };
-    if (opts.scurry) {
-      this.scurry = opts.scurry;
-      if (opts.nocase !== void 0 && opts.nocase !== opts.scurry.nocase) {
-        throw new Error("nocase option contradicts provided scurry option");
-      }
+    if (this.pattern = t, this.platform = e.platform || Pi, this.opts = { ...e, platform: this.platform }, e.scurry) {
+      if (this.scurry = e.scurry, e.nocase !== void 0 && e.nocase !== e.scurry.nocase) throw new Error("nocase option contradicts provided scurry option");
     } else {
-      const Scurry = opts.platform === "win32" ? PathScurryWin32 : opts.platform === "darwin" ? PathScurryDarwin : opts.platform ? PathScurryPosix : PathScurry;
-      this.scurry = new Scurry(this.cwd, {
-        nocase: opts.nocase,
-        fs: opts.fs
-      });
+      let a = e.platform === "win32" ? it : e.platform === "darwin" ? St : e.platform ? rt : Xe;
+      this.scurry = new a(this.cwd, { nocase: e.nocase, fs: e.fs });
     }
     this.nocase = this.scurry.nocase;
-    const nocaseMagicOnly = this.platform === "darwin" || this.platform === "win32";
-    const mmo = {
-      // default nocase based on platform
-      ...opts,
-      dot: this.dot,
-      matchBase: this.matchBase,
-      nobrace: this.nobrace,
-      nocase: this.nocase,
-      nocaseMagicOnly,
-      nocomment: true,
-      noext: this.noext,
-      nonegate: true,
-      optimizationLevel: 2,
-      platform: this.platform,
-      windowsPathsNoEscape: this.windowsPathsNoEscape,
-      debug: !!this.opts.debug
-    };
-    const mms = this.pattern.map((p) => new Minimatch(p, mmo));
-    const [matchSet, globParts] = mms.reduce((set, m) => {
-      set[0].push(...m.set);
-      set[1].push(...m.globParts);
-      return set;
-    }, [[], []]);
-    this.patterns = matchSet.map((set, i) => {
-      const g = globParts[i];
-      if (!g)
-        throw new Error("invalid pattern object");
-      return new Pattern(set, g, 0, this.platform);
+    let s = this.platform === "darwin" || this.platform === "win32", i = { braceExpandMax: 1e4, ...e, dot: this.dot, matchBase: this.matchBase, nobrace: this.nobrace, nocase: this.nocase, nocaseMagicOnly: s, nocomment: true, noext: this.noext, nonegate: true, optimizationLevel: 2, platform: this.platform, windowsPathsNoEscape: this.windowsPathsNoEscape, debug: !!this.opts.debug }, r = this.pattern.map((a) => new D(a, i)), [o, h] = r.reduce((a, l) => (a[0].push(...l.set), a[1].push(...l.globParts), a), [[], []]);
+    this.patterns = o.map((a, l) => {
+      let u = h[l];
+      if (!u) throw new Error("invalid pattern object");
+      return new nt(a, u, 0, this.platform);
     });
   }
   async walk() {
-    return [
-      ...await new GlobWalker(this.patterns, this.scurry.cwd, {
-        ...this.opts,
-        maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
-        platform: this.platform,
-        nocase: this.nocase,
-        includeChildMatches: this.includeChildMatches
-      }).walk()
-    ];
+    return [...await new xt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).walk()];
   }
   walkSync() {
-    return [
-      ...new GlobWalker(this.patterns, this.scurry.cwd, {
-        ...this.opts,
-        maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
-        platform: this.platform,
-        nocase: this.nocase,
-        includeChildMatches: this.includeChildMatches
-      }).walkSync()
-    ];
+    return [...new xt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).walkSync()];
   }
   stream() {
-    return new GlobStream(this.patterns, this.scurry.cwd, {
-      ...this.opts,
-      maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
-      platform: this.platform,
-      nocase: this.nocase,
-      includeChildMatches: this.includeChildMatches
-    }).stream();
+    return new vt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).stream();
   }
   streamSync() {
-    return new GlobStream(this.patterns, this.scurry.cwd, {
-      ...this.opts,
-      maxDepth: this.maxDepth !== Infinity ? this.maxDepth + this.scurry.cwd.depth() : Infinity,
-      platform: this.platform,
-      nocase: this.nocase,
-      includeChildMatches: this.includeChildMatches
-    }).streamSync();
+    return new vt(this.patterns, this.scurry.cwd, { ...this.opts, maxDepth: this.maxDepth !== 1 / 0 ? this.maxDepth + this.scurry.cwd.depth() : 1 / 0, platform: this.platform, nocase: this.nocase, includeChildMatches: this.includeChildMatches }).streamSync();
   }
-  /**
-   * Default sync iteration function. Returns a Generator that
-   * iterates over the results.
-   */
   iterateSync() {
     return this.streamSync()[Symbol.iterator]();
   }
   [Symbol.iterator]() {
     return this.iterateSync();
   }
-  /**
-   * Default async iteration function. Returns an AsyncGenerator that
-   * iterates over the results.
-   */
   iterate() {
     return this.stream()[Symbol.asyncIterator]();
   }
@@ -10132,79 +6843,49 @@ var Glob = class {
     return this.iterate();
   }
 };
-
-// ../../node_modules/glob/dist/esm/has-magic.js
-var hasMagic = (pattern, options = {}) => {
-  if (!Array.isArray(pattern)) {
-    pattern = [pattern];
-  }
-  for (const p of pattern) {
-    if (new Minimatch(p, options).hasMagic())
-      return true;
-  }
+var le = (n7, t = {}) => {
+  Array.isArray(n7) || (n7 = [n7]);
+  for (let e of n7) if (new D(e, t).hasMagic()) return true;
   return false;
 };
-
-// ../../node_modules/glob/dist/esm/index.js
-function globStreamSync(pattern, options = {}) {
-  return new Glob(pattern, options).streamSync();
+function Bt(n7, t = {}) {
+  return new I(n7, t).streamSync();
 }
-function globStream(pattern, options = {}) {
-  return new Glob(pattern, options).stream();
+function Qe(n7, t = {}) {
+  return new I(n7, t).stream();
 }
-function globSync(pattern, options = {}) {
-  return new Glob(pattern, options).walkSync();
+function ts(n7, t = {}) {
+  return new I(n7, t).walkSync();
 }
-async function glob_(pattern, options = {}) {
-  return new Glob(pattern, options).walk();
+async function Je(n7, t = {}) {
+  return new I(n7, t).walk();
 }
-function globIterateSync(pattern, options = {}) {
-  return new Glob(pattern, options).iterateSync();
+function Ut(n7, t = {}) {
+  return new I(n7, t).iterateSync();
 }
-function globIterate(pattern, options = {}) {
-  return new Glob(pattern, options).iterate();
+function es(n7, t = {}) {
+  return new I(n7, t).iterate();
 }
-var streamSync = globStreamSync;
-var stream = Object.assign(globStream, { sync: globStreamSync });
-var iterateSync = globIterateSync;
-var iterate = Object.assign(globIterate, {
-  sync: globIterateSync
-});
-var sync = Object.assign(globSync, {
-  stream: globStreamSync,
-  iterate: globIterateSync
-});
-var glob = Object.assign(glob_, {
-  glob: glob_,
-  globSync,
-  sync,
-  globStream,
-  stream,
-  globStreamSync,
-  streamSync,
-  globIterate,
-  iterate,
-  globIterateSync,
-  iterateSync,
-  Glob,
-  hasMagic,
-  escape,
-  unescape
-});
-glob.glob = glob;
+var ji = Bt;
+var Ii = Object.assign(Qe, { sync: Bt });
+var zi = Ut;
+var Bi = Object.assign(es, { sync: Ut });
+var Ui = Object.assign(ts, { stream: Bt, iterate: Ut });
+var Ze = Object.assign(Je, { glob: Je, globSync: ts, sync: Ui, globStream: Qe, stream: Ii, globStreamSync: Bt, streamSync: ji, globIterate: es, iterate: Bi, globIterateSync: Ut, iterateSync: zi, Glob: I, hasMagic: le, escape: tt, unescape: W });
+Ze.glob = Ze;
 
 // hashing-utils.ts
 var crypto = __toESM(require("node:crypto"));
-var fs = __toESM(require("node:fs"));
-var os = __toESM(require("node:os"));
-var path2 = __toESM(require("node:path"));
+var fs2 = __toESM(require("node:fs"));
+var os2 = __toESM(require("node:os"));
+var path = __toESM(require("node:path"));
 function hashFileContents(pattern) {
-  const files = glob.sync(pattern, { ignore: "node_modules/**" }).filter((path3) => {
-    return fs.statSync(path3).isFile();
+  const files = Ze.sync(pattern, { ignore: "node_modules/**" }).filter((path2) => {
+    return fs2.statSync(path2).isFile();
   });
   let megaHash = "";
   files.forEach((file) => {
-    const fileContent = fs.readFileSync(file, "utf8");
+    const fileContent = fs2.readFileSync(file, "utf8");
     const fileHash = hash(fileContent);
     megaHash = hash(fileHash + megaHash);
   });
@@ -10235,8 +6916,8 @@ function hash(input) {
 }
 function tildePathToRelative(cachedFolderPath) {
   if (cachedFolderPath.startsWith("~")) {
-    const expandedPath = cachedFolderPath.replace(/^~/, os.homedir());
-    return path2.relative(process.cwd(), expandedPath);
+    const expandedPath = cachedFolderPath.replace(/^~/, os2.homedir());
+    return path.relative(process.cwd(), expandedPath);
   }
   return cachedFolderPath;
 }
@@ -10249,7 +6930,7 @@ function buildCachePaths(inputPaths2, warnInvalidPaths = true) {
       )
     )
   );
-  const invalidDirectories = directories.filter((dir) => !fs.existsSync(dir));
+  const invalidDirectories = directories.filter((dir) => !fs2.existsSync(dir));
   if (invalidDirectories.length > 0 && warnInvalidPaths) {
     console.warn(
       `The following paths are not valid or empty:
@@ -10261,7 +6942,7 @@ ${invalidDirectories.join(
   return directories;
 }
 function expandPath(pattern) {
-  const globExpandedPaths = glob.sync(pattern);
+  const globExpandedPaths = Ze.sync(pattern);
   if (globExpandedPaths.length == 0) {
     return [pattern];
   }
@@ -10287,8 +6968,8 @@ var paths = buildCachePaths(inputPaths, false);
 var stringifiedPaths = paths.join(",");
 var key = `${inputKey} | "${stringifiedPaths}"`;
 var hashedKey = hashKey(key);
-var currentBranchKeys = [hashedKey].map((k) => `${currentBranch}-${k}`);
-var baseBranchKeys = baseBranch ? [hashedKey].map((k) => `${baseBranch}-${k}`) : [];
+var currentBranchKeys = [hashedKey].map((k2) => `${currentBranch}-${k2}`);
+var baseBranchKeys = baseBranch ? [hashedKey].map((k2) => `${baseBranch}-${k2}`) : [];
 console.log(`Expanded unhashed key is: ${key}
 `);
 storeHashedKeyInEnv(hashedKey);

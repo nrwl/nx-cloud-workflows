@@ -19,7 +19,7 @@ Auto run install tools after installing the mise cli. Defaults to `true`.
 
 #### mise-version
 
-Version of mise to use based on the [GitHub Releases](https://github.com/jdx/mise/releases). Defaults to `v2025.10.19`.
+Version of mise to use based on the [GitHub Releases](https://github.com/jdx/mise/releases). Defaults to `v2025.12.2`.
 
 #### install-args
 

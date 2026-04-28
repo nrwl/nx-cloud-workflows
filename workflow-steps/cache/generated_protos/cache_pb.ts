@@ -210,6 +210,11 @@ export class StoreResponse extends Message<StoreResponse> {
    */
   skipped = false;
 
+  /**
+   * @generated from field: string skipped_reason = 3;
+   */
+  skippedReason = '';
+
   constructor(data?: PartialMessage<StoreResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -220,6 +225,12 @@ export class StoreResponse extends Message<StoreResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: 'success', kind: 'scalar', T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: 'skipped', kind: 'scalar', T: 8 /* ScalarType.BOOL */ },
+    {
+      no: 3,
+      name: 'skipped_reason',
+      kind: 'scalar',
+      T: 9 /* ScalarType.STRING */,
+    },
   ]);
 
   static fromBinary(

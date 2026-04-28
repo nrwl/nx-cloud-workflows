@@ -6,7 +6,7 @@ const runInstall = process.env['NX_CLOUD_INPUT_auto-install']
   ? process.env['NX_CLOUD_INPUT_auto-install'] === 'true'
   : true;
 const miseGhVersion =
-  process.env['NX_CLOUD_INPUT_mise-version'] || 'v2025.10.19';
+  process.env['NX_CLOUD_INPUT_mise-version'] || 'v2025.12.2';
 const installArgs = process.env['NX_CLOUD_INPUT_install-args'] || '';
 const inlineToolDef = process.env['NX_CLOUD_INPUT_tools'] || '';
 

@@ -2,6 +2,12 @@ const { execSync } = require('child_process');
 const { existsSync, readFileSync, writeFileSync } = require('fs');
 
 async function main() {
+  const workingDirectory = process.env.NX_WORKING_DIRECTORY;
+  if (workingDirectory) {
+    console.log(`Changing to working directory: ${workingDirectory}`);
+    process.chdir(workingDirectory);
+  }
+
   const command = getInstallCommand();
 
   if (command) {
