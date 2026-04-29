@@ -1,6 +1,6 @@
 common-jvm-init-steps: &common-jvm-init-steps
   - name: Checkout
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/checkout/main.yaml'
   - name: Set up Gradle
     script: ./gradlew wrapper
   - name: Set up Nx
@@ -8,9 +8,9 @@ common-jvm-init-steps: &common-jvm-init-steps
 
 common-dotnet-init-steps: &common-dotnet-init-steps
   - name: Checkout
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/checkout/main.yaml'
   - name: Install Mise
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-mise/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/install-mise/main.yaml'
     inputs:
       tools: |
         dotnet=10
@@ -19,26 +19,26 @@ common-dotnet-init-steps: &common-dotnet-init-steps
 
 common-js-init-steps: &common-js-init-steps
   - name: Checkout
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/checkout/main.yaml'
   - name: Restore Node Modules Cache
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/cache/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/cache/main.yaml'
     inputs:
       key: 'package-lock.json|yarn.lock|pnpm-lock.yaml|patches/**|.yarn/patches/**'
       paths: 'node_modules'
       base-branch: 'main'
   - name: Restore Browser Binary Cache
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/cache/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/cache/main.yaml'
     inputs:
       key: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
       paths: |
         '../.cache/Cypress'
       base-branch: 'main'
   - name: Install Node
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-node/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/install-node/main.yaml'
   - name: Install Node Modules
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-node-modules/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/install-node-modules/main.yaml'
   - name: Install Browsers (if needed)
-    uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/install-browsers/main.yaml'
+    uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/install-browsers/main.yaml'
 
 launch-templates:
   linux-small-js:
