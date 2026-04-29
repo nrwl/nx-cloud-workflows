@@ -1,0 +1,6 @@
+name: Install Mise (if mise config present)
+description: Installs mise and any tools defined in mise.toml, .mise.toml, or .tool-versions. Skips if no config is detected.
+
+definition:
+  using: 'node'
+  main: workflow-steps/install-mise-if-present/main.js
