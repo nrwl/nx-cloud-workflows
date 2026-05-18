@@ -211,9 +211,9 @@ export class StoreResponse extends Message<StoreResponse> {
   skipped = false;
 
   /**
-   * @generated from field: string skipped_message = 3;
+   * @generated from field: string skipped_reason = 3;
    */
-  skippedMessage = '';
+  skippedReason = '';
 
   constructor(data?: PartialMessage<StoreResponse>) {
     super();
@@ -227,7 +227,7 @@ export class StoreResponse extends Message<StoreResponse> {
     { no: 2, name: 'skipped', kind: 'scalar', T: 8 /* ScalarType.BOOL */ },
     {
       no: 3,
-      name: 'skipped_message',
+      name: 'skipped_reason',
       kind: 'scalar',
       T: 9 /* ScalarType.STRING */,
     },

@@ -10,25 +10,34 @@ jobs:
   validate:
     runs-on: ubuntu-latest
 
+    env:
+      NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
           fetch-depth: 0
           filter: 'tree:0'
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '22'
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level=critical
+
+      - name: Verify bundled outputs match lockfile
+        run: pnpm build-all
 
       - uses: nrwl/nx-set-shas@826660b82addbef3abff5fa871492ebad618c9e1 # v4
 
       - name: Run checks
-        env:
-          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
         run: |
-          yarn nx-cloud conformance
-          yarn nx affected -t test
+          pnpm nx-cloud conformance
+          pnpm nx affected -t test
