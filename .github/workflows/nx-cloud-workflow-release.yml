@@ -1,67 +1,122 @@
 name: Nx Cloud Workflow Release
 
 permissions:
-  contents: write
+  contents: read
 
 on:
   workflow_dispatch:
     inputs:
       commit:
-        description: 'Commit SHA(s) to cherry-pick'
+        description: 'Commit SHA(s) to cherry-pick (comma-separated). All must be reachable from main.'
         required: false
       version:
-        description: 'Version number for branch and tag'
+        description: 'Version number for branch and tag (e.g. 6.0.1)'
         required: true
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
           fetch-depth: 0
           filter: 'tree:0'
+          token: ${{ steps.app-token.outputs.token }}
 
-      - run: |
-          echo "# Nx Cloud Workflows Release" >> $GITHUB_STEP_SUMMARY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --all
-
-      - name: Create or checkout branch
+      - name: Validate inputs
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+          COMMIT_INPUT: ${{ github.event.inputs.commit }}
         run: |
-          MAJOR_VERSION=$(echo ${{ github.event.inputs.version }} | cut -d. -f1)
-          if git show-ref --verify --quiet refs/remotes/origin/releases/v$MAJOR_VERSION; then
-            git checkout releases/v$MAJOR_VERSION
+          if ! [[ "$VERSION_INPUT" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "Invalid version format: $VERSION_INPUT" >&2
+            echo "Version must be digits separated by dots (e.g. 6.0.1)." >&2
+            exit 1
+          fi
+          if [ -n "$COMMIT_INPUT" ]; then
+            IFS=',' read -ra COMMITS <<< "$COMMIT_INPUT"
+            for sha in "${COMMITS[@]}"; do
+              if ! [[ "$sha" =~ ^[a-f0-9]{7,40}$ ]]; then
+                echo "Invalid commit SHA: $sha" >&2
+                exit 1
+              fi
+            done
+          fi
+
+      - name: Configure git and fetch refs
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          echo "# Nx Cloud Workflows Release" >> "$GITHUB_STEP_SUMMARY"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
+          git fetch origin main
+          git fetch --tags origin
+
+      - name: Verify commits are reachable from main
+        if: ${{ github.event.inputs.commit }}
+        env:
+          COMMIT_INPUT: ${{ github.event.inputs.commit }}
+        run: |
+          IFS=',' read -ra COMMITS <<< "$COMMIT_INPUT"
+          for sha in "${COMMITS[@]}"; do
+            if ! git merge-base --is-ancestor "$sha" origin/main; then
+              echo "Commit $sha is not reachable from origin/main." >&2
+              echo "Only commits merged to main (via PR review) can be released." >&2
+              exit 1
+            fi
+          done
+
+      - name: Create or checkout release branch
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          MAJOR_VERSION="${VERSION_INPUT%%.*}"
+          if git show-ref --verify --quiet "refs/remotes/origin/releases/v$MAJOR_VERSION"; then
+            git checkout "releases/v$MAJOR_VERSION"
           else
-            git checkout -b releases/v$MAJOR_VERSION
+            git checkout -b "releases/v$MAJOR_VERSION"
           fi
 
       - name: Cherry-pick commits
-        run: |
-          IFS=',' read -ra COMMITS <<< "${{ github.event.inputs.commit }}"
-          for i in "${COMMITS[@]}"; do
-            git cherry-pick $i
-          done
         if: ${{ github.event.inputs.commit }}
-
-      - name: Push changes
+        env:
+          COMMIT_INPUT: ${{ github.event.inputs.commit }}
         run: |
-          MAJOR_VERSION=$(echo ${{ github.event.inputs.version }} | cut -d. -f1)
-          git push origin releases/v$MAJOR_VERSION
-          echo "releases/v$MAJOR_VERSION updated" >> $GITHUB_STEP_SUMMARY
+          IFS=',' read -ra COMMITS <<< "$COMMIT_INPUT"
+          for sha in "${COMMITS[@]}"; do
+            git cherry-pick "$sha"
+          done
+
+      - name: Push release branch
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          MAJOR_VERSION="${VERSION_INPUT%%.*}"
+          git push origin "releases/v$MAJOR_VERSION"
+          echo "releases/v$MAJOR_VERSION updated" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create or update tags
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
         run: |
-          IFS='.' read -ra VERSIONS <<< "${{ github.event.inputs.version }}"
+          IFS='.' read -ra VERSIONS <<< "$VERSION_INPUT"
           TAG=""
-          for i in "${VERSIONS[@]}"; do
+          for segment in "${VERSIONS[@]}"; do
             if [ -z "$TAG" ]; then
-              TAG="$i"
+              TAG="$segment"
             else
-              TAG="$TAG.$i"
+              TAG="$TAG.$segment"
             fi
-            git tag -f v$TAG
-            git push -f origin v$TAG
-            echo "v$TAG created :rocket:" >> $GITHUB_STEP_SUMMARY
+            git tag -f "v$TAG"
+            git push -f origin "v$TAG"
+            echo "v$TAG created :rocket:" >> "$GITHUB_STEP_SUMMARY"
           done
