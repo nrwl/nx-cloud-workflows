@@ -2,7 +2,10 @@
 const { execSync, exec } = require('child_process');
 const { existsSync, readFileSync } = require('fs');
 
-main();
+main().catch((error) => {
+  console.error('Unexpected error:', error);
+  process.exit(1);
+});
 
 async function main() {
   if (!existsSync('package.json')) {
@@ -80,7 +83,7 @@ async function main() {
  * @returns {Promise<{ stdout: string; stderr: string; code: number | null; }>}
  */
 async function runCmdAsync(cmd) {
-  return new Promise((res) => {
+  return new Promise((res, reject) => {
     let stdout = '';
     let stderr = '';
     const proc = exec(cmd);
@@ -93,6 +96,10 @@ async function runCmdAsync(cmd) {
     proc?.stderr?.on('data', (data) => {
       stderr += data.toString();
       process.stderr.write(data);
+    });
+
+    proc.on('error', (error) => {
+      reject(error);
     });
 
     proc.on('close', (code) => {
