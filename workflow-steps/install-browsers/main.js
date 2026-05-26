@@ -48,7 +48,7 @@ async function main() {
             process.exit(1);
           }
           console.log('Re-attempting to install browsers...');
-          const reattempt = await runCmdAsync('npx playwright install');
+          const reattempt = await runCmdAsync(`${getPackageManagerCommand()}  playwright install`);
           if (reattempt.code !== 0) {
             console.error(
               'Failed to install Playwright browsers after installing system dependencies.',
@@ -116,20 +116,9 @@ function getPackageManagerCommand() {
   if (existsSync('package-lock.json')) {
     return 'npx';
   } else if (existsSync('yarn.lock')) {
-    const [major] = execSync(`yarn --version`, {
-      encoding: 'utf-8',
-    })
-      .trim()
-      .split('.');
-
-    const useBerry = +major >= 2;
-    if (useBerry) {
-      return 'yarn dlx';
-    } else {
-      return 'npx';
-    }
+    return 'yarn';
   } else if (existsSync('pnpm-lock.yaml') || existsSync('pnpm-lock.yml')) {
-    return 'pnpm dlx';
+    return 'pnpm exec';
   }
 }
 
