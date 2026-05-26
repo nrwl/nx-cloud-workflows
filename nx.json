@@ -1,13 +1,8 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "targetDefaults": {
-    "build": {
-      "outputs": ["{projectRoot}/output"],
-      "cache": true
-    },
-    "test": {
-      "cache": true
-    }
+    "build": { "outputs": ["{projectRoot}/output"], "cache": true },
+    "test": { "cache": true }
   },
   "nxCloudUrl": "https://staging.nx.app",
   "nxCloudId": "663100748f38641f0184bd8f",
@@ -16,10 +11,7 @@
       {
         "rule": "./scripts/validate-launch-template-urls/check-urls-resolve.ts"
       },
-      {
-        "rule": "./scripts/validate-launch-templates-schema/check-schemas.ts"
-      }
+      { "rule": "./scripts/validate-launch-templates-schema/check-schemas.ts" }
     ]
-  },
-  "analytics": true
+  }
 }
