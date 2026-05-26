@@ -1,5 +1,5 @@
 name: Install Browsers
-description: Installs browsers for Playwright
+description: Installs browsers for Playwright and Cypress
 
 definition:
   using: 'node'
