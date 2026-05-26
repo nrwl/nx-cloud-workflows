@@ -1,10 +1,10 @@
 //@ts-check
-const { execSync, exec } = require('child_process');
+const { execSync } = require('child_process');
 const { existsSync, readFileSync } = require('fs');
 
 main().catch((error) => {
   console.error('Unexpected error:', error);
-  process.exit(1);
+  process.exit(typeof error?.status === 'number' ? error.status : 1);
 });
 
 async function main() {
@@ -26,90 +26,61 @@ async function main() {
 
   if (hasPlaywright) {
     console.log('Installing browsers required by Playwright');
-    try {
-      const output = await runCmdAsync(
-        `${getPackageManagerCommand()} playwright install`,
-      );
-
-      // we can special handle missing deps for failed install
-      if (output.code !== 0 && output.stderr.includes('apt-get install')) {
-        console.log(
-          '\nDetected missing Playwright dependencies. Attempting manual install...',
-        );
-        // playwright has detected out of sync dependencies on the host machine, we we'll try to manually install them to prevent hard to debug failures
-        const [installCommand] =
-          output.stderr.match(/apt-get install (\b\w+\b )+/gi) || [];
-        if (installCommand) {
-          const depsInstalled = installDeps(`sudo ${installCommand.trim()} -y`);
-          if (!depsInstalled) {
-            console.error(
-              'Failed to install system dependencies for Playwright.',
-            );
-            process.exit(1);
-          }
-          console.log('Re-attempting to install browsers...');
-          const reattempt = await runCmdAsync(`${getPackageManagerCommand()}  playwright install`);
-          if (reattempt.code !== 0) {
-            console.error(
-              'Failed to install Playwright browsers after installing system dependencies.',
-            );
-            process.exit(reattempt.code);
-          }
-          console.log('Successfully installed Playwright browsers.');
-        } else {
-          console.error('Unable to handle failure automatically.');
-          process.exit(output.code);
-        }
-      } else if (output.code !== 0) {
-        console.error(
-          'There was an issue installing Playwright browsers. See above logs.',
-        );
-        process.exit(output.code);
-      }
-    } catch (e) {
-      console.error(e);
-      console.error('There is an issue installing Playwright dependencies');
-      process.exit(1);
-    }
+    await runWithRetries(`${getPackageManagerCommand()} playwright install`);
   }
 
   if (hasCypress) {
     console.log('Installing browsers required by Cypress');
-    execSync(`${getPackageManagerCommand()} cypress install`, {
-      stdio: 'inherit',
-    });
+    await runWithRetries(`${getPackageManagerCommand()} cypress install`);
   }
   console.log('Done');
 }
 
 /**
- * @param {string} cmd
- * @returns {Promise<{ stdout: string; stderr: string; code: number | null; }>}
+ * Run `command` via execSync with stdio inherited, retrying on any failure
+ * (non-zero exit, signal, or per-attempt timeout) until either `maxRetries`
+ * is hit or a 10-minute total deadline elapses across all attempts.
+ *
+ * @param {string} command
  */
-async function runCmdAsync(cmd) {
-  return new Promise((res, reject) => {
-    let stdout = '';
-    let stderr = '';
-    const proc = exec(cmd);
+async function runWithRetries(command) {
+  const maxRetries = Number(process.env.NX_CLOUD_INPUT_max_retries) || 3;
+  const deadline = Date.now() + 600_000;
+  let retryCount = 0;
 
-    proc?.stdout?.on('data', (data) => {
-      stdout += data.toString();
-      process.stdout.write(data);
-    });
+  while (retryCount < maxRetries) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      throw new Error(`Timed out running "${command}" after 10 minutes`);
+    }
 
-    proc?.stderr?.on('data', (data) => {
-      stderr += data.toString();
-      process.stderr.write(data);
-    });
+    try {
+      execSync(command, {
+        stdio: 'inherit',
+        timeout: remaining,
+        killSignal: 'SIGKILL',
+      });
+      return;
+    } catch (e) {
+      retryCount++;
 
-    proc.on('error', (error) => {
-      reject(error);
-    });
+      if (retryCount >= maxRetries || Date.now() >= deadline) {
+        throw e;
+      }
 
-    proc.on('close', (code) => {
-      res({ stdout, stderr, code });
-    });
-  });
+      const delay = Math.max(
+        3_000,
+        Math.pow(2, retryCount) * Math.random() * 1_250,
+      );
+      console.log(
+        `Installing browsers failed. Retrying install in ${(
+          delay / 1000
+        ).toFixed(0)} seconds...`,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
 }
 
 function getPackageManagerCommand() {
@@ -119,24 +90,5 @@ function getPackageManagerCommand() {
     return 'yarn';
   } else if (existsSync('pnpm-lock.yaml') || existsSync('pnpm-lock.yml')) {
     return 'pnpm exec';
-  }
-}
-
-/**
- * @param {string} installCommand
- * @returns {boolean} true if installation succeeded, false otherwise
- */
-function installDeps(installCommand) {
-  try {
-    console.log(`Running "${installCommand}"`);
-    execSync(installCommand.trim(), { stdio: 'inherit' });
-    return true;
-  } catch (installError) {
-    console.error('There was an issue installing dependencies for Playwright.');
-    console.log(
-      'You can create a custom launch template and add a step to manually install the missing Playwright dependencies in order to get around this error.',
-    );
-    console.log('See docs here: https://nx.dev/ci/reference/launch-templates');
-    return false;
   }
 }
