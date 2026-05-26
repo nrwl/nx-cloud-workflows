@@ -27,7 +27,9 @@ async function main() {
   if (hasPlaywright) {
     console.log('Installing browsers required by Playwright');
     try {
-      const output = await runCmdAsync('npx playwright install');
+      const output = await runCmdAsync(
+        `${getPackageManagerCommand()} playwright install`,
+      );
 
       // we can special handle missing deps for failed install
       if (output.code !== 0 && output.stderr.includes('apt-get install')) {
@@ -46,7 +48,7 @@ async function main() {
             process.exit(1);
           }
           console.log('Re-attempting to install browsers...');
-          const reattempt = await runCmdAsync('npx playwright install');
+          const reattempt = await runCmdAsync(`${getPackageManagerCommand()}  playwright install`);
           if (reattempt.code !== 0) {
             console.error(
               'Failed to install Playwright browsers after installing system dependencies.',
@@ -73,7 +75,9 @@ async function main() {
 
   if (hasCypress) {
     console.log('Installing browsers required by Cypress');
-    execSync('npx cypress install', { stdio: 'inherit' });
+    execSync(`${getPackageManagerCommand()} cypress install`, {
+      stdio: 'inherit',
+    });
   }
   console.log('Done');
 }
@@ -106,6 +110,16 @@ async function runCmdAsync(cmd) {
       res({ stdout, stderr, code });
     });
   });
+}
+
+function getPackageManagerCommand() {
+  if (existsSync('package-lock.json')) {
+    return 'npx';
+  } else if (existsSync('yarn.lock')) {
+    return 'yarn';
+  } else if (existsSync('pnpm-lock.yaml') || existsSync('pnpm-lock.yml')) {
+    return 'pnpm exec';
+  }
 }
 
 /**
