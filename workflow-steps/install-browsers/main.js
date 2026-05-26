@@ -15,7 +15,14 @@ async function main() {
     return;
   }
 
-  const json = JSON.parse(readFileSync('package.json').toString());
+  let json;
+  try {
+    json = JSON.parse(readFileSync('package.json').toString());
+  } catch (e) {
+    console.log('Unable to parse package.json; skipping browser install.');
+    return;
+  }
+
   const hasPlaywright =
     (json.dependencies || {}).hasOwnProperty('@playwright/test') ||
     (json.devDependencies || {}).hasOwnProperty('@playwright/test');
@@ -36,36 +43,49 @@ async function main() {
   console.log('Done');
 }
 
+const PER_ATTEMPT_TIMEOUT_MS = 5 * 60 * 1000;
+
 /**
- * Run `command` via execSync with stdio inherited, retrying on any failure
- * (non-zero exit, signal, or per-attempt timeout) until either `maxRetries`
- * is hit or a 10-minute total deadline elapses across all attempts.
+ * Run `command` via execSync, retrying on any failure up to `maxRetries`
+ * times. Each attempt is bounded by PER_ATTEMPT_TIMEOUT_MS so a silent hang
+ * gets killed and retried rather than blocking forever.
+ *
+ * stderr is captured so we can detect playwright's "apt-get install <pkg>"
+ * hint and auto-install missing system deps before the next retry; the
+ * captured stderr is also written through to the parent so it still appears
+ * in workflow logs.
  *
  * @param {string} command
  */
 async function runWithRetries(command) {
   const maxRetries = Number(process.env.NX_CLOUD_INPUT_max_retries) || 3;
-  const deadline = Date.now() + 600_000;
   let retryCount = 0;
 
   while (retryCount < maxRetries) {
-    const remaining = deadline - Date.now();
-    if (remaining <= 0) {
-      throw new Error(`Timed out running "${command}" after 10 minutes`);
-    }
-
     try {
       execSync(command, {
-        stdio: 'inherit',
-        timeout: remaining,
+        stdio: ['inherit', 'inherit', 'pipe'],
+        timeout: PER_ATTEMPT_TIMEOUT_MS,
         killSignal: 'SIGKILL',
       });
       return;
     } catch (e) {
+      if (e?.stderr) {
+        process.stderr.write(e.stderr);
+      }
       retryCount++;
 
-      if (retryCount >= maxRetries || Date.now() >= deadline) {
+      if (retryCount >= maxRetries) {
         throw e;
+      }
+
+      const aptRecovered = tryInstallMissingDeps(
+        e?.stderr ? e.stderr.toString() : '',
+      );
+
+      if (aptRecovered) {
+        console.log('Re-attempting install...');
+        continue;
       }
 
       const delay = Math.max(
@@ -80,6 +100,36 @@ async function runWithRetries(command) {
 
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
+  }
+}
+
+/**
+ * If the failed install's stderr asks the user to `apt-get install <pkg>`,
+ * try to run it with sudo. Returns true if the install succeeded (so the
+ * caller can retry immediately without backoff).
+ *
+ * @param {string} stderrText
+ * @returns {boolean}
+ */
+function tryInstallMissingDeps(stderrText) {
+  if (!stderrText.includes('apt-get install')) return false;
+  const [installCommand] =
+    stderrText.match(/apt-get install (\b\w+\b )+/gi) || [];
+  if (!installCommand) return false;
+
+  console.log(
+    '\nDetected missing system dependencies. Attempting manual install...',
+  );
+  try {
+    execSync(`sudo ${installCommand.trim()} -y`, { stdio: 'inherit' });
+    return true;
+  } catch {
+    console.error('Failed to install system dependencies for the browser.');
+    console.log(
+      'You can create a custom launch template and add a step to manually install the missing dependencies in order to get around this error.',
+    );
+    console.log('See docs here: https://nx.dev/ci/reference/launch-templates');
+    return false;
   }
 }
 
