@@ -1,5 +1,5 @@
 //@ts-check
-const { execSync } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const { existsSync, readFileSync } = require('fs');
 
 main().catch((error) => {
@@ -15,13 +15,7 @@ async function main() {
     return;
   }
 
-  let json;
-  try {
-    json = JSON.parse(readFileSync('package.json').toString());
-  } catch (e) {
-    console.log('Unable to parse package.json; skipping browser install.');
-    return;
-  }
+  const json = JSON.parse(readFileSync('package.json').toString());
 
   const hasPlaywright =
     (json.dependencies || {}).hasOwnProperty('@playwright/test') ||
@@ -54,25 +48,16 @@ async function runWithRetries(command) {
 
   while (retryCount < maxRetries) {
     try {
-      execSync(command, {
-        stdio: ['inherit', 'inherit', 'pipe'],
-        timeout: PER_ATTEMPT_TIMEOUT_MS,
-        killSignal: 'SIGKILL',
-      });
+      await runOnce(command);
       return;
     } catch (e) {
-      if (e?.stderr) {
-        process.stderr.write(e.stderr);
-      }
       retryCount++;
 
       if (retryCount >= maxRetries) {
         throw e;
       }
 
-      const aptRecovered = tryInstallMissingDeps(
-        e?.stderr ? e.stderr.toString() : '',
-      );
+      const aptRecovered = tryInstallMissingDeps(e?.stderr || '');
 
       if (aptRecovered) {
         console.log('Re-attempting install...');
@@ -92,6 +77,41 @@ async function runWithRetries(command) {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
+}
+
+/**
+ * @param {string} command
+ * @returns {Promise<void>}
+ */
+function runOnce(command) {
+  return new Promise((resolve, reject) => {
+    let stderr = '';
+    const child = spawn(command, {
+      shell: true,
+      stdio: ['inherit', 'inherit', 'pipe'],
+      timeout: PER_ATTEMPT_TIMEOUT_MS,
+      killSignal: 'SIGKILL',
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+      process.stderr.write(chunk);
+    });
+    child.on('error', (err) => {
+      reject(Object.assign(err, { stderr }));
+    });
+    child.on('close', (code, signal) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      const err = new Error(
+        signal
+          ? `Command killed by ${signal}: ${command}`
+          : `Command failed with exit code ${code}: ${command}`,
+      );
+      reject(Object.assign(err, { status: code, signal, stderr }));
+    });
+  });
 }
 
 /**
