@@ -46,15 +46,6 @@ async function main() {
 const PER_ATTEMPT_TIMEOUT_MS = 5 * 60 * 1000;
 
 /**
- * Run `command` via execSync, retrying on any failure up to `maxRetries`
- * times. Each attempt is bounded by PER_ATTEMPT_TIMEOUT_MS so a silent hang
- * gets killed and retried rather than blocking forever.
- *
- * stderr is captured so we can detect playwright's "apt-get install <pkg>"
- * hint and auto-install missing system deps before the next retry; the
- * captured stderr is also written through to the parent so it still appears
- * in workflow logs.
- *
  * @param {string} command
  */
 async function runWithRetries(command) {
@@ -104,10 +95,6 @@ async function runWithRetries(command) {
 }
 
 /**
- * If the failed install's stderr asks the user to `apt-get install <pkg>`,
- * try to run it with sudo. Returns true if the install succeeded (so the
- * caller can retry immediately without backoff).
- *
  * @param {string} stderrText
  * @returns {boolean}
  */
