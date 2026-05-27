@@ -1,5 +1,5 @@
 //@ts-check
-const { execSync, exec } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const { existsSync, readFileSync } = require('fs');
 
 const IDLE_TIMEOUT_MS = 3 * 60 * 1000;
@@ -113,28 +113,36 @@ async function runCmdAsync(cmd) {
       ? `${childEnv.DEBUG},${DEBUG_NAMESPACES}`
       : DEBUG_NAMESPACES;
 
-    const proc = exec(cmd, { env: childEnv });
+    // Use spawn (not exec) so that `detached: true` is actually honoured:
+    // exec ignores it. `detached: true` puts the shell — and everything it
+    // forks (pnpm, node, the playwright extract worker) — in its own process
+    // group so `process.kill(-pid, signal)` takes the whole tree down at
+    // once. A plain proc.kill() only signals `/bin/sh`, which doesn't
+    // propagate to the descendants.
+    const proc = spawn('sh', ['-c', cmd], { env: childEnv, detached: true });
+    const rootPid = proc.pid;
+
+    function killGroup(signal) {
+      if (!rootPid) return;
+      try {
+        process.kill(-rootPid, signal);
+      } catch (e) {
+        // process group already gone
+      }
+    }
 
     function escalateKill() {
       killedByTimeout = true;
-      try {
-        proc.kill('SIGTERM');
-      } catch (e) {
-        // already exited
-      }
+      killGroup('SIGTERM');
       process.stderr.write(
-        `\nInstall Browsers: sent SIGTERM. SIGKILL in ${KILL_GRACE_MS / 1000}s if still running.\n`,
+        `\nInstall Browsers: sent SIGTERM to process group ${rootPid}. SIGKILL in ${KILL_GRACE_MS / 1000}s if still running.\n`,
       );
       graceTimer = setTimeout(() => {
         if (proc.exitCode === null && proc.signalCode === null) {
           process.stderr.write(
-            `Install Browsers: grace expired, sending SIGKILL.\n`,
+            `Install Browsers: grace expired, sending SIGKILL to process group ${rootPid}.\n`,
           );
-          try {
-            proc.kill('SIGKILL');
-          } catch (e) {
-            // already exited
-          }
+          killGroup('SIGKILL');
         }
       }, KILL_GRACE_MS);
       graceTimer.unref();
