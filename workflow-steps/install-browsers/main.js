@@ -215,7 +215,7 @@ async function runCmdAsync(cmd) {
 }
 
 /**
- * @param {{ stdout: string; stderr: string; killedByTimeout: boolean; killReason: string | null; }} output
+ * @param {{ killedByTimeout: boolean; killReason: string | null; }} output
  */
 function printFailureContext(output) {
   if (output.killedByTimeout) {
@@ -225,14 +225,6 @@ function printFailureContext(output) {
   const playwrightVersion = resolvePlaywrightVersion();
   if (playwrightVersion) {
     console.error(`Resolved playwright version: ${playwrightVersion}`);
-  }
-  const lastStdout = output.stdout.split('\n').filter(Boolean).slice(-10).join('\n');
-  const lastStderr = output.stderr.split('\n').filter(Boolean).slice(-10).join('\n');
-  if (lastStdout) {
-    console.error(`\nLast stdout lines:\n${lastStdout}`);
-  }
-  if (lastStderr) {
-    console.error(`\nLast stderr lines:\n${lastStderr}`);
   }
 }
 
