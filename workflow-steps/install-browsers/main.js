@@ -2,6 +2,10 @@
 const { execSync, exec } = require('child_process');
 const { existsSync, readFileSync } = require('fs');
 
+const PER_ATTEMPT_TIMEOUT_MS =
+  Number(process.env.NX_CLOUD_INPUT_timeout_ms) || 5 * 60 * 1000;
+const KILL_GRACE_MS = 5_000;
+
 main().catch((error) => {
   console.error('Unexpected error:', error);
   process.exit(1);
@@ -53,17 +57,20 @@ async function main() {
             console.error(
               'Failed to install Playwright browsers after installing system dependencies.',
             );
+            printFailureContext(reattempt);
             process.exit(reattempt.code);
           }
           console.log('Successfully installed Playwright browsers.');
         } else {
           console.error('Unable to handle failure automatically.');
+          printFailureContext(output);
           process.exit(output.code);
         }
       } else if (output.code !== 0) {
         console.error(
           'There was an issue installing Playwright browsers. See above logs.',
         );
+        printFailureContext(output);
         process.exit(output.code);
       }
     } catch (e) {
@@ -84,13 +91,32 @@ async function main() {
 
 /**
  * @param {string} cmd
- * @returns {Promise<{ stdout: string; stderr: string; code: number | null; }>}
+ * @returns {Promise<{ stdout: string; stderr: string; code: number; killedByTimeout: boolean; }>}
  */
 async function runCmdAsync(cmd) {
   return new Promise((res, reject) => {
     let stdout = '';
     let stderr = '';
+    let killedByTimeout = false;
+    let graceTimer = null;
     const proc = exec(cmd);
+
+    const timeoutTimer = setTimeout(() => {
+      killedByTimeout = true;
+      const seconds = Math.round(PER_ATTEMPT_TIMEOUT_MS / 1000);
+      process.stderr.write(
+        `\nInstall Browsers: \`${cmd}\` produced no completion for ${seconds}s. ` +
+          `Sending SIGTERM to capture any pending output, then SIGKILL in ${KILL_GRACE_MS / 1000}s.\n`,
+      );
+      proc.kill('SIGTERM');
+      graceTimer = setTimeout(() => {
+        if (proc.exitCode === null && proc.signalCode === null) {
+          proc.kill('SIGKILL');
+        }
+      }, KILL_GRACE_MS);
+      graceTimer.unref();
+    }, PER_ATTEMPT_TIMEOUT_MS);
+    timeoutTimer.unref();
 
     proc?.stdout?.on('data', (data) => {
       stdout += data.toString();
@@ -103,13 +129,45 @@ async function runCmdAsync(cmd) {
     });
 
     proc.on('error', (error) => {
+      clearTimeout(timeoutTimer);
+      if (graceTimer) clearTimeout(graceTimer);
       reject(error);
     });
 
-    proc.on('close', (code) => {
-      res({ stdout, stderr, code });
+    proc.on('close', (code, signal) => {
+      clearTimeout(timeoutTimer);
+      if (graceTimer) clearTimeout(graceTimer);
+      const resolvedCode =
+        code !== null
+          ? code
+          : signal === 'SIGKILL'
+            ? 137
+            : signal === 'SIGTERM'
+              ? 143
+              : 1;
+      res({ stdout, stderr, code: resolvedCode, killedByTimeout });
     });
   });
+}
+
+/**
+ * @param {{ stdout: string; stderr: string; killedByTimeout: boolean; }} output
+ */
+function printFailureContext(output) {
+  if (output.killedByTimeout) {
+    const seconds = Math.round(PER_ATTEMPT_TIMEOUT_MS / 1000);
+    console.error(
+      `\nThe command was terminated after ${seconds}s with no completion. This often indicates a stalled download or extraction; if an Install Node step ran earlier in the workflow, that's the most likely interaction.`,
+    );
+  }
+  const lastStdout = output.stdout.split('\n').filter(Boolean).slice(-5).join('\n');
+  const lastStderr = output.stderr.split('\n').filter(Boolean).slice(-5).join('\n');
+  if (lastStdout) {
+    console.error(`\nLast stdout lines:\n${lastStdout}`);
+  }
+  if (lastStderr) {
+    console.error(`\nLast stderr lines:\n${lastStderr}`);
+  }
 }
 
 function getPackageManagerCommand() {
