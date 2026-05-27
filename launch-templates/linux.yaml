@@ -32,6 +32,7 @@ common-js-init-steps: &common-js-init-steps
       key: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
       paths: |
         '../.cache/Cypress'
+        '../.cache/ms-playwright'
       base-branch: 'main'
   - name: Install Node
     uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/install-node/main.yaml'
