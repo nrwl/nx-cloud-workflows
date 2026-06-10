@@ -1,2 +1,4 @@
 packages:
   - 'workflow-steps/*'
+
+trustPolicy: no-downgrade
