@@ -1,0 +1,9 @@
+name: Install Node (if JS project present)
+description: Install Node.js only when a JS project is detected (package.json, .nvmrc, or a lock file). Otherwise skips.
+inputs:
+  - name: node_version
+    description: 'The node version to be installed'
+
+definition:
+  using: 'node'
+  main: workflow-steps/install-node-if-present/main.js

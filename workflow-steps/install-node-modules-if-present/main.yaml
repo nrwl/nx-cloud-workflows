@@ -1,0 +1,10 @@
+name: Install Node Modules (if lock file present)
+description: Installs node_modules only when a lock file is detected (package-lock.json, yarn.lock, or pnpm-lock.yaml). Otherwise skips.
+
+inputs:
+  - name: npm_legacy_install
+    description: 'Install with legacy peer dependency resolution. This only applies to npm.'
+
+definition:
+  using: 'node'
+  main: workflow-steps/install-node-modules-if-present/main.js
