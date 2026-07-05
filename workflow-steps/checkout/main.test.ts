@@ -18,6 +18,7 @@ import {
   GitCheckoutError,
   isMergeQueueRef,
   isPullRequestRef,
+  scrubSensitiveValues,
   validateEnvironment,
   writeToNxCloudEnv,
 } from './main';
@@ -41,6 +42,49 @@ describe('Git Checkout Utility', () => {
   afterEach(() => {
     process.env = originalEnv;
     jest.useRealTimers();
+  });
+
+  describe('credential scrubbing', () => {
+    test('scrubs credentials from repository URLs', () => {
+      expect(
+        scrubSensitiveValues(
+          'https://x-access-token:ghs_secret@github.com/nrwl/nx.git',
+        ),
+      ).toBe('https://***@github.com/nrwl/nx.git');
+    });
+
+    test('scrubs credentials from streamed git output', async () => {
+      const stderrSpy = jest
+        .spyOn(process.stderr, 'write')
+        .mockImplementation(() => true);
+
+      const mockProcess = {
+        stdout: { on: jest.fn() },
+        stderr: {
+          on: jest.fn((event: string, callback: Function) => {
+            if (event === 'data') {
+              callback(
+                Buffer.from(
+                  'fatal: unable to access https://token@github.com/nrwl/nx.git',
+                ),
+              );
+            }
+          }),
+        },
+        on: jest.fn((event: string, callback: Function) => {
+          if (event === 'exit') callback(0, null);
+        }),
+      };
+      mockSpawn.mockReturnValue(mockProcess as any);
+
+      await executeGitCommand('fetch', []);
+
+      expect(stderrSpy).toHaveBeenCalledWith(
+        'fatal: unable to access https://***@github.com/nrwl/nx.git',
+      );
+
+      stderrSpy.mockRestore();
+    });
   });
 
   describe('Environment validation', () => {

@@ -141,6 +141,10 @@ class GitCheckoutError extends Error implements RetryableError {
   }
 }
 
+function scrubSensitiveValues(value: string): string {
+  return value.replace(/([a-z][a-z\d+.-]*:\/\/)([^@\s\/]+)@/gi, '$1***@');
+}
+
 /**
  * Validates and parses environment variables into a typed configuration
  * @throws {GitCheckoutError} If required environment variables are missing or invalid
@@ -182,7 +186,10 @@ function validateEnvironment(): GitCheckoutConfig {
       new URL(repoUrl);
     }
   } catch {
-    throw new GitCheckoutError(`Invalid GIT_REPOSITORY_URL: ${repoUrl}`, false);
+    throw new GitCheckoutError(
+      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl)}`,
+      false,
+    );
   }
 
   // Validate commit SHA format - allow SHAs, branch refs, and any valid git ref format
@@ -245,7 +252,11 @@ async function executeGitCommand(
   const fullArgs = [command, ...args];
 
   if (options.dryRun) {
-    console.log(`[DRY RUN] Would execute: git ${fullArgs.join(' ')}`);
+    console.log(
+      scrubSensitiveValues(
+        `[DRY RUN] Would execute: git ${fullArgs.join(' ')}`,
+      ),
+    );
     return { stdout: '', stderr: '' };
   }
 
@@ -267,7 +278,7 @@ async function executeGitCommand(
       stdout += output;
       // Show real-time progress for long-running operations
       if (command === 'fetch' || command === 'checkout') {
-        process.stdout.write(output);
+        process.stdout.write(scrubSensitiveValues(output));
       }
     });
 
@@ -276,7 +287,7 @@ async function executeGitCommand(
       stderr += output;
       // Git often outputs progress to stderr
       if (command === 'fetch' || command === 'checkout') {
-        process.stderr.write(output);
+        process.stderr.write(scrubSensitiveValues(output));
       }
     });
 
@@ -293,7 +304,12 @@ async function executeGitCommand(
           ),
         );
       } else if (code !== 0) {
-        reject(classifyError(new Error(stderr || stdout), command));
+        reject(
+          classifyError(
+            new Error(scrubSensitiveValues(stderr || stdout)),
+            command,
+          ),
+        );
       } else {
         resolve({ stdout, stderr });
       }
@@ -308,7 +324,7 @@ async function executeGitCommand(
  * @returns A GitCheckoutError with isRetryable flag set appropriately
  */
 function classifyError(error: Error, command: string): GitCheckoutError {
-  const message = error.message || error.toString();
+  const message = scrubSensitiveValues(error.message || error.toString());
   const lowerMessage = message.toLowerCase();
 
   // Network and connection errors - retryable
@@ -581,7 +597,7 @@ async function main(): Promise<void> {
   }
 
   console.log('Git checkout configuration:');
-  console.log(`  Repository: ${config.repoUrl}`);
+  console.log(`  Repository: ${scrubSensitiveValues(config.repoUrl)}`);
   console.log(`  Commit/Ref: ${config.commitSha}`);
   console.log(`  Branch: ${config.nxBranch}`);
   console.log(`  Depth: ${config.depth}`);
@@ -734,7 +750,10 @@ async function main(): Promise<void> {
     const gitError = error as GitCheckoutError;
     console.error('Git checkout failed:', gitError.message);
     if (gitError.originalError) {
-      console.error('Original error:', gitError.originalError.message);
+      console.error(
+        'Original error:',
+        scrubSensitiveValues(gitError.originalError.message),
+      );
     }
     process.exit(1);
   }
@@ -748,6 +767,7 @@ export {
   executeWithRetry,
   GitCheckoutConfig,
   GitCheckoutError,
+  scrubSensitiveValues,
   validateEnvironment,
   writeToNxCloudEnv,
 };

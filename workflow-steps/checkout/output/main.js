@@ -28,6 +28,7 @@ __export(main_exports, {
   getPullRequestRefs: () => getPullRequestRefs,
   isMergeQueueRef: () => isMergeQueueRef,
   isPullRequestRef: () => isPullRequestRef,
+  scrubSensitiveValues: () => scrubSensitiveValues,
   validateEnvironment: () => validateEnvironment,
   writeToNxCloudEnv: () => writeToNxCloudEnv
 });
@@ -110,6 +111,9 @@ var GitCheckoutError = class extends Error {
     this.name = "GitCheckoutError";
   }
 };
+function scrubSensitiveValues(value) {
+  return value.replace(/([a-z][a-z\d+.-]*:\/\/)([^@\s\/]+)@/gi, "$1***@");
+}
 function validateEnvironment() {
   const repoUrl = process.env.GIT_REPOSITORY_URL;
   const commitSha = process.env.NX_COMMIT_SHA;
@@ -141,7 +145,10 @@ function validateEnvironment() {
       new URL(repoUrl);
     }
   } catch {
-    throw new GitCheckoutError(`Invalid GIT_REPOSITORY_URL: ${repoUrl}`, false);
+    throw new GitCheckoutError(
+      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl)}`,
+      false
+    );
   }
   if (!commitSha.match(
     /^[a-fA-F0-9]{6,40}$|^origin\/[\w\-\.\/]+$|^refs\/[\w\-\.\/]+$|^[\w\-\.\/]+\/\d+\/[\w\-]+$/i
@@ -181,7 +188,11 @@ function validateEnvironment() {
 async function executeGitCommand(command, args, options = {}) {
   const fullArgs = [command, ...args];
   if (options.dryRun) {
-    console.log(`[DRY RUN] Would execute: git ${fullArgs.join(" ")}`);
+    console.log(
+      scrubSensitiveValues(
+        `[DRY RUN] Would execute: git ${fullArgs.join(" ")}`
+      )
+    );
     return { stdout: "", stderr: "" };
   }
   return new Promise((resolve, reject) => {
@@ -198,14 +209,14 @@ async function executeGitCommand(command, args, options = {}) {
       const output = data.toString();
       stdout += output;
       if (command === "fetch" || command === "checkout") {
-        process.stdout.write(output);
+        process.stdout.write(scrubSensitiveValues(output));
       }
     });
     child.stderr?.on("data", (data) => {
       const output = data.toString();
       stderr += output;
       if (command === "fetch" || command === "checkout") {
-        process.stderr.write(output);
+        process.stderr.write(scrubSensitiveValues(output));
       }
     });
     child.on("error", (error) => {
@@ -220,7 +231,12 @@ async function executeGitCommand(command, args, options = {}) {
           )
         );
       } else if (code !== 0) {
-        reject(classifyError(new Error(stderr || stdout), command));
+        reject(
+          classifyError(
+            new Error(scrubSensitiveValues(stderr || stdout)),
+            command
+          )
+        );
       } else {
         resolve({ stdout, stderr });
       }
@@ -228,7 +244,7 @@ async function executeGitCommand(command, args, options = {}) {
   });
 }
 function classifyError(error, command) {
-  const message = error.message || error.toString();
+  const message = scrubSensitiveValues(error.message || error.toString());
   const lowerMessage = message.toLowerCase();
   if (lowerMessage.includes("connection") || lowerMessage.includes("timeout") || lowerMessage.includes("early eof") || lowerMessage.includes("network") || lowerMessage.includes("could not read from remote") || lowerMessage.includes("unable to access") || lowerMessage.includes("couldn't resolve host")) {
     return new GitCheckoutError(
@@ -409,7 +425,7 @@ async function main() {
     process.exit(1);
   }
   console.log("Git checkout configuration:");
-  console.log(`  Repository: ${config.repoUrl}`);
+  console.log(`  Repository: ${scrubSensitiveValues(config.repoUrl)}`);
   console.log(`  Commit/Ref: ${config.commitSha}`);
   console.log(`  Branch: ${config.nxBranch}`);
   console.log(`  Depth: ${config.depth}`);
@@ -513,7 +529,10 @@ async function main() {
     const gitError = error;
     console.error("Git checkout failed:", gitError.message);
     if (gitError.originalError) {
-      console.error("Original error:", gitError.originalError.message);
+      console.error(
+        "Original error:",
+        scrubSensitiveValues(gitError.originalError.message)
+      );
     }
     process.exit(1);
   }
@@ -535,6 +554,7 @@ if (require.main === module) {
   getPullRequestRefs,
   isMergeQueueRef,
   isPullRequestRef,
+  scrubSensitiveValues,
   validateEnvironment,
   writeToNxCloudEnv
 });
