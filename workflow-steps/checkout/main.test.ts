@@ -11,6 +11,7 @@ import * as fsPromises from 'node:fs/promises';
 import {
   buildFetchCommand,
   classifyError,
+  createRepositoryUrlScrubber,
   detectPlatform,
   executeGitCommand,
   executeWithRetry,
@@ -18,7 +19,7 @@ import {
   GitCheckoutError,
   isMergeQueueRef,
   isPullRequestRef,
-  scrubSensitiveValues,
+  scrubRepositoryUrl,
   validateEnvironment,
   writeToNxCloudEnv,
 } from './main';
@@ -46,27 +47,27 @@ describe('Git Checkout Utility', () => {
 
   describe('credential scrubbing', () => {
     test('scrubs credentials from the configured repository URL', () => {
-      process.env.GIT_REPOSITORY_URL =
+      const repoUrl =
         'https://x-access-token:ghs_secret@github.com/nrwl/nx.git';
+      const scrubOutput = createRepositoryUrlScrubber(repoUrl);
 
-      expect(
-        scrubSensitiveValues(`Repository: ${process.env.GIT_REPOSITORY_URL}`),
-      ).toBe('Repository: https://***:***@github.com/nrwl/nx.git');
+      expect(scrubOutput(`Repository: ${repoUrl}`)).toBe(
+        'Repository: https://***:***@github.com/nrwl/nx.git',
+      );
     });
 
     test('does not scrub unrelated URLs', () => {
-      process.env.GIT_REPOSITORY_URL =
-        'https://token@github.com/nrwl/nx-cloud-workflows.git';
+      const repoUrl = 'https://token@github.com/nrwl/nx-cloud-workflows.git';
+      const scrubOutput = createRepositoryUrlScrubber(repoUrl);
 
       expect(
-        scrubSensitiveValues(
-          'Repository: https://token@github.com/nrwl/different.git',
-        ),
+        scrubOutput('Repository: https://token@github.com/nrwl/different.git'),
       ).toBe('Repository: https://token@github.com/nrwl/different.git');
     });
 
     test('scrubs credentials from streamed git output', async () => {
-      process.env.GIT_REPOSITORY_URL = 'https://token@github.com/nrwl/nx.git';
+      const repoUrl = 'https://token@github.com/nrwl/nx.git';
+      const scrubOutput = createRepositoryUrlScrubber(repoUrl);
       const stderrSpy = jest
         .spyOn(process.stderr, 'write')
         .mockImplementation(() => true);
@@ -90,7 +91,7 @@ describe('Git Checkout Utility', () => {
       };
       mockSpawn.mockReturnValue(mockProcess as any);
 
-      await executeGitCommand('fetch', []);
+      await executeGitCommand('fetch', [], { scrubOutput });
 
       expect(stderrSpy).toHaveBeenCalledWith(
         'fatal: unable to access https://***@github.com/nrwl/nx.git',

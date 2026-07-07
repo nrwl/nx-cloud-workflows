@@ -22,13 +22,14 @@ __export(main_exports, {
   GitCheckoutError: () => GitCheckoutError,
   buildFetchCommand: () => buildFetchCommand,
   classifyError: () => classifyError,
+  createRepositoryUrlScrubber: () => createRepositoryUrlScrubber,
   detectPlatform: () => detectPlatform,
   executeGitCommand: () => executeGitCommand,
   executeWithRetry: () => executeWithRetry,
   getPullRequestRefs: () => getPullRequestRefs,
   isMergeQueueRef: () => isMergeQueueRef,
   isPullRequestRef: () => isPullRequestRef,
-  scrubSensitiveValues: () => scrubSensitiveValues,
+  scrubRepositoryUrl: () => scrubRepositoryUrl,
   validateEnvironment: () => validateEnvironment,
   writeToNxCloudEnv: () => writeToNxCloudEnv
 });
@@ -128,15 +129,9 @@ function scrubRepositoryUrl(repoUrl) {
     return repoUrl;
   }
 }
-function scrubSensitiveValues(value, sensitiveValue = process.env.GIT_REPOSITORY_URL) {
-  if (!sensitiveValue) {
-    return value;
-  }
-  const scrubbedValue = scrubRepositoryUrl(sensitiveValue);
-  if (scrubbedValue === sensitiveValue) {
-    return value;
-  }
-  return value.split(sensitiveValue).join(scrubbedValue);
+function createRepositoryUrlScrubber(repoUrl) {
+  const scrubbedRepoUrl = scrubRepositoryUrl(repoUrl);
+  return (value) => scrubbedRepoUrl === repoUrl ? value : value.split(repoUrl).join(scrubbedRepoUrl);
 }
 function validateEnvironment() {
   const repoUrl = process.env.GIT_REPOSITORY_URL;
@@ -170,7 +165,7 @@ function validateEnvironment() {
     }
   } catch {
     throw new GitCheckoutError(
-      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl, repoUrl)}`,
+      `Invalid GIT_REPOSITORY_URL: ${scrubRepositoryUrl(repoUrl)}`,
       false
     );
   }
@@ -211,11 +206,10 @@ function validateEnvironment() {
 }
 async function executeGitCommand(command, args, options = {}) {
   const fullArgs = [command, ...args];
+  const scrubOutput = options.scrubOutput || ((value) => value);
   if (options.dryRun) {
     console.log(
-      scrubSensitiveValues(
-        `[DRY RUN] Would execute: git ${fullArgs.join(" ")}`
-      )
+      scrubOutput(`[DRY RUN] Would execute: git ${fullArgs.join(" ")}`)
     );
     return { stdout: "", stderr: "" };
   }
@@ -233,18 +227,18 @@ async function executeGitCommand(command, args, options = {}) {
       const output = data.toString();
       stdout += output;
       if (command === "fetch" || command === "checkout") {
-        process.stdout.write(scrubSensitiveValues(output));
+        process.stdout.write(scrubOutput(output));
       }
     });
     child.stderr?.on("data", (data) => {
       const output = data.toString();
       stderr += output;
       if (command === "fetch" || command === "checkout") {
-        process.stderr.write(scrubSensitiveValues(output));
+        process.stderr.write(scrubOutput(output));
       }
     });
     child.on("error", (error) => {
-      reject(classifyError(error, command));
+      reject(classifyError(error, command, scrubOutput));
     });
     child.on("exit", (code, signal) => {
       if (signal === "SIGTERM" && options.timeout) {
@@ -256,10 +250,7 @@ async function executeGitCommand(command, args, options = {}) {
         );
       } else if (code !== 0) {
         reject(
-          classifyError(
-            new Error(scrubSensitiveValues(stderr || stdout)),
-            command
-          )
+          classifyError(new Error(stderr || stdout), command, scrubOutput)
         );
       } else {
         resolve({ stdout, stderr });
@@ -267,8 +258,8 @@ async function executeGitCommand(command, args, options = {}) {
     });
   });
 }
-function classifyError(error, command) {
-  const message = scrubSensitiveValues(error.message || error.toString());
+function classifyError(error, command, scrubOutput = (value) => value) {
+  const message = scrubOutput(error.message || error.toString());
   const lowerMessage = message.toLowerCase();
   if (lowerMessage.includes("connection") || lowerMessage.includes("timeout") || lowerMessage.includes("early eof") || lowerMessage.includes("network") || lowerMessage.includes("could not read from remote") || lowerMessage.includes("unable to access") || lowerMessage.includes("couldn't resolve host")) {
     return new GitCheckoutError(
@@ -448,8 +439,10 @@ async function main() {
     console.error("Configuration error:", error.message);
     process.exit(1);
   }
+  const scrubOutput = createRepositoryUrlScrubber(config.repoUrl);
+  const executeGit = (command, args, options = {}) => executeGitCommand(command, args, { ...options, scrubOutput });
   console.log("Git checkout configuration:");
-  console.log(`  Repository: ${scrubSensitiveValues(config.repoUrl)}`);
+  console.log(`  Repository: ${scrubOutput(config.repoUrl)}`);
   console.log(`  Commit/Ref: ${config.commitSha}`);
   console.log(`  Branch: ${config.nxBranch}`);
   console.log(`  Depth: ${config.depth}`);
@@ -467,22 +460,18 @@ async function main() {
   try {
     if (process.platform !== "win32") {
       const cwd = process.cwd();
-      await executeGitCommand(
-        "config",
-        ["--global", "--add", "safe.directory", cwd],
-        {
-          timeout: config.timeout,
-          dryRun: config.dryRun
-        }
-      );
+      await executeGit("config", ["--global", "--add", "safe.directory", cwd], {
+        timeout: config.timeout,
+        dryRun: config.dryRun
+      });
     }
     console.log("Initializing git repository...");
-    await executeGitCommand("init", ["."], {
+    await executeGit("init", ["."], {
       timeout: config.timeout,
       dryRun: config.dryRun
     });
     console.log("Adding remote origin...");
-    await executeGitCommand("remote", ["add", "origin", config.repoUrl], {
+    await executeGit("remote", ["add", "origin", config.repoUrl], {
       timeout: config.timeout,
       dryRun: config.dryRun
     });
@@ -490,7 +479,7 @@ async function main() {
     console.log("Fetching from remote...");
     const fetchArgs = buildFetchCommand(config);
     await executeWithRetry(
-      () => executeGitCommand("fetch", fetchArgs, {
+      () => executeGit("fetch", fetchArgs, {
         timeout: config.timeout,
         dryRun: config.dryRun
       }),
@@ -524,7 +513,7 @@ async function main() {
     }
     console.log(`Checking out ${checkoutTarget}...`);
     await executeWithRetry(
-      () => executeGitCommand("checkout", checkoutArgs, {
+      () => executeGit("checkout", checkoutArgs, {
         timeout: config.timeout,
         dryRun: config.dryRun
       }),
@@ -533,13 +522,9 @@ async function main() {
     );
     if (!config.dryRun) {
       console.log("Verifying checkout...");
-      const { stdout: currentSha } = await executeGitCommand(
-        "rev-parse",
-        ["HEAD"],
-        {
-          timeout: config.timeout
-        }
-      );
+      const { stdout: currentSha } = await executeGit("rev-parse", ["HEAD"], {
+        timeout: config.timeout
+      });
       const expectedSha = config.commitSha.startsWith("origin/") || config.commitSha.startsWith("pull/") ? currentSha.trim() : config.commitSha;
       if (!config.commitSha.startsWith("origin/") && !config.commitSha.startsWith("pull/") && !currentSha.trim().startsWith(expectedSha.substring(0, 7))) {
         throw new GitCheckoutError(
@@ -555,7 +540,7 @@ async function main() {
     if (gitError.originalError) {
       console.error(
         "Original error:",
-        scrubSensitiveValues(gitError.originalError.message)
+        scrubOutput(gitError.originalError.message)
       );
     }
     process.exit(1);
@@ -572,13 +557,14 @@ if (require.main === module) {
   GitCheckoutError,
   buildFetchCommand,
   classifyError,
+  createRepositoryUrlScrubber,
   detectPlatform,
   executeGitCommand,
   executeWithRetry,
   getPullRequestRefs,
   isMergeQueueRef,
   isPullRequestRef,
-  scrubSensitiveValues,
+  scrubRepositoryUrl,
   validateEnvironment,
   writeToNxCloudEnv
 });

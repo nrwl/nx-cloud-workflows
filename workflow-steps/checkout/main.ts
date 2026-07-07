@@ -161,20 +161,15 @@ function scrubRepositoryUrl(repoUrl: string): string {
   }
 }
 
-function scrubSensitiveValues(
-  value: string,
-  sensitiveValue = process.env.GIT_REPOSITORY_URL,
-): string {
-  if (!sensitiveValue) {
-    return value;
-  }
+function createRepositoryUrlScrubber(
+  repoUrl: string,
+): (value: string) => string {
+  const scrubbedRepoUrl = scrubRepositoryUrl(repoUrl);
 
-  const scrubbedValue = scrubRepositoryUrl(sensitiveValue);
-  if (scrubbedValue === sensitiveValue) {
-    return value;
-  }
-
-  return value.split(sensitiveValue).join(scrubbedValue);
+  return (value) =>
+    scrubbedRepoUrl === repoUrl
+      ? value
+      : value.split(repoUrl).join(scrubbedRepoUrl);
 }
 
 /**
@@ -219,7 +214,7 @@ function validateEnvironment(): GitCheckoutConfig {
     }
   } catch {
     throw new GitCheckoutError(
-      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl, repoUrl)}`,
+      `Invalid GIT_REPOSITORY_URL: ${scrubRepositoryUrl(repoUrl)}`,
       false,
     );
   }
@@ -279,15 +274,19 @@ function validateEnvironment(): GitCheckoutConfig {
 async function executeGitCommand(
   command: string,
   args: string[],
-  options: { timeout?: number; cwd?: string; dryRun?: boolean } = {},
+  options: {
+    timeout?: number;
+    cwd?: string;
+    dryRun?: boolean;
+    scrubOutput?: (value: string) => string;
+  } = {},
 ): Promise<{ stdout: string; stderr: string }> {
   const fullArgs = [command, ...args];
+  const scrubOutput = options.scrubOutput || ((value: string) => value);
 
   if (options.dryRun) {
     console.log(
-      scrubSensitiveValues(
-        `[DRY RUN] Would execute: git ${fullArgs.join(' ')}`,
-      ),
+      scrubOutput(`[DRY RUN] Would execute: git ${fullArgs.join(' ')}`),
     );
     return { stdout: '', stderr: '' };
   }
@@ -310,7 +309,7 @@ async function executeGitCommand(
       stdout += output;
       // Show real-time progress for long-running operations
       if (command === 'fetch' || command === 'checkout') {
-        process.stdout.write(scrubSensitiveValues(output));
+        process.stdout.write(scrubOutput(output));
       }
     });
 
@@ -319,12 +318,12 @@ async function executeGitCommand(
       stderr += output;
       // Git often outputs progress to stderr
       if (command === 'fetch' || command === 'checkout') {
-        process.stderr.write(scrubSensitiveValues(output));
+        process.stderr.write(scrubOutput(output));
       }
     });
 
     child.on('error', (error) => {
-      reject(classifyError(error, command));
+      reject(classifyError(error, command, scrubOutput));
     });
 
     child.on('exit', (code, signal) => {
@@ -337,10 +336,7 @@ async function executeGitCommand(
         );
       } else if (code !== 0) {
         reject(
-          classifyError(
-            new Error(scrubSensitiveValues(stderr || stdout)),
-            command,
-          ),
+          classifyError(new Error(stderr || stdout), command, scrubOutput),
         );
       } else {
         resolve({ stdout, stderr });
@@ -355,8 +351,12 @@ async function executeGitCommand(
  * @param command The git command that failed
  * @returns A GitCheckoutError with isRetryable flag set appropriately
  */
-function classifyError(error: Error, command: string): GitCheckoutError {
-  const message = scrubSensitiveValues(error.message || error.toString());
+function classifyError(
+  error: Error,
+  command: string,
+  scrubOutput: (value: string) => string = (value) => value,
+): GitCheckoutError {
+  const message = scrubOutput(error.message || error.toString());
   const lowerMessage = message.toLowerCase();
 
   // Network and connection errors - retryable
@@ -627,9 +627,15 @@ async function main(): Promise<void> {
     console.error('Configuration error:', (error as Error).message);
     process.exit(1);
   }
+  const scrubOutput = createRepositoryUrlScrubber(config.repoUrl);
+  const executeGit = (
+    command: string,
+    args: string[],
+    options: { timeout?: number; cwd?: string; dryRun?: boolean } = {},
+  ) => executeGitCommand(command, args, { ...options, scrubOutput });
 
   console.log('Git checkout configuration:');
-  console.log(`  Repository: ${scrubSensitiveValues(config.repoUrl)}`);
+  console.log(`  Repository: ${scrubOutput(config.repoUrl)}`);
   console.log(`  Commit/Ref: ${config.commitSha}`);
   console.log(`  Branch: ${config.nxBranch}`);
   console.log(`  Depth: ${config.depth}`);
@@ -656,26 +662,22 @@ async function main(): Promise<void> {
      */
     if (process.platform !== 'win32') {
       const cwd = process.cwd();
-      await executeGitCommand(
-        'config',
-        ['--global', '--add', 'safe.directory', cwd],
-        {
-          timeout: config.timeout,
-          dryRun: config.dryRun,
-        },
-      );
+      await executeGit('config', ['--global', '--add', 'safe.directory', cwd], {
+        timeout: config.timeout,
+        dryRun: config.dryRun,
+      });
     }
 
     // Initialize repository
     console.log('Initializing git repository...');
-    await executeGitCommand('init', ['.'], {
+    await executeGit('init', ['.'], {
       timeout: config.timeout,
       dryRun: config.dryRun,
     });
 
     // Add remote
     console.log('Adding remote origin...');
-    await executeGitCommand('remote', ['add', 'origin', config.repoUrl], {
+    await executeGit('remote', ['add', 'origin', config.repoUrl], {
       timeout: config.timeout,
       dryRun: config.dryRun,
     });
@@ -688,7 +690,7 @@ async function main(): Promise<void> {
     const fetchArgs = buildFetchCommand(config);
     await executeWithRetry(
       () =>
-        executeGitCommand('fetch', fetchArgs, {
+        executeGit('fetch', fetchArgs, {
           timeout: config.timeout,
           dryRun: config.dryRun,
         }),
@@ -740,7 +742,7 @@ async function main(): Promise<void> {
     console.log(`Checking out ${checkoutTarget}...`);
     await executeWithRetry(
       () =>
-        executeGitCommand('checkout', checkoutArgs, {
+        executeGit('checkout', checkoutArgs, {
           timeout: config.timeout,
           dryRun: config.dryRun,
         }),
@@ -751,13 +753,9 @@ async function main(): Promise<void> {
     // Verify checkout (unless in dry-run mode)
     if (!config.dryRun) {
       console.log('Verifying checkout...');
-      const { stdout: currentSha } = await executeGitCommand(
-        'rev-parse',
-        ['HEAD'],
-        {
-          timeout: config.timeout,
-        },
-      );
+      const { stdout: currentSha } = await executeGit('rev-parse', ['HEAD'], {
+        timeout: config.timeout,
+      });
 
       const expectedSha =
         config.commitSha.startsWith('origin/') ||
@@ -784,7 +782,7 @@ async function main(): Promise<void> {
     if (gitError.originalError) {
       console.error(
         'Original error:',
-        scrubSensitiveValues(gitError.originalError.message),
+        scrubOutput(gitError.originalError.message),
       );
     }
     process.exit(1);
@@ -795,11 +793,12 @@ async function main(): Promise<void> {
 export {
   buildFetchCommand,
   classifyError,
+  createRepositoryUrlScrubber,
   executeGitCommand,
   executeWithRetry,
   GitCheckoutConfig,
   GitCheckoutError,
-  scrubSensitiveValues,
+  scrubRepositoryUrl,
   validateEnvironment,
   writeToNxCloudEnv,
 };
