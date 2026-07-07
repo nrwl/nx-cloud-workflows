@@ -11,6 +11,7 @@ import * as fsPromises from 'node:fs/promises';
 import {
   buildFetchCommand,
   classifyError,
+  createRepositoryUrlScrubber,
   detectPlatform,
   executeGitCommand,
   executeWithRetry,
@@ -18,6 +19,7 @@ import {
   GitCheckoutError,
   isMergeQueueRef,
   isPullRequestRef,
+  scrubRepositoryUrl,
   validateEnvironment,
   writeToNxCloudEnv,
 } from './main';
@@ -41,6 +43,62 @@ describe('Git Checkout Utility', () => {
   afterEach(() => {
     process.env = originalEnv;
     jest.useRealTimers();
+  });
+
+  describe('credential scrubbing', () => {
+    test('scrubs credentials from the configured repository URL', () => {
+      const repoUrl =
+        'https://x-access-token:ghs_secret@github.com/nrwl/nx.git';
+      const scrubOutput = createRepositoryUrlScrubber(repoUrl);
+
+      expect(scrubOutput(`Repository: ${repoUrl}`)).toBe(
+        'Repository: https://***:***@github.com/nrwl/nx.git',
+      );
+    });
+
+    test('does not scrub unrelated URLs', () => {
+      const repoUrl = 'https://token@github.com/nrwl/nx-cloud-workflows.git';
+      const scrubOutput = createRepositoryUrlScrubber(repoUrl);
+
+      expect(
+        scrubOutput('Repository: https://token@github.com/nrwl/different.git'),
+      ).toBe('Repository: https://token@github.com/nrwl/different.git');
+    });
+
+    test('scrubs credentials from streamed git output', async () => {
+      const repoUrl = 'https://token@github.com/nrwl/nx.git';
+      const scrubOutput = createRepositoryUrlScrubber(repoUrl);
+      const stderrSpy = jest
+        .spyOn(process.stderr, 'write')
+        .mockImplementation(() => true);
+
+      const mockProcess = {
+        stdout: { on: jest.fn() },
+        stderr: {
+          on: jest.fn((event: string, callback: Function) => {
+            if (event === 'data') {
+              callback(
+                Buffer.from(
+                  'fatal: unable to access https://token@github.com/nrwl/nx.git',
+                ),
+              );
+            }
+          }),
+        },
+        on: jest.fn((event: string, callback: Function) => {
+          if (event === 'exit') callback(0, null);
+        }),
+      };
+      mockSpawn.mockReturnValue(mockProcess as any);
+
+      await executeGitCommand('fetch', [], { scrubOutput });
+
+      expect(stderrSpy).toHaveBeenCalledWith(
+        'fatal: unable to access https://***@github.com/nrwl/nx.git',
+      );
+
+      stderrSpy.mockRestore();
+    });
   });
 
   describe('Environment validation', () => {
