@@ -141,8 +141,40 @@ class GitCheckoutError extends Error implements RetryableError {
   }
 }
 
-function scrubSensitiveValues(value: string): string {
-  return value.replace(/([a-z][a-z\d+.-]*:\/\/)([^@\s\/]+)@/gi, '$1***@');
+function scrubRepositoryUrl(repoUrl: string): string {
+  try {
+    const parsedUrl = new URL(repoUrl);
+    if (!parsedUrl.username && !parsedUrl.password) {
+      return repoUrl;
+    }
+
+    if (parsedUrl.username) {
+      parsedUrl.username = '***';
+    }
+    if (parsedUrl.password) {
+      parsedUrl.password = '***';
+    }
+
+    return parsedUrl.toString();
+  } catch {
+    return repoUrl;
+  }
+}
+
+function scrubSensitiveValues(
+  value: string,
+  sensitiveValue = process.env.GIT_REPOSITORY_URL,
+): string {
+  if (!sensitiveValue) {
+    return value;
+  }
+
+  const scrubbedValue = scrubRepositoryUrl(sensitiveValue);
+  if (scrubbedValue === sensitiveValue) {
+    return value;
+  }
+
+  return value.split(sensitiveValue).join(scrubbedValue);
 }
 
 /**
@@ -187,7 +219,7 @@ function validateEnvironment(): GitCheckoutConfig {
     }
   } catch {
     throw new GitCheckoutError(
-      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl)}`,
+      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl, repoUrl)}`,
       false,
     );
   }

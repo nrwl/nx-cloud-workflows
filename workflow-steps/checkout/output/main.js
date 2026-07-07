@@ -111,8 +111,32 @@ var GitCheckoutError = class extends Error {
     this.name = "GitCheckoutError";
   }
 };
-function scrubSensitiveValues(value) {
-  return value.replace(/([a-z][a-z\d+.-]*:\/\/)([^@\s\/]+)@/gi, "$1***@");
+function scrubRepositoryUrl(repoUrl) {
+  try {
+    const parsedUrl = new URL(repoUrl);
+    if (!parsedUrl.username && !parsedUrl.password) {
+      return repoUrl;
+    }
+    if (parsedUrl.username) {
+      parsedUrl.username = "***";
+    }
+    if (parsedUrl.password) {
+      parsedUrl.password = "***";
+    }
+    return parsedUrl.toString();
+  } catch {
+    return repoUrl;
+  }
+}
+function scrubSensitiveValues(value, sensitiveValue = process.env.GIT_REPOSITORY_URL) {
+  if (!sensitiveValue) {
+    return value;
+  }
+  const scrubbedValue = scrubRepositoryUrl(sensitiveValue);
+  if (scrubbedValue === sensitiveValue) {
+    return value;
+  }
+  return value.split(sensitiveValue).join(scrubbedValue);
 }
 function validateEnvironment() {
   const repoUrl = process.env.GIT_REPOSITORY_URL;
@@ -146,7 +170,7 @@ function validateEnvironment() {
     }
   } catch {
     throw new GitCheckoutError(
-      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl)}`,
+      `Invalid GIT_REPOSITORY_URL: ${scrubSensitiveValues(repoUrl, repoUrl)}`,
       false
     );
   }

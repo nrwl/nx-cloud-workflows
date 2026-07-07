@@ -45,15 +45,28 @@ describe('Git Checkout Utility', () => {
   });
 
   describe('credential scrubbing', () => {
-    test('scrubs credentials from repository URLs', () => {
+    test('scrubs credentials from the configured repository URL', () => {
+      process.env.GIT_REPOSITORY_URL =
+        'https://x-access-token:ghs_secret@github.com/nrwl/nx.git';
+
+      expect(
+        scrubSensitiveValues(`Repository: ${process.env.GIT_REPOSITORY_URL}`),
+      ).toBe('Repository: https://***:***@github.com/nrwl/nx.git');
+    });
+
+    test('does not scrub unrelated URLs', () => {
+      process.env.GIT_REPOSITORY_URL =
+        'https://token@github.com/nrwl/nx-cloud-workflows.git';
+
       expect(
         scrubSensitiveValues(
-          'https://x-access-token:ghs_secret@github.com/nrwl/nx.git',
+          'Repository: https://token@github.com/nrwl/different.git',
         ),
-      ).toBe('https://***@github.com/nrwl/nx.git');
+      ).toBe('Repository: https://token@github.com/nrwl/different.git');
     });
 
     test('scrubs credentials from streamed git output', async () => {
+      process.env.GIT_REPOSITORY_URL = 'https://token@github.com/nrwl/nx.git';
       const stderrSpy = jest
         .spyOn(process.stderr, 'write')
         .mockImplementation(() => true);
