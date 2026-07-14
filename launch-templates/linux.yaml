@@ -20,10 +20,10 @@ common-dotnet-init-steps: &common-dotnet-init-steps
 common-js-init-steps: &common-js-init-steps
   - name: Checkout
     uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/checkout/main.yaml'
-  - name: Restore JavaScript Dependencies Cache
+  - name: Restore Node Modules Cache
     uses: 'nrwl/nx-cloud-workflows/v6/workflow-steps/cache/main.yaml'
     inputs:
-      key: 'package.json|package-lock.json|yarn.lock|pnpm-lock.yaml|pnpm-workspace.yaml|patches/**|.yarn/patches/**'
+      key: 'package-lock.json|yarn.lock|pnpm-lock.yaml|patches/**|.yarn/patches/**'
       paths: |
         node_modules
         ../.cache/pnpm
@@ -45,10 +45,10 @@ common-js-init-steps: &common-js-init-steps
 common-universal-init-steps: &common-universal-init-steps
   - name: Checkout
     uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml'
-  - name: Restore JavaScript Dependencies Cache
+  - name: Restore Node Modules Cache
     uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/cache/main.yaml'
     inputs:
-      key: 'package.json|package-lock.json|yarn.lock|pnpm-lock.yaml|pnpm-workspace.yaml|patches/**|.yarn/patches/**'
+      key: 'package-lock.json|yarn.lock|pnpm-lock.yaml|patches/**|.yarn/patches/**'
       paths: |
         node_modules
         ../.cache/pnpm
