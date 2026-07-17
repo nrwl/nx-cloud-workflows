@@ -6,7 +6,7 @@ const runInstall = process.env['NX_CLOUD_INPUT_auto-install']
   ? process.env['NX_CLOUD_INPUT_auto-install'] === 'true'
   : true;
 const miseGhVersion =
-  process.env['NX_CLOUD_INPUT_mise-version'] || 'v2025.12.2';
+  process.env['NX_CLOUD_INPUT_mise-version'] || 'v2026.7.7';
 const installArgs = process.env['NX_CLOUD_INPUT_install-args'] || '';
 const inlineToolDef = process.env['NX_CLOUD_INPUT_tools'] || '';
 
@@ -59,7 +59,7 @@ function retryWithBackoff(
 if (!miseGhVersion.startsWith('v')) {
   console.error(`Invalid mise_version: ${miseGhVersion}`);
   console.error(
-    `mise_version must start with 'v', e.g., 'v2025.10.19'. Got ${miseGhVersion}`,
+    `mise_version must start with 'v', e.g., 'v2026.7.7'. Got ${miseGhVersion}`,
   );
   console.error(
     'View available versions at https://github.com/jdx/mise/releases',
