@@ -88,87 +88,87 @@ common-universal-init-steps: &common-universal-init-steps
 launch-templates:
   linux-small-js:
     resource-class: 'docker_linux_amd64/small'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-js-init-steps
   linux-medium-js:
     resource-class: 'docker_linux_amd64/medium'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-js-init-steps
   linux-medium-plus-js:
     resource-class: 'docker_linux_amd64/medium+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-js-init-steps
   linux-large-js:
     resource-class: 'docker_linux_amd64/large'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-js-init-steps
   linux-large-plus-js:
     resource-class: 'docker_linux_amd64/large+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-js-init-steps
   linux-extra-large-js:
     resource-class: 'docker_linux_amd64/extra_large'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-js-init-steps
   linux-extra-large-plus-js:
     resource-class: 'docker_linux_amd64/extra_large+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-js-init-steps
   linux-small-jvm:
     resource-class: 'docker_linux_amd64/small'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-jvm-init-steps
   linux-medium-jvm:
     resource-class: 'docker_linux_amd64/medium'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-jvm-init-steps
   linux-medium-plus-jvm:
     resource-class: 'docker_linux_amd64/medium+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-jvm-init-steps
   linux-large-jvm:
     resource-class: 'docker_linux_amd64/large'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-jvm-init-steps
   linux-large-plus-jvm:
     resource-class: 'docker_linux_amd64/large+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-jvm-init-steps
   linux-extra-large-jvm:
     resource-class: 'docker_linux_amd64/extra_large'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-jvm-init-steps
   linux-extra-large-plus-jvm:
     resource-class: 'docker_linux_amd64/extra_large+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-jvm-init-steps
   linux-small-dotnet:
     resource-class: 'docker_linux_amd64/small'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-dotnet-init-steps
   linux-medium-dotnet:
     resource-class: 'docker_linux_amd64/medium'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-dotnet-init-steps
   linux-medium-plus-dotnet:
     resource-class: 'docker_linux_amd64/medium+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-dotnet-init-steps
   linux-large-dotnet:
     resource-class: 'docker_linux_amd64/large'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-dotnet-init-steps
   linux-large-plus-dotnet:
     resource-class: 'docker_linux_amd64/large+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-dotnet-init-steps
   linux-extra-large-dotnet:
     resource-class: 'docker_linux_amd64/extra_large'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-dotnet-init-steps
   linux-extra-large-plus-dotnet:
     resource-class: 'docker_linux_amd64/extra_large+'
-    image: 'ubuntu22.04-node20.19-v2'
+    image: 'ubuntu22.04-node24.14-v1'
     init-steps: *common-dotnet-init-steps
   universal-large:
     resource-class: 'docker_linux_amd64/large'
