@@ -18,7 +18,7 @@ const runInstall = process.env['NX_CLOUD_INPUT_auto-install']
   ? process.env['NX_CLOUD_INPUT_auto-install'] === 'true'
   : true;
 const miseGhVersion =
-  process.env['NX_CLOUD_INPUT_mise-version'] || 'v2025.12.2';
+  process.env['NX_CLOUD_INPUT_mise-version'] || 'v2026.7.7';
 const installArgs = process.env['NX_CLOUD_INPUT_install-args'] || '';
 
 const MISE_INSTALL_DIR = '$HOME/.local/bin';
