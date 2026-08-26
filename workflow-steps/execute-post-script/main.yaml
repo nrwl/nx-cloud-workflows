@@ -1,0 +1,7 @@
+name: Execute Post Script
+description: Runs a script after the Nx Agents has executed
+
+definition:
+  using: 'node'
+  main: workflow-steps/execute-post-script/main.js
+  post: workflow-steps/execute-post-script/post.js
