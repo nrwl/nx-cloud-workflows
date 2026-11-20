@@ -42,7 +42,8 @@ var import_node_child_process = require("node:child_process");
 var import_promises = require("node:fs/promises");
 var ORIGIN_HOST = "origin.cursor.com";
 var ORIGIN_CREDENTIAL_SCOPE = `https://${ORIGIN_HOST}`;
-var FULL_SHA = /^[a-f0-9]{40}$/i;
+var FULL_SHA = /^[a-f0-9]{40}$/;
+var ORIGIN_BRANCH = /^origin\/(?!refs\/|pull\/).+$/;
 function detectPlatform(repoUrl) {
   if (isOriginUrl(repoUrl)) {
     return "origin";
@@ -71,7 +72,7 @@ function isOriginUrl(repoUrl) {
   }
 }
 function assertOriginInput(commitSha) {
-  if (FULL_SHA.test(commitSha) || /^origin\/.+$/.test(commitSha)) {
+  if (FULL_SHA.test(commitSha) || ORIGIN_BRANCH.test(commitSha)) {
     return;
   }
   throw new GitCheckoutError(

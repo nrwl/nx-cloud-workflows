@@ -1120,6 +1120,9 @@ describe('Git Checkout Utility', () => {
       'refs/tags/v1',
       'merge-requests/7/head',
       'abcdef012345',
+      SHA.toUpperCase(),
+      'origin/refs/pull/7/head',
+      'origin/pull/7/head',
     ])('assertOriginInput rejects %s', (commitSha) => {
       const error = thrown(() => assertOriginInput(commitSha));
       expect(error).toBeInstanceOf(GitCheckoutError);
@@ -1152,6 +1155,22 @@ describe('Git Checkout Utility', () => {
         name: 'push SHA, depth 500',
         commitSha: SHA,
         nxBranch: 'main',
+        depth: 500,
+        filter: '',
+        expected: [
+          '--no-tags',
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--depth=500',
+          'origin',
+          SHA,
+        ],
+      },
+      {
+        name: 'PR merge SHA, depth 500, NX_BRANCH 7',
+        commitSha: SHA,
+        nxBranch: '7',
         depth: 500,
         filter: '',
         expected: [

@@ -28,7 +28,10 @@ type GitPlatform =
 
 const ORIGIN_HOST = 'origin.cursor.com';
 const ORIGIN_CREDENTIAL_SCOPE = `https://${ORIGIN_HOST}`;
-const FULL_SHA = /^[a-f0-9]{40}$/i;
+// Lowercase only: the HEAD check after checkout compares case-sensitively.
+const FULL_SHA = /^[a-f0-9]{40}$/;
+// origin/<branch>, where the branch isn't spelled as a ref (origin/refs/pull/7/head, origin/pull/7/head).
+const ORIGIN_BRANCH = /^origin\/(?!refs\/|pull\/).+$/;
 
 /**
  * Detects git platform from repository URL
@@ -70,7 +73,7 @@ function isOriginUrl(repoUrl: string): boolean {
  * Nx Cloud pinned for a pull request) or a branch. Never a pull request ref.
  */
 export function assertOriginInput(commitSha: string): void {
-  if (FULL_SHA.test(commitSha) || /^origin\/.+$/.test(commitSha)) {
+  if (FULL_SHA.test(commitSha) || ORIGIN_BRANCH.test(commitSha)) {
     return;
   }
   throw new GitCheckoutError(
