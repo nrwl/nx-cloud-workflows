@@ -112,7 +112,7 @@ function explainFetchFailure(platform, commitSha, error) {
   const gitText = `${error.message}
 ${error.originalError?.message ?? ""}`;
   if (platform === "origin" && /not our ref/i.test(gitText)) {
-    return `Origin no longer serves ${commitSha}: the pull request's merge result was replaced after this run started (new push, retarget or reopen). A newer run tests the new merge result.`;
+    return `Origin no longer serves ${commitSha}: it was replaced after this run started (a new push or force-push, or a pull request's merge result rebuilt). A newer run checks out the current commit.`;
   }
   return error.message;
 }

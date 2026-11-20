@@ -1354,7 +1354,7 @@ describe('Git Checkout Utility', () => {
         name: 'origin, not our ref',
         repoUrl: ORIGIN_URL,
         gitText: `fatal: remote error: upload-pack: not our ref ${SHA}`,
-        expected: `Origin no longer serves ${SHA}: the pull request's merge result was replaced after this run started (new push, retarget or reopen). A newer run tests the new merge result.`,
+        expected: `Origin no longer serves ${SHA}: it was replaced after this run started (a new push or force-push, or a pull request's merge result rebuilt). A newer run checks out the current commit.`,
       },
       {
         name: 'origin, authentication error',
