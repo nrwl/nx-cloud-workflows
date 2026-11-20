@@ -86,7 +86,7 @@ function resolveGitAuth(platform, repoUrl, env) {
   const helper = env.NX_CLOUD_GIT_CREDENTIAL_HELPER;
   if (!helper) {
     throw new GitCheckoutError(
-      "NX_CLOUD_GIT_CREDENTIAL_HELPER is required for Origin repositories: the Nx Cloud agent sets it so git gets a fresh token on every call. Origin tokens expire after 15 minutes, so the step does not fall back to the token in GIT_REPOSITORY_URL.",
+      "NX_CLOUD_GIT_CREDENTIAL_HELPER is required for Origin repositories: the Nx Cloud agent sets it so git gets a fresh token on every call. Origin tokens last 15 minutes at most, so the step does not fall back to the token in GIT_REPOSITORY_URL.",
       false
     );
   }

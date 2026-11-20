@@ -84,7 +84,7 @@ type GitAuth =
   | { kind: 'credential-helper'; remoteUrl: string; helper: string };
 
 /**
- * Origin tokens expire after 15 minutes, so an Origin remote carries no token:
+ * Origin tokens last 15 minutes at most, so an Origin remote carries no token:
  * git asks the Nx Cloud agent's credential helper on every call instead.
  * Every other platform keeps the token in the remote URL.
  */
@@ -99,7 +99,7 @@ export function resolveGitAuth(
   const helper = env.NX_CLOUD_GIT_CREDENTIAL_HELPER;
   if (!helper) {
     throw new GitCheckoutError(
-      'NX_CLOUD_GIT_CREDENTIAL_HELPER is required for Origin repositories: the Nx Cloud agent sets it so git gets a fresh token on every call. Origin tokens expire after 15 minutes, so the step does not fall back to the token in GIT_REPOSITORY_URL.',
+      'NX_CLOUD_GIT_CREDENTIAL_HELPER is required for Origin repositories: the Nx Cloud agent sets it so git gets a fresh token on every call. Origin tokens last 15 minutes at most, so the step does not fall back to the token in GIT_REPOSITORY_URL.',
       false,
     );
   }
