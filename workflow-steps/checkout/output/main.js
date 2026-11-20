@@ -20,15 +20,19 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var main_exports = {};
 __export(main_exports, {
   GitCheckoutError: () => GitCheckoutError,
+  assertOriginInput: () => assertOriginInput,
   buildFetchCommand: () => buildFetchCommand,
   classifyError: () => classifyError,
   createRepositoryUrlScrubber: () => createRepositoryUrlScrubber,
   detectPlatform: () => detectPlatform,
   executeGitCommand: () => executeGitCommand,
   executeWithRetry: () => executeWithRetry,
+  explainFetchFailure: () => explainFetchFailure,
   getPullRequestRefs: () => getPullRequestRefs,
+  gitAuthSetupCommands: () => gitAuthSetupCommands,
   isMergeQueueRef: () => isMergeQueueRef,
   isPullRequestRef: () => isPullRequestRef,
+  resolveGitAuth: () => resolveGitAuth,
   scrubRepositoryUrl: () => scrubRepositoryUrl,
   validateEnvironment: () => validateEnvironment,
   writeToNxCloudEnv: () => writeToNxCloudEnv
@@ -36,7 +40,13 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_node_child_process = require("node:child_process");
 var import_promises = require("node:fs/promises");
+var ORIGIN_HOST = "origin.cursor.com";
+var ORIGIN_CREDENTIAL_SCOPE = `https://${ORIGIN_HOST}`;
+var FULL_SHA = /^[a-f0-9]{40}$/i;
 function detectPlatform(repoUrl) {
+  if (isOriginUrl(repoUrl)) {
+    return "origin";
+  }
   const url = repoUrl.toLowerCase();
   if (url.includes("github.com") || url.includes("github.")) {
     return "github";
@@ -51,6 +61,59 @@ function detectPlatform(repoUrl) {
     return "azure";
   }
   return "unknown";
+}
+function isOriginUrl(repoUrl) {
+  try {
+    const url = new URL(repoUrl);
+    return url.protocol === "https:" && url.hostname === ORIGIN_HOST;
+  } catch {
+    return false;
+  }
+}
+function assertOriginInput(commitSha) {
+  if (FULL_SHA.test(commitSha) || /^origin\/.+$/.test(commitSha)) {
+    return;
+  }
+  throw new GitCheckoutError(
+    `Origin checkouts take a full commit SHA or a branch; Nx Cloud pins a pull request's merge result as NX_COMMIT_SHA (got "${commitSha}").`,
+    false
+  );
+}
+function resolveGitAuth(platform, repoUrl, env) {
+  if (platform !== "origin") {
+    return { kind: "url-token", remoteUrl: repoUrl };
+  }
+  const helper = env.NX_CLOUD_GIT_CREDENTIAL_HELPER;
+  if (!helper) {
+    throw new GitCheckoutError(
+      "NX_CLOUD_GIT_CREDENTIAL_HELPER is required for Origin repositories: the Nx Cloud agent sets it so git gets a fresh token on every call. Origin tokens expire after 15 minutes, so the step does not fall back to the token in GIT_REPOSITORY_URL.",
+      false
+    );
+  }
+  const url = new URL(repoUrl);
+  url.username = "";
+  url.password = "";
+  return { kind: "credential-helper", remoteUrl: url.toString(), helper };
+}
+function gitAuthSetupCommands(auth) {
+  const remote = ["remote", "add", "origin", auth.remoteUrl];
+  if (auth.kind === "url-token") {
+    return [remote];
+  }
+  const key = `credential.${ORIGIN_CREDENTIAL_SCOPE}.helper`;
+  return [
+    remote,
+    ["config", "--local", key, ""],
+    ["config", "--local", "--add", key, auth.helper]
+  ];
+}
+function explainFetchFailure(platform, commitSha, error) {
+  const gitText = `${error.message}
+${error.originalError?.message ?? ""}`;
+  if (platform === "origin" && /not our ref/i.test(gitText)) {
+    return `Origin no longer serves ${commitSha}: the pull request's merge result was replaced after this run started (new push, retarget or reopen). A newer run tests the new merge result.`;
+  }
+  return error.message;
 }
 function getPullRequestRefs(platform, prNumber) {
   switch (platform) {
@@ -410,7 +473,16 @@ function buildFetchCommand(config) {
       args.push(`--filter=${config.filter}`);
     }
     args.push("origin", "+refs/heads/*:refs/remotes/origin/*");
-    if (config.nxBranch.match(/^\d+$/) && !isMergeQueueRef(platform, config.commitSha, config.nxBranch)) {
+    if (platform === "origin") {
+      if (FULL_SHA.test(config.commitSha)) {
+        args.push(config.commitSha);
+      }
+    } else if (
+      // Additionally fetch PR/MR refs if we're in a PR context
+      // PR context is detected when nxBranch is a numeric PR/MR number
+      // BUT exclude merge queues which may contain numeric patterns
+      config.nxBranch.match(/^\d+$/) && !isMergeQueueRef(platform, config.commitSha, config.nxBranch)
+    ) {
       const prNumber = config.nxBranch;
       const prRefs = getPullRequestRefs(platform, prNumber);
       args.push(...prRefs);
@@ -433,8 +505,15 @@ function buildFetchCommand(config) {
 }
 async function main() {
   let config;
+  let platform;
+  let auth;
   try {
     config = validateEnvironment();
+    platform = detectPlatform(config.repoUrl);
+    if (platform === "origin") {
+      assertOriginInput(config.commitSha);
+    }
+    auth = resolveGitAuth(platform, config.repoUrl, process.env);
   } catch (error) {
     console.error("Configuration error:", error.message);
     process.exit(1);
@@ -453,6 +532,11 @@ async function main() {
   console.log(`  Create branch: ${config.createBranch}`);
   console.log(`  Timeout: ${config.timeout}ms`);
   console.log(`  Max retries: ${config.maxRetries}`);
+  if (auth.kind === "credential-helper") {
+    console.log(
+      "  Credentials: Nx Cloud agent helper (fresh token per git call)"
+    );
+  }
   if (config.dryRun) {
     console.log("  Mode: DRY RUN");
   }
@@ -471,10 +555,12 @@ async function main() {
       dryRun: config.dryRun
     });
     console.log("Adding remote origin...");
-    await executeGit("remote", ["add", "origin", config.repoUrl], {
-      timeout: config.timeout,
-      dryRun: config.dryRun
-    });
+    for (const [command, ...args] of gitAuthSetupCommands(auth)) {
+      await executeGit(command, args, {
+        timeout: config.timeout,
+        dryRun: config.dryRun
+      });
+    }
     await writeToNxCloudEnv("GIT_REPOSITORY_URL", "");
     console.log("Fetching from remote...");
     const fetchArgs = buildFetchCommand(config);
@@ -536,7 +622,10 @@ async function main() {
     }
   } catch (error) {
     const gitError = error;
-    console.error("Git checkout failed:", gitError.message);
+    console.error(
+      "Git checkout failed:",
+      explainFetchFailure(platform, config.commitSha, gitError)
+    );
     if (gitError.originalError) {
       console.error(
         "Original error:",
@@ -555,15 +644,19 @@ if (require.main === module) {
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   GitCheckoutError,
+  assertOriginInput,
   buildFetchCommand,
   classifyError,
   createRepositoryUrlScrubber,
   detectPlatform,
   executeGitCommand,
   executeWithRetry,
+  explainFetchFailure,
   getPullRequestRefs,
+  gitAuthSetupCommands,
   isMergeQueueRef,
   isPullRequestRef,
+  resolveGitAuth,
   scrubRepositoryUrl,
   validateEnvironment,
   writeToNxCloudEnv

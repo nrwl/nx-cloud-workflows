@@ -9,16 +9,20 @@ import {
 import { spawn } from 'node:child_process';
 import * as fsPromises from 'node:fs/promises';
 import {
+  assertOriginInput,
   buildFetchCommand,
   classifyError,
   createRepositoryUrlScrubber,
   detectPlatform,
   executeGitCommand,
   executeWithRetry,
+  explainFetchFailure,
   GitCheckoutConfig,
   GitCheckoutError,
+  gitAuthSetupCommands,
   isMergeQueueRef,
   isPullRequestRef,
+  resolveGitAuth,
   scrubRepositoryUrl,
   validateEnvironment,
   writeToNxCloudEnv,
@@ -1059,6 +1063,298 @@ describe('Git Checkout Utility', () => {
         'origin',
         '+refs/heads/gh-readonly-queue/main/pr-123-abc123def:refs/remotes/origin/gh-readonly-queue/main/pr-123-abc123def',
       ]);
+    });
+  });
+
+  describe('Origin', () => {
+    const ORIGIN_URL =
+      'https://x-access-token:tok@origin.cursor.com/acme/shop.git';
+    const SHA = '0123456789abcdef0123456789abcdef01234567';
+    const HELPER = '/usr/local/bin/nx-cloud-git-credential';
+    const HELPER_KEY = 'credential.https://origin.cursor.com.helper';
+
+    const thrown = (fn: () => unknown): unknown => {
+      try {
+        fn();
+      } catch (error) {
+        return error;
+      }
+      throw new Error('expected a throw');
+    };
+
+    test.each([
+      { repoUrl: ORIGIN_URL, expected: 'origin' },
+      {
+        repoUrl:
+          'https://x-access-token:tok@origin.cursor.com/acme/acme.github.io.git',
+        expected: 'origin',
+      },
+      {
+        repoUrl: 'https://github.com/acme/origin.cursor.com-mirror.git',
+        expected: 'github',
+      },
+      { repoUrl: 'git@origin.cursor.com:o/r.git', expected: 'unknown' },
+      { repoUrl: 'https://github.com/user/repo.git', expected: 'github' },
+      { repoUrl: 'https://gitlab.com/user/repo.git', expected: 'gitlab' },
+      { repoUrl: 'https://bitbucket.org/user/repo.git', expected: 'bitbucket' },
+      {
+        repoUrl: 'https://dev.azure.com/org/project/_git/repo',
+        expected: 'azure',
+      },
+    ])('detectPlatform($repoUrl) is $expected', ({ repoUrl, expected }) => {
+      expect(detectPlatform(repoUrl)).toBe(expected);
+    });
+
+    test.each([SHA, 'origin/x'])(
+      'assertOriginInput accepts %s',
+      (commitSha) => {
+        expect(() => assertOriginInput(commitSha)).not.toThrow();
+      },
+    );
+
+    test.each([
+      'refs/heads/x',
+      'pull/7/head',
+      'refs/pull/7/head',
+      'pull/7/merge',
+      'refs/tags/v1',
+      'merge-requests/7/head',
+      'abcdef012345',
+    ])('assertOriginInput rejects %s', (commitSha) => {
+      const error = thrown(() => assertOriginInput(commitSha));
+      expect(error).toBeInstanceOf(GitCheckoutError);
+      expect(error).toMatchObject({
+        isRetryable: false,
+        message: expect.stringMatching(
+          /^Origin checkouts take a full commit SHA or a branch/,
+        ),
+      });
+    });
+
+    const originFetchRows = [
+      {
+        name: 'push SHA, depth 1',
+        commitSha: SHA,
+        nxBranch: 'main',
+        depth: 1,
+        filter: '',
+        expected: [
+          '--no-tags',
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--depth=1',
+          'origin',
+          SHA,
+        ],
+      },
+      {
+        name: 'push SHA, depth 500',
+        commitSha: SHA,
+        nxBranch: 'main',
+        depth: 500,
+        filter: '',
+        expected: [
+          '--no-tags',
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--depth=500',
+          'origin',
+          SHA,
+        ],
+      },
+      {
+        name: 'PR merge SHA, depth 1, NX_BRANCH 7',
+        commitSha: SHA,
+        nxBranch: '7',
+        depth: 1,
+        filter: '',
+        expected: [
+          '--no-tags',
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--depth=1',
+          'origin',
+          SHA,
+        ],
+      },
+      {
+        name: 'SHA, depth 1, filter blob:none',
+        commitSha: SHA,
+        nxBranch: 'main',
+        depth: 1,
+        filter: 'blob:none',
+        expected: [
+          '--no-tags',
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--depth=1',
+          '--filter=blob:none',
+          'origin',
+          SHA,
+        ],
+      },
+      {
+        name: 'SHA, depth 0, NX_BRANCH main',
+        commitSha: SHA,
+        nxBranch: 'main',
+        depth: 0,
+        filter: '',
+        expected: [
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--tags',
+          'origin',
+          '+refs/heads/*:refs/remotes/origin/*',
+          SHA,
+        ],
+      },
+      {
+        name: 'SHA, depth 0, numeric NX_BRANCH 123',
+        commitSha: SHA,
+        nxBranch: '123',
+        depth: 0,
+        filter: '',
+        expected: [
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--tags',
+          'origin',
+          '+refs/heads/*:refs/remotes/origin/*',
+          SHA,
+        ],
+      },
+      {
+        name: 'origin/main',
+        commitSha: 'origin/main',
+        nxBranch: 'main',
+        depth: 1,
+        filter: '',
+        expected: [
+          '--no-tags',
+          '--prune',
+          '--progress',
+          '--no-recurse-submodules',
+          '--depth=1',
+          'origin',
+          'main',
+        ],
+      },
+    ];
+
+    const originFetch = ({
+      commitSha,
+      nxBranch,
+      depth,
+      filter,
+    }: (typeof originFetchRows)[number]) =>
+      buildFetchCommand({
+        repoUrl: ORIGIN_URL,
+        commitSha,
+        nxBranch,
+        depth,
+        fetchTags: false,
+        filter,
+        timeout: 300000,
+        maxRetries: 3,
+        dryRun: false,
+        createBranch: false,
+      });
+
+    test.each(originFetchRows)('fetch: $name', (row) => {
+      expect(originFetch(row)).toEqual(row.expected);
+    });
+
+    test('fetch never asks Origin for a refs/pull ref', () => {
+      for (const row of originFetchRows) {
+        expect(
+          originFetch(row).filter((arg) => arg.includes('refs/pull')),
+        ).toEqual([]);
+      }
+    });
+
+    test.each([
+      {
+        name: 'origin with helper',
+        repoUrl: ORIGIN_URL,
+        env: { NX_CLOUD_GIT_CREDENTIAL_HELPER: HELPER },
+        expected: [
+          [
+            'remote',
+            'add',
+            'origin',
+            'https://origin.cursor.com/acme/shop.git',
+          ],
+          ['config', '--local', HELPER_KEY, ''],
+          ['config', '--local', '--add', HELPER_KEY, HELPER],
+        ],
+      },
+      {
+        name: 'origin without helper',
+        repoUrl: ORIGIN_URL,
+        env: {},
+        expected: 'throws',
+      },
+      {
+        name: 'github with helper',
+        repoUrl: 'https://x-access-token:tok@github.com/acme/shop.git',
+        env: { NX_CLOUD_GIT_CREDENTIAL_HELPER: HELPER },
+        expected: [
+          [
+            'remote',
+            'add',
+            'origin',
+            'https://x-access-token:tok@github.com/acme/shop.git',
+          ],
+        ],
+      },
+    ])('git auth setup: $name', ({ repoUrl, env, expected }) => {
+      const setup = () =>
+        gitAuthSetupCommands(
+          resolveGitAuth(detectPlatform(repoUrl), repoUrl, env),
+        );
+      if (expected === 'throws') {
+        const error = thrown(setup);
+        expect(error).toBeInstanceOf(GitCheckoutError);
+        expect(error).toMatchObject({
+          isRetryable: false,
+          message: expect.stringContaining('NX_CLOUD_GIT_CREDENTIAL_HELPER'),
+        });
+      } else {
+        expect(setup()).toEqual(expected);
+      }
+    });
+
+    test.each([
+      {
+        name: 'origin, not our ref',
+        repoUrl: ORIGIN_URL,
+        gitText: `fatal: remote error: upload-pack: not our ref ${SHA}`,
+        expected: `Origin no longer serves ${SHA}: the pull request's merge result was replaced after this run started (new push, retarget or reopen). A newer run tests the new merge result.`,
+      },
+      {
+        name: 'origin, authentication error',
+        repoUrl: ORIGIN_URL,
+        gitText: 'fatal: Authentication failed',
+        expected:
+          'Authentication error during git fetch: fatal: Authentication failed',
+      },
+      {
+        name: 'github, not our ref',
+        repoUrl: 'https://github.com/acme/shop.git',
+        gitText: `fatal: remote error: upload-pack: not our ref ${SHA}`,
+        expected: `Git fetch failed: fatal: remote error: upload-pack: not our ref ${SHA}`,
+      },
+    ])('explainFetchFailure: $name', ({ repoUrl, gitText, expected }) => {
+      const error = classifyError(new Error(gitText), 'fetch');
+      expect(explainFetchFailure(detectPlatform(repoUrl), SHA, error)).toBe(
+        expected,
+      );
     });
   });
 
